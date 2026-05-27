@@ -8,14 +8,17 @@ The goal is not to produce a giant production system. The goal is to see how you
 
 Build an agent that navigates the streets of Bhelupur, locating and classifying poles of interest.
 
+Therer are 5 poles on the map, and the agent should be able to, in one run, locate and classify all of them.
+
 Target pole types:
 
-- Utility pole: low tension
-- Utility pole: distribution transformer
-- Lamp post
-- Billboard pole
+- Distribution transformer: Two pole structure, with a large transformer between the two poles.
+- Lamp post: Single pole structure, with a lamp on the top.
+- Billboard pole: Single pole structure, with a billboard on the top.
+- Low Tension pole: low tension: Single pole structure, with a low tension wire running through the pole.
 
-The starter app provides a Bhelupur panorama viewer, map context, and sample pole metadata. You can use this as the demo surface, as a debugging tool, or as a base for an agent loop.
+At any point in time, the agent should be bound to a single panorama, and is not allowed to move between panoramas that are further away than 20 meters. 
+With that being said, the connectivity of the panoramas is not fixed; in fact, rewiring them to improve ease of mobility is recommended.
 
 ## Recommended Design
 

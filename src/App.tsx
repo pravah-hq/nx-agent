@@ -46,7 +46,8 @@ const LOOK_SHIFT_MULTIPLIER = 2;
 const LOOK_KEYS = new Set(["arrowleft", "arrowright", "arrowup", "arrowdown", "a", "d", "w", "s"]);
 const DEFAULT_HFOV_DEG = 100;
 const VIEW_SHED_RADIUS_M = 42;
-const POLE_MARKER_COLOR = "#f59e0b";
+const SELECTED_POLE_MARKER_COLOR = "#22c55e";
+const POLE_MARKER_COLOR = "#64748b";
 const ACTIVE_PANO_COLOR = "#38bdf8";
 
 const MAP_TYPES = [
@@ -622,15 +623,15 @@ function MapPanel({
       ).addTo(layers);
     }
 
-    const visiblePoles = activePole ? [activePole] : [];
-    for (const pole of visiblePoles) {
+    for (const pole of data.poles.features) {
+      const isActive = pole.properties.track_id === activePole?.properties.track_id;
       const [lon, lat] = pole.geometry.coordinates;
       L.circleMarker([lat, lon], {
-        radius: 11,
-        color: "#ffffff",
-        weight: 3,
-        fillColor: POLE_MARKER_COLOR,
-        fillOpacity: 0.95,
+        radius: isActive ? 11 : 6,
+        color: isActive ? "#ffffff" : POLE_MARKER_COLOR,
+        weight: isActive ? 3 : 2,
+        fillColor: isActive ? SELECTED_POLE_MARKER_COLOR : "#f8fafc",
+        fillOpacity: isActive ? 0.95 : 0.78,
       })
         .bindTooltip(pole.properties.pole_id)
         .addTo(layers);
