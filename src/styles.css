@@ -106,7 +106,7 @@ select {
 
 .viewer-pane {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   gap: 12px;
   padding: 16px;
 }
@@ -201,6 +201,51 @@ select {
 .step-controls button:disabled {
   cursor: not-allowed;
   opacity: 0.38;
+}
+
+.neighbor-controls {
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+}
+
+.neighbor-controls .eyebrow {
+  margin: 0 0 8px;
+}
+
+.neighbor-empty {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.neighbor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.neighbor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.neighbor-chip span:last-child {
+  color: #475569;
+  font-size: 12px;
+}
+
+.neighbor-chip:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
 }
 
 .detail-row {

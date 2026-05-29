@@ -3,6 +3,8 @@ dist/
 *.tsbuildinfo
 .env
 .DS_Store
+.cache/
+vlm-traces/
 
 data/*
 !data/.gitkeep

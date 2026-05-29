@@ -39,7 +39,7 @@ type LoadedData = {
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
 const STEP_ALIGNMENT_MAX_DEG = 45;
-const LONG_SESSION_EDGES_TO_REWIRE = 2;
+const PANO_PROXIMITY_MAX_M = 20;
 const LOOK_YAW_DEG_PER_SECOND = 340;
 const LOOK_PITCH_DEG_PER_SECOND = 240;
 const LOOK_SHIFT_MULTIPLIER = 2;
@@ -165,204 +165,23 @@ function orderPanos(panos: Pano[]): Pano[] {
   });
 }
 
-type SessionRoute = { sessionId: string; panos: Pano[] };
-type EndpointSide = "first" | "last";
-type PanoEdge = { from: Pano; to: Pano; kind: "session" | "connector" };
-
-function sessionEndpoint(panos: Pano[], side: EndpointSide): Pano {
-  return side === "first" ? panos[0] : panos[panos.length - 1];
-}
-
-function oppositeSide(side: EndpointSide): EndpointSide {
-  return side === "first" ? "last" : "first";
-}
-
-function sessionRoutes(panos: Pano[]): SessionRoute[] {
-  const sessions = new Map<string, Pano[]>();
-  for (const pano of panos) {
-    sessions.set(pano.sessionId, [...(sessions.get(pano.sessionId) ?? []), pano]);
-  }
-  return [...sessions.entries()].map(([sessionId, panos]) => ({ sessionId, panos }));
-}
-
-function sessionBridgeEdges(sessions: SessionRoute[]): PanoEdge[] {
-  if (sessions.length <= 1) return [];
-  const sides: EndpointSide[] = ["first", "last"];
-  let bestPair:
-    | {
-        a: SessionRoute;
-        b: SessionRoute;
-        aSide: EndpointSide;
-        bSide: EndpointSide;
-        distance: number;
-      }
-    | null = null;
-
-  for (let i = 0; i < sessions.length; i += 1) {
-    for (let j = i + 1; j < sessions.length; j += 1) {
-      for (const aSide of sides) {
-        for (const bSide of sides) {
-          const distance = distanceM(sessionEndpoint(sessions[i].panos, aSide), sessionEndpoint(sessions[j].panos, bSide));
-          if (!bestPair || distance < bestPair.distance) {
-            bestPair = { a: sessions[i], b: sessions[j], aSide, bSide, distance };
-          }
-        }
-      }
-    }
-  }
-
-  if (!bestPair) return [];
-
-  const used = new Set([bestPair.a.sessionId, bestPair.b.sessionId]);
-  const bridges: PanoEdge[] = [
-    {
-      from: sessionEndpoint(bestPair.a.panos, bestPair.aSide),
-      to: sessionEndpoint(bestPair.b.panos, bestPair.bSide),
-      kind: "connector",
-    },
-  ];
-  let left = { session: bestPair.a, side: oppositeSide(bestPair.aSide) };
-  let right = { session: bestPair.b, side: oppositeSide(bestPair.bSide) };
-
-  while (used.size < sessions.length) {
-    let bestAttach:
-      | {
-          session: SessionRoute;
-          side: EndpointSide;
-          at: "left" | "right";
-          distance: number;
-        }
-      | null = null;
-
-    for (const session of sessions) {
-      if (used.has(session.sessionId)) continue;
-      for (const side of sides) {
-        const endpoint = sessionEndpoint(session.panos, side);
-        const leftDistance = distanceM(endpoint, sessionEndpoint(left.session.panos, left.side));
-        if (!bestAttach || leftDistance < bestAttach.distance) {
-          bestAttach = { session, side, at: "left", distance: leftDistance };
-        }
-        const rightDistance = distanceM(sessionEndpoint(right.session.panos, right.side), endpoint);
-        if (!bestAttach || rightDistance < bestAttach.distance) {
-          bestAttach = { session, side, at: "right", distance: rightDistance };
-        }
-      }
-    }
-
-    if (!bestAttach) break;
-    used.add(bestAttach.session.sessionId);
-    if (bestAttach.at === "left") {
-      bridges.push({
-        from: sessionEndpoint(bestAttach.session.panos, bestAttach.side),
-        to: sessionEndpoint(left.session.panos, left.side),
-        kind: "connector",
-      });
-      left = { session: bestAttach.session, side: oppositeSide(bestAttach.side) };
-    } else {
-      bridges.push({
-        from: sessionEndpoint(right.session.panos, right.side),
-        to: sessionEndpoint(bestAttach.session.panos, bestAttach.side),
-        kind: "connector",
-      });
-      right = { session: bestAttach.session, side: oppositeSide(bestAttach.side) };
-    }
-  }
-
-  return bridges;
-}
+type PanoEdge = { from: Pano; to: Pano; kind: "proximity" };
 
 function addNeighbor(neighbors: Map<string, Pano[]>, a: Pano, b: Pano) {
   if (!neighbors.get(a.id)?.some((pano) => pano.id === b.id)) neighbors.get(a.id)?.push(b);
   if (!neighbors.get(b.id)?.some((pano) => pano.id === a.id)) neighbors.get(b.id)?.push(a);
 }
 
-function edgeKey(edge: PanoEdge): string {
-  return [edge.from.id, edge.to.id].sort().join("|");
-}
-
-function edgeDistance(edge: PanoEdge): number {
-  return distanceM(edge.from, edge.to);
-}
-
-function graphComponents(panos: Pano[], edges: PanoEdge[]): Array<{ panos: Pano[]; endpoints: Pano[] }> {
-  const panoById = new Map(panos.map((pano) => [pano.id, pano]));
-  const neighbors = new Map(panos.map((pano) => [pano.id, [] as string[]]));
-  for (const edge of edges) {
-    neighbors.get(edge.from.id)?.push(edge.to.id);
-    neighbors.get(edge.to.id)?.push(edge.from.id);
-  }
-
-  const seen = new Set<string>();
-  const components: Array<{ panos: Pano[]; endpoints: Pano[] }> = [];
-  for (const start of panos) {
-    if (seen.has(start.id)) continue;
-    const stack = [start.id];
-    const component: Pano[] = [];
-    seen.add(start.id);
-
-    while (stack.length) {
-      const id = stack.pop();
-      if (!id) continue;
-      const pano = panoById.get(id);
-      if (!pano) continue;
-      component.push(pano);
-      for (const neighborId of neighbors.get(id) ?? []) {
-        if (!seen.has(neighborId)) {
-          seen.add(neighborId);
-          stack.push(neighborId);
-        }
-      }
-    }
-
-    components.push({
-      panos: component,
-      endpoints: component.filter((pano) => (neighbors.get(pano.id)?.length ?? 0) < 2),
-    });
-  }
-  return components;
-}
-
-function reconnectComponents(panos: Pano[], edges: PanoEdge[]): PanoEdge[] {
-  const connected = [...edges];
-  let components = graphComponents(panos, connected);
-  while (components.length > 1) {
-    let best: { from: Pano; to: Pano; distance: number } | null = null;
-    for (let i = 0; i < components.length; i += 1) {
-      for (let j = i + 1; j < components.length; j += 1) {
-        for (const from of components[i].endpoints) {
-          for (const to of components[j].endpoints) {
-            const distance = distanceM(from, to);
-            if (!best || distance < best.distance) best = { from, to, distance };
-          }
-        }
-      }
-    }
-    if (!best) break;
-    connected.push({ from: best.from, to: best.to, kind: "connector" });
-    components = graphComponents(panos, connected);
-  }
-  return connected;
-}
-
 function buildPanoEdges(panos: Pano[]): PanoEdge[] {
-  const sessions = sessionRoutes(panos);
-  const sessionEdges: PanoEdge[] = [];
-  for (const session of sessions) {
-    for (let i = 0; i < session.panos.length - 1; i += 1) {
-      sessionEdges.push({ from: session.panos[i], to: session.panos[i + 1], kind: "session" });
+  const edges: PanoEdge[] = [];
+  for (let i = 0; i < panos.length; i += 1) {
+    for (let j = i + 1; j < panos.length; j += 1) {
+      if (distanceM(panos[i], panos[j]) <= PANO_PROXIMITY_MAX_M) {
+        edges.push({ from: panos[i], to: panos[j], kind: "proximity" });
+      }
     }
   }
-  const rewiredKeys = new Set(
-    [...sessionEdges]
-      .sort((a, b) => edgeDistance(b) - edgeDistance(a))
-      .slice(0, LONG_SESSION_EDGES_TO_REWIRE)
-      .map(edgeKey),
-  );
-  const edges = [
-    ...sessionEdges.filter((edge) => !rewiredKeys.has(edgeKey(edge))),
-    ...sessionBridgeEdges(sessions),
-  ];
-  return reconnectComponents(panos, edges);
+  return edges;
 }
 
 function buildPanoNeighbors(panos: Pano[]): Map<string, Pano[]> {
@@ -537,6 +356,7 @@ function MapPanel({
   activePole,
   yawDeg,
   hfovDeg,
+  reachableNeighborIds,
   onPanoSelect,
 }: {
   data: LoadedData;
@@ -544,6 +364,7 @@ function MapPanel({
   activePole: PoleFeature | null;
   yawDeg: number;
   hfovDeg: number;
+  reachableNeighborIds: Set<string>;
   onPanoSelect: (id: string) => void;
 }) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
@@ -616,9 +437,8 @@ function MapPanel({
         ],
         {
           color: isActiveEdge ? ACTIVE_PANO_COLOR : "#cbd5e1",
-          dashArray: edge.kind === "connector" && !isActiveEdge ? "4 5" : undefined,
-          opacity: isActiveEdge ? 0.95 : edge.kind === "connector" ? 0.7 : 0.45,
-          weight: isActiveEdge ? 3 : edge.kind === "connector" ? 2 : 1.4,
+          opacity: isActiveEdge ? 0.95 : 0.5,
+          weight: isActiveEdge ? 3 : 1.4,
         },
       ).addTo(layers);
     }
@@ -639,15 +459,18 @@ function MapPanel({
 
     for (const pano of data.manifest.panoramas) {
       const isActive = pano.id === activePano?.id;
+      const isReachable = isActive || reachableNeighborIds.has(pano.id);
       L.circleMarker([pano.lat, pano.lon], {
-        radius: isActive ? 7 : 4,
-        color: isActive ? ACTIVE_PANO_COLOR : "#0f172a",
-        weight: isActive ? 3 : 1,
-        fillColor: isActive ? "#e0f2fe" : "#ffffff",
-        fillOpacity: isActive ? 1 : 0.82,
+        radius: isActive ? 7 : isReachable ? 5 : 4,
+        color: isActive ? ACTIVE_PANO_COLOR : isReachable ? "#0369a1" : "#94a3b8",
+        weight: isActive ? 3 : isReachable ? 2 : 1,
+        fillColor: isActive ? "#e0f2fe" : isReachable ? "#ffffff" : "#f1f5f9",
+        fillOpacity: isActive ? 1 : isReachable ? 0.9 : 0.45,
       })
-        .bindTooltip(compactId(pano.id))
-        .on("click", () => onPanoSelectRef.current(pano.id))
+        .bindTooltip(isReachable ? compactId(pano.id) : `${compactId(pano.id)} (>${PANO_PROXIMITY_MAX_M} m)`)
+        .on("click", () => {
+          if (isReachable) onPanoSelectRef.current(pano.id);
+        })
         .addTo(layers);
     }
 
@@ -661,7 +484,7 @@ function MapPanel({
       if (bounds.isValid()) map.fitBounds(bounds.pad(0.18), { maxZoom: 18 });
       fitOnceRef.current = true;
     }
-  }, [activePano, activePole, data, mapReady, panoEdges]);
+  }, [activePano, activePole, data, mapReady, panoEdges, reachableNeighborIds]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -775,6 +598,20 @@ export function App() {
   );
   const forwardStep = useMemo(() => stepForBearing(worldYaw), [stepForBearing, worldYaw]);
   const backwardStep = useMemo(() => stepForBearing(normalizeDeg(worldYaw + 180)), [stepForBearing, worldYaw]);
+  const reachableNeighborIds = useMemo(
+    () => new Set((panoNeighbors.get(activePanoId ?? "") ?? []).map((pano) => pano.id)),
+    [activePanoId, panoNeighbors],
+  );
+  const reachableNeighbors = useMemo(() => {
+    if (!activePano) return [];
+    return (panoNeighbors.get(activePano.id) ?? [])
+      .map((pano) => ({
+        pano,
+        distM: distanceM(activePano, pano),
+        bearing: bearingDeg(activePano, pano),
+      }))
+      .sort((a, b) => a.distM - b.distM || a.pano.id.localeCompare(b.pano.id));
+  }, [activePano, panoNeighbors]);
 
   const navigateTo = useCallback(
     (target: Pano | null) => {
@@ -815,13 +652,8 @@ export function App() {
           activePole={activePole}
           yawDeg={worldYaw}
           hfovDeg={viewerHfov}
-          onPanoSelect={(id) => {
-            const pano = panoById.get(id);
-            if (!pano) return;
-            setInitialYaw(0);
-            setViewerYaw(0);
-            setActivePanoId(id);
-          }}
+          reachableNeighborIds={reachableNeighborIds}
+          onPanoSelect={(id) => navigateTo(panoById.get(id) ?? null)}
         />
         <div className="map-summary">
           <strong>Bhelupur</strong>
@@ -858,6 +690,28 @@ export function App() {
               ↑
             </button>
           </div>
+        </div>
+
+        <div className="neighbor-controls" aria-label="Nearby panoramas within 20 m">
+          <p className="eyebrow">Within {PANO_PROXIMITY_MAX_M} m</p>
+          {reachableNeighbors.length === 0 ? (
+            <span className="neighbor-empty">No linked panoramas from this node.</span>
+          ) : (
+            <div className="neighbor-list">
+              {reachableNeighbors.map(({ pano, distM, bearing }) => (
+                <button
+                  key={pano.id}
+                  type="button"
+                  className="neighbor-chip"
+                  onClick={() => navigateTo(pano)}
+                  title={`${Math.round(bearing)}° · ${distM.toFixed(1)} m`}
+                >
+                  <span>{compactId(pano.id)}</span>
+                  <span>{distM.toFixed(0)} m</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <footer className="detail-row">

@@ -6,7 +6,7 @@ from pathlib import Path
 from agent.action_parse import parse_action_response
 from agent.environment import World
 from agent.policy import Policy
-from agent.model_client import VlmClientProtocol, build_vlm_client
+from agent.model_client import VlmClient
 from agent.prompts import allowed_actions, build_vlm_prompt
 from agent.types import Action, ActionType, AgentState, PoleGuess, PoleType
 from agent.views import render_direction_crop
@@ -22,7 +22,7 @@ class VlmPolicy(Policy):
         parse_retries: int = 2,
         fallback_type: PoleType = "lamp_post",
     ) -> None:
-        self.client = client or build_vlm_client()
+        self.client = client or VlmClient()
         self.parse_retries = parse_retries
         self.fallback_type = fallback_type
         self.last_prompt: str = ""

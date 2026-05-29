@@ -1,2 +1,1 @@
-# Local agent CLI (stdlib + optional remote VLM client)
-requests>=2.31.0
+# Agent CLI uses Python 3.11+ stdlib only (install requirements-vlm.txt on the GPU VM for --policy vlm).

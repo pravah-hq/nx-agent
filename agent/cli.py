@@ -161,27 +161,11 @@ def run_interactive(world: World, start_pano: str | None) -> int:
 
 
 def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
-    import os
-
-    from agent.model_client import RemoteVlmClient
     from agent.vlm_policy import VlmPolicy
 
     if not isinstance(policy, VlmPolicy):
         print("probe requires --policy vlm", file=sys.stderr)
         return 1
-
-    client = policy.client
-    remote_url = os.environ.get("VLM_REMOTE_URL", "").strip()
-    if remote_url:
-        print(f"Remote VLM: {remote_url}", flush=True)
-        if isinstance(client, RemoteVlmClient):
-            try:
-                health = client.health()
-                print(f"Server health: {health}", flush=True)
-            except RuntimeError as err:
-                print(f"Warning: {err}", file=sys.stderr)
-    else:
-        print("Local VLM (model loads on this machine).", flush=True)
 
     state = world.initial_state(start_pano)
     poles_in_view = world.poles_in_view(state)
@@ -189,7 +173,7 @@ def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
 
     state = apply_consideration(state, world, policy, poles_in_view)
     print_observation(world, state, poles_in_view)
-    print("\nCalling VLM and running one step...", flush=True)
+    print("\nLoading VLM on this machine and running one step...", flush=True)
     action = policy.choose(world, state, poles_in_view)
     print(f"\nimage: {policy.last_image}")
     print(f"action: {action.type.value} pole_type={action.pole_type} stop_after={action.stop_after}")
@@ -230,13 +214,7 @@ def main(argv: list[str] | None = None) -> int:
         policy = build_policy(args)
         loop = AgentLoop(world, policy=policy)
         if args.policy == "vlm":
-            import os
-
-            remote = os.environ.get("VLM_REMOTE_URL", "").strip()
-            if remote:
-                print(f"VLM policy: remote inference at {remote}", flush=True)
-            else:
-                print("VLM policy: local inference on this machine (see docs/GCP_VLM.md).", flush=True)
+            print("VLM policy: agent and model run on this machine (see docs/GCP_VLM.md).", flush=True)
         final, history = loop.run(state, max_steps=args.max_steps, json_obs=args.json)
         print(f"\nFinished after {len(history)} steps. Classified {len(final.classified)}/{len(world.poles)}.")
         for track_id, pole_type in final.classified.items():

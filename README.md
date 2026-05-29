@@ -100,6 +100,33 @@ make backend
 make frontend
 ```
 
+## Agent CLI
+
+Python agent with discrete state: current pano, direction bin (12 × 30°), poles in view, and pole guess. Actions: `turn_left`, `turn_right`, `move` (aligned neighbor within 20 m), `classify_or_stop`.
+
+Requires `data/metadata/panoramas.json` and `data/metadata/poles.geojson` (see Data Setup).
+
+```bash
+python -m agent state
+python -m agent interactive
+python -m agent run --policy stub --max-steps 200
+python -m agent step move --start-pano "<pano id>"
+```
+
+**VLM on a GCP GPU VM** (agent + model on the same machine):
+
+```bash
+pip install -r requirements-agent.txt -r requirements-vlm.txt
+# + CUDA PyTorch — see docs/GCP_VLM.md
+python -m agent probe
+python -m agent run --policy vlm --max-steps 50
+```
+
+Set `VLM_DRY_RUN=1` to test the pipeline without loading the model. See [docs/GCP_VLM.md](docs/GCP_VLM.md).
+
+- `--policy stub` — graph planner + placeholder labels (no GPU).
+- `--policy vlm` — crop view + Qwen chooses each action on this machine.
+
 ## Notes
 
 AI tooling is table stakes. Use it as much as you want.

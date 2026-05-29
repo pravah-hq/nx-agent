@@ -1,21 +1,11 @@
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
-from typing import Protocol
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
 
-class VlmClientProtocol(Protocol):
-    dry_run: bool
-
-    def complete(self, prompt: str, image_path: Path) -> str: ...
-
-
-class LocalVlmClient:
-    """Load Qwen3-VL on this machine (use on GCP GPU VM)."""
+class VlmClient:
+    """Lazy-loaded Qwen3-VL on this machine (run agent + VLM together on GCP GPU VM)."""
 
     def __init__(
         self,
@@ -55,7 +45,10 @@ class LocalVlmClient:
 
     def complete(self, prompt: str, image_path: Path) -> str:
         if self.dry_run:
-            return _dry_run_response()
+            return (
+                '{"action":"turn_right","pole_type":null,"stop_after":false,'
+                '"reason":"dry run — no model loaded"}'
+            )
 
         if not image_path.is_file():
             raise FileNotFoundError(f"VLM image not found: {image_path}")
@@ -95,92 +88,3 @@ class LocalVlmClient:
             clean_up_tokenization_spaces=False,
         )
         return decoded[0].strip()
-
-
-class RemoteVlmClient:
-    """HTTP client: agent runs locally, inference on GCP VLM server."""
-
-    def __init__(
-        self,
-        base_url: str | None = None,
-        *,
-        api_key: str | None = None,
-        timeout_s: int | None = None,
-        dry_run: bool | None = None,
-    ) -> None:
-        remote = base_url or os.environ.get("VLM_REMOTE_URL", "").strip()
-        if not remote:
-            raise ValueError("VLM_REMOTE_URL is required for RemoteVlmClient")
-        self.base_url = remote.rstrip("/")
-        self.api_key = api_key if api_key is not None else os.environ.get("VLM_API_KEY", "")
-        self.timeout_s = timeout_s or int(os.environ.get("VLM_REMOTE_TIMEOUT", "300"))
-        env_dry = os.environ.get("VLM_DRY_RUN", "").lower() in {"1", "true", "yes"}
-        self.dry_run = dry_run if dry_run is not None else env_dry
-
-    def health(self) -> dict:
-        return self._get_json("/health")
-
-    def complete(self, prompt: str, image_path: Path) -> str:
-        if self.dry_run:
-            return _dry_run_response()
-
-        if not image_path.is_file():
-            raise FileNotFoundError(f"VLM image not found: {image_path}")
-
-        try:
-            import requests
-        except ImportError as err:
-            raise ImportError(
-                "Remote VLM client needs `requests`. Install: pip install requests"
-            ) from err
-
-        headers = {}
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
-
-        with image_path.open("rb") as handle:
-            response = requests.post(
-                f"{self.base_url}/v1/complete",
-                data={"prompt": prompt},
-                files={"image": (image_path.name, handle, "image/jpeg")},
-                headers=headers,
-                timeout=self.timeout_s,
-            )
-        response.raise_for_status()
-        payload = response.json()
-        text = payload.get("text")
-        if not isinstance(text, str):
-            raise RuntimeError(f"Invalid VLM server response: {payload}")
-        return text.strip()
-
-    def _get_json(self, path: str) -> dict:
-        headers = {}
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
-        request = Request(f"{self.base_url}{path}", headers=headers)
-        try:
-            with urlopen(request, timeout=min(self.timeout_s, 30)) as response:
-                return json.loads(response.read().decode("utf-8"))
-        except HTTPError as err:
-            body = err.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"VLM server HTTP {err.code}: {body}") from err
-        except URLError as err:
-            raise RuntimeError(f"VLM server unreachable at {self.base_url}: {err}") from err
-
-
-def _dry_run_response() -> str:
-    return (
-        '{"action":"turn_right","pole_type":null,"stop_after":false,'
-        '"reason":"dry run — no model call"}'
-    )
-
-
-def build_vlm_client(**kwargs) -> VlmClientProtocol:
-    """Local GPU if VLM_REMOTE_URL unset; else HTTP to remote server."""
-    if os.environ.get("VLM_REMOTE_URL", "").strip():
-        return RemoteVlmClient(**kwargs)
-    return LocalVlmClient(**kwargs)
-
-
-# Back-compat alias
-VlmClient = LocalVlmClient
