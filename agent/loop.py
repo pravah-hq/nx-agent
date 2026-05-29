@@ -26,6 +26,9 @@ class AgentLoop:
 
         before = state.copy()
         after, message = self.world.apply_action(state, action)
+        record_step = getattr(self.policy, "record_step", None)
+        if callable(record_step):
+            record_step(before, action, after)
         record = StepRecord(
             step=0,
             action=action,
@@ -64,6 +67,9 @@ class AgentLoop:
             action = self.policy.choose(self.world, current, poles_in_view)
             before = current.copy()
             current, message = self.world.apply_action(current, action)
+            record_step = getattr(self.policy, "record_step", None)
+            if callable(record_step):
+                record_step(before, action, current)
 
             record = StepRecord(
                 step=step_index,

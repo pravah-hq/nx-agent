@@ -14,10 +14,16 @@ def build_map_navigation_prompt(
     poles_in_view: list[PoleInView],
     *,
     allowed_actions: list[str],
+    blocked_move_targets: list[str] | None = None,
 ) -> str:
     payload = state_to_json(world, state, poles_in_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
     payload["neighbor_pano_ids"] = neighbors
+    if blocked_move_targets:
+        payload["blocked_move_targets"] = blocked_move_targets
+        payload["allowed_move_targets"] = [
+            n for n in neighbors if n not in blocked_move_targets
+        ]
     payload["allowed_actions"] = allowed_actions
     payload["pole_types"] = list(POLE_TYPES)
     payload["map_legend"] = {
@@ -32,6 +38,7 @@ def build_map_navigation_prompt(
         "Use the MAP IMAGE to decide where to go and which way to face.",
         "Do not use geographic shortest-path on coordinates alone; use the map layout.",
         "move requires target_pano_id from neighbor_pano_ids only.",
+        "Do not move to any id in blocked_move_targets (immediate backtrack).",
         "Do NOT classify from this step. Use assess_classify when you want to check the street view.",
         "classify_or_stop is NOT allowed in this step.",
     ]

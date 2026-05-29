@@ -37,6 +37,7 @@ def parse_navigation_response(
     *,
     allowed: list[str] | None = None,
     neighbor_ids: list[str] | None = None,
+    blocked_move_targets: frozenset[str] | None = None,
 ) -> tuple[Action | None, bool]:
     """Returns (action, wants_assess). wants_assess True when action is assess_classify."""
     payload = extract_json_object(text)
@@ -70,6 +71,8 @@ def parse_navigation_response(
         if not target_pano_id:
             return None, False
         if neighbor_ids is not None and target_pano_id not in neighbor_ids:
+            return None, False
+        if blocked_move_targets and target_pano_id in blocked_move_targets:
             return None, False
 
     return Action(type=action_type, target_pano_id=target_pano_id), False

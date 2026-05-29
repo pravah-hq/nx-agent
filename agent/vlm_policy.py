@@ -8,6 +8,11 @@ from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
 from agent.map_render import render_map_image
+from agent.navigation import (
+    allowed_move_targets,
+    backtrack_blocked_ids,
+    pick_forward_neighbor,
+)
 from agent.policy import Policy
 from agent.prompts import (
     build_classify_assessment_prompt,
@@ -39,6 +44,7 @@ class VlmPolicy(Policy):
         self.last_map_image: Path | None = None
         self.last_street_image: Path | None = None
         self.last_phase: str = ""
+        self._last_pano_id: str | None = None
 
     def reset(self) -> None:
         self.last_prompt = ""
@@ -46,6 +52,14 @@ class VlmPolicy(Policy):
         self.last_map_image = None
         self.last_street_image = None
         self.last_phase = ""
+        self._last_pano_id = None
+
+    def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
+        if (
+            action.type == ActionType.MOVE
+            and before.pano_id != after.pano_id
+        ):
+            self._last_pano_id = before.pano_id
 
     def choose(self, world: World, state: AgentState, poles_in_view) -> Action:
         if world.is_task_complete(state):
@@ -95,8 +109,15 @@ class VlmPolicy(Policy):
         self.last_phase = "map_navigation"
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
+        blocked = backtrack_blocked_ids(self._last_pano_id)
         legal = navigation_allowed_actions(world, state)
-        prompt = build_map_navigation_prompt(world, state, poles_in_view, allowed_actions=legal)
+        prompt = build_map_navigation_prompt(
+            world,
+            state,
+            poles_in_view,
+            allowed_actions=legal,
+            blocked_move_targets=sorted(blocked) if blocked else None,
+        )
         self.last_prompt = prompt
 
         last_error = ""
@@ -107,16 +128,30 @@ class VlmPolicy(Policy):
                     f"\n\nPrevious reply invalid ({last_error}). JSON only. "
                     f"Allowed: {', '.join(legal)}. move needs target_pano_id from neighbors."
                 )
+                if blocked:
+                    extra += (
+                        f" Do not move to blocked_move_targets: "
+                        f"{', '.join(sorted(blocked))}."
+                    )
             raw = self.client.complete_images(prompt + extra, [map_path])
             self.last_response = raw
             action, assess = parse_navigation_response(
-                raw, allowed=legal, neighbor_ids=neighbors
+                raw,
+                allowed=legal,
+                neighbor_ids=neighbors,
+                blocked_move_targets=blocked,
             )
             if assess:
                 return None, True
             if action is not None:
                 return action, False
             last_error = "could not parse navigation JSON"
+            if blocked and "move" in legal:
+                last_error = "invalid action or backtrack move to previous pano"
+
+        fallback = pick_forward_neighbor(world, state, neighbors, blocked)
+        if fallback:
+            return Action(type=ActionType.MOVE, target_pano_id=fallback), False
         return None, False
 
     def _assess_street_view(
