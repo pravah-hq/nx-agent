@@ -1,0 +1,9 @@
+# Install on GCP GPU VM only (VLM server + CUDA). Also install PyTorch with CUDA from https://pytorch.org
+pillow>=10.0.0
+accelerate>=0.34.0
+transformers>=4.57.0
+qwen-vl-utils>=0.0.14
+torch>=2.4.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.9
