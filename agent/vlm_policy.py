@@ -67,6 +67,11 @@ class VlmPolicy(Policy):
 
         self._ensure_target_pole(world, state)
 
+        if self._target_pole_in_view(state, poles_in_view):
+            action = self._assess_street_view(world, state, poles_in_view)
+            self._maybe_trace(state)
+            return action
+
         nav_action, assess = self._navigate_from_map(world, state, poles_in_view)
         self._maybe_trace(state)
         if assess:
@@ -78,6 +83,12 @@ class VlmPolicy(Policy):
             return nav_action
 
         return Action(type=ActionType.TURN_RIGHT)
+
+    def _target_pole_in_view(self, state: AgentState, poles_in_view) -> bool:
+        track_id = state.pole_in_consideration
+        if not track_id or track_id in state.classified:
+            return False
+        return any(p.track_id == track_id for p in poles_in_view)
 
     def _ensure_target_pole(self, world: World, state: AgentState) -> None:
         if state.pole_in_consideration and state.pole_in_consideration not in state.classified:
