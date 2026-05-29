@@ -175,7 +175,9 @@ def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
     print_observation(world, state, poles_in_view)
     print("\nLoading VLM on this machine and running one step...", flush=True)
     action = policy.choose(world, state, poles_in_view)
-    print(f"\nimage: {policy.last_image}")
+    print(f"\nmap image: {getattr(policy, 'last_map_image', None)}")
+    print(f"street image: {getattr(policy, 'last_street_image', None)}")
+    print(f"phase: {getattr(policy, 'last_phase', None)}")
     print(f"action: {action.type.value} pole_type={action.pole_type} stop_after={action.stop_after}")
     print(f"\nmodel response:\n{policy.last_response}")
     return 0

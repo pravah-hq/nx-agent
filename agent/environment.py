@@ -110,6 +110,12 @@ class World:
             return next_state, "Turned right."
 
         if action.type == ActionType.MOVE:
+            neighbor_ids = get_neighbors(self.neighbor_map, state.pano_id)
+            if action.target_pano_id:
+                if action.target_pano_id not in neighbor_ids:
+                    return state, "Move rejected: target is not a neighbor within 20 m."
+                next_state.pano_id = action.target_pano_id
+                return next_state, f"Moved to {action.target_pano_id}."
             candidates = self.neighbor_panos_for_move(state)
             if not candidates:
                 return state, "Move rejected: no neighbor within view alignment."

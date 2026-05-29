@@ -125,7 +125,7 @@ python -m agent run --policy vlm --max-steps 50
 Set `VLM_DRY_RUN=1` to test the pipeline without loading the model. See [docs/GCP_VLM.md](docs/GCP_VLM.md).
 
 - `--policy stub` — graph planner + placeholder labels (no GPU).
-- `--policy vlm` — crop view + Qwen chooses each action on this machine.
+- `--policy vlm` — map screenshot for navigation; street-view crop + `view_clear` gate before classify (GPU on VM).
 
 ## Notes
 

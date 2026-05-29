@@ -101,6 +101,8 @@ class Action:
     # For classify_or_stop: set pole_type to classify; omit to only stop the run.
     pole_type: PoleType | None = None
     stop_after: bool = False
+    # For move: VLM picks a neighbor pano id from the map (must be within 20 m).
+    target_pano_id: str | None = None
 
 
 @dataclass

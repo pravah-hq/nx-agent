@@ -44,28 +44,30 @@ class VlmClient:
             print("VLM loaded (no CUDA detected — inference will be slow)", flush=True)
 
     def complete(self, prompt: str, image_path: Path) -> str:
+        return self.complete_images(prompt, [image_path])
+
+    def complete_images(self, prompt: str, image_paths: list[Path]) -> str:
         if self.dry_run:
             return (
                 '{"action":"turn_right","pole_type":null,"stop_after":false,'
+                '"target_pano_id":null,"view_clear":false,'
                 '"reason":"dry run — no model loaded"}'
             )
 
-        if not image_path.is_file():
-            raise FileNotFoundError(f"VLM image not found: {image_path}")
+        for path in image_paths:
+            if not path.is_file():
+                raise FileNotFoundError(f"VLM image not found: {path}")
 
         self._load()
         assert self._model is not None
         assert self._processor is not None
 
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "image": str(image_path.resolve())},
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ]
+        content: list[dict] = []
+        for path in image_paths:
+            content.append({"type": "image", "image": str(path.resolve())})
+        content.append({"type": "text", "text": prompt})
+
+        messages = [{"role": "user", "content": content}]
 
         inputs = self._processor.apply_chat_template(
             messages,

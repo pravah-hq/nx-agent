@@ -51,6 +51,7 @@ cd ~/nx-agent
 
 python -m agent state
 python -m agent probe
+python -m agent probe   # shows map image path, phase, action
 python -m agent run --policy vlm --max-steps 50
 python -m agent run --policy stub --max-steps 200   # no GPU, fast planner
 ```

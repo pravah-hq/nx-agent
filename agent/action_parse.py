@@ -32,6 +32,49 @@ def extract_json_object(text: str) -> dict[str, Any] | None:
     return None
 
 
+def parse_navigation_response(
+    text: str,
+    *,
+    allowed: list[str] | None = None,
+    neighbor_ids: list[str] | None = None,
+) -> tuple[Action | None, bool]:
+    """Returns (action, wants_assess). wants_assess True when action is assess_classify."""
+    payload = extract_json_object(text)
+    if not payload:
+        return None, False
+
+    raw_action = str(payload.get("action", "")).strip().lower()
+    if raw_action in {"classify_or_stop", "classify"}:
+        return None, False
+
+    if raw_action == "assess_classify":
+        if allowed and "assess_classify" not in allowed:
+            return None, False
+        return None, True
+
+    try:
+        action_type = ActionType(raw_action)
+    except ValueError:
+        return None, False
+
+    if allowed and action_type.value not in allowed:
+        return None, False
+
+    target_pano_id = payload.get("target_pano_id")
+    if target_pano_id is not None and str(target_pano_id).lower() in {"null", "none", ""}:
+        target_pano_id = None
+    else:
+        target_pano_id = str(target_pano_id) if target_pano_id else None
+
+    if action_type == ActionType.MOVE:
+        if not target_pano_id:
+            return None, False
+        if neighbor_ids is not None and target_pano_id not in neighbor_ids:
+            return None, False
+
+    return Action(type=action_type, target_pano_id=target_pano_id), False
+
+
 def parse_action_response(
     text: str,
     *,
