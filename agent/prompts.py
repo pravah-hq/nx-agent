@@ -15,6 +15,9 @@ def build_map_navigation_prompt(
     *,
     allowed_actions: list[str],
     blocked_move_targets: list[str] | None = None,
+    neighbor_moves: list[dict] | None = None,
+    goal_pano_id: str | None = None,
+    planned_next_hop: str | None = None,
 ) -> str:
     payload = state_to_json(world, state, poles_in_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
@@ -25,21 +28,36 @@ def build_map_navigation_prompt(
             n for n in neighbors if n not in blocked_move_targets
         ]
     payload["allowed_actions"] = allowed_actions
+    if neighbor_moves is not None:
+        payload["neighbor_moves"] = neighbor_moves
+    if goal_pano_id:
+        from agent.targeting import pano_compact_id
+
+        payload["goal_view_pano_id"] = goal_pano_id
+        payload["goal_view_pano_label"] = pano_compact_id(goal_pano_id)
+    if planned_next_hop:
+        from agent.targeting import pano_compact_id
+
+        payload["planned_next_hop"] = planned_next_hop
+        payload["planned_next_hop_label"] = pano_compact_id(planned_next_hop)
     payload["pole_types"] = list(POLE_TYPES)
     payload["map_legend"] = {
-        "blue_dot": "current panorama",
-        "light_dots": "reachable neighbors (within 20 m)",
-        "orange": "target pole in consideration",
-        "green": "other poles",
-        "gray": "already classified",
-        "wedge": "current viewing direction",
+        "blue_dot": "you (current pano)",
+        "yellow_ring": "planned next pano hop",
+        "light_dots": "neighbors reachable by move (20 m edges)",
+        "gray_lines": "pano graph edges (move only along edges to light dots)",
+        "orange": "target pole to find",
+        "green": "other unclassified poles",
+        "gray": "classified poles",
+        "wedge": "viewing direction",
     }
     payload["rules"] = [
-        "Use the MAP IMAGE to decide where to go and which way to face.",
-        "Do not use geographic shortest-path on coordinates alone; use the map layout.",
-        "move requires target_pano_id from neighbor_pano_ids only.",
-        "Do not move to any id in blocked_move_targets (immediate backtrack).",
-        "Do NOT classify from this step. Use assess_classify when you want to check the street view.",
+        "The map is a LOCAL zoom around you; gray lines are the only valid move links.",
+        "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
+        "Prefer neighbor_moves where recommended_next_hop is true, or lower distance_to_target_pole_m.",
+        "Do not move to blocked_move_targets (immediate backtrack).",
+        "Navigate toward goal_view_pano_id along the graph, not across empty map space.",
+        "Do NOT classify from this step; assess_classify is automatic when the target pole is in poles_in_view.",
         "classify_or_stop is NOT allowed in this step.",
     ]
     return (

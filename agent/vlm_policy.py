@@ -9,10 +9,11 @@ from agent.graph import get_neighbors
 from agent.model_client import VlmClient
 from agent.map_render import render_map_image
 from agent.navigation import (
-    allowed_move_targets,
     backtrack_blocked_ids,
-    pick_forward_neighbor,
+    build_neighbor_move_options,
+    pick_planned_neighbor,
 )
+from agent.targeting import next_path_hop, plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
 from agent.prompts import (
     build_classify_assessment_prompt,
@@ -45,6 +46,8 @@ class VlmPolicy(Policy):
         self.last_street_image: Path | None = None
         self.last_phase: str = ""
         self._last_pano_id: str | None = None
+        self._goal_pano_id: str | None = None
+        self._nav_path: list[str] = []
 
     def reset(self) -> None:
         self.last_prompt = ""
@@ -53,6 +56,8 @@ class VlmPolicy(Policy):
         self.last_street_image = None
         self.last_phase = ""
         self._last_pano_id = None
+        self._goal_pano_id = None
+        self._nav_path = []
 
     def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
         if (
@@ -60,12 +65,16 @@ class VlmPolicy(Policy):
             and before.pano_id != after.pano_id
         ):
             self._last_pano_id = before.pano_id
+            if self._nav_path and after.pano_id == self._nav_path[0]:
+                self._nav_path = self._nav_path[1:]
+            if after.pano_id == self._goal_pano_id:
+                self._nav_path = []
 
     def choose(self, world: World, state: AgentState, poles_in_view) -> Action:
         if world.is_task_complete(state):
             return Action(type=ActionType.CLASSIFY_OR_STOP, stop_after=True)
 
-        self._ensure_target_pole(world, state)
+        self._ensure_navigation_plan(world, state)
 
         if self._target_pole_in_view(state, poles_in_view):
             action = self._assess_street_view(world, state, poles_in_view)
@@ -90,23 +99,20 @@ class VlmPolicy(Policy):
             return False
         return any(p.track_id == track_id for p in poles_in_view)
 
-    def _ensure_target_pole(self, world: World, state: AgentState) -> None:
-        if state.pole_in_consideration and state.pole_in_consideration not in state.classified:
-            return
-        pano = world.panos_by_id[state.pano_id]
-        best_track: str | None = None
-        best_dist = float("inf")
-        from agent.geo import distance_m
+    def _ensure_navigation_plan(self, world: World, state: AgentState) -> None:
+        track = state.pole_in_consideration
+        if not track or track in state.classified:
+            track = select_target_pole(world, state)
+            if track:
+                state.pole_in_consideration = track
+            else:
+                self._goal_pano_id = None
+                self._nav_path = []
+                return
 
-        for pole in world.poles:
-            if pole.track_id in state.classified:
-                continue
-            dist = distance_m(pano.lat, pano.lon, pole.lat, pole.lon)
-            if dist < best_dist:
-                best_dist = dist
-                best_track = pole.track_id
-        if best_track:
-            state.pole_in_consideration = best_track
+        goal, path = plan_mission_to_pole(world, state, track)
+        self._goal_pano_id = goal
+        self._nav_path = path[1:] if path else []
 
     def _navigate_from_map(
         self,
@@ -114,7 +120,13 @@ class VlmPolicy(Policy):
         state: AgentState,
         poles_in_view,
     ) -> tuple[Action | None, bool]:
-        map_path = render_map_image(world, state, poles_in_view)
+        map_path = render_map_image(
+            world,
+            state,
+            poles_in_view,
+            goal_pano_id=self._goal_pano_id,
+            nav_path=self._nav_path,
+        )
         self.last_map_image = map_path
         self.last_street_image = None
         self.last_phase = "map_navigation"
@@ -122,12 +134,22 @@ class VlmPolicy(Policy):
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
         blocked = backtrack_blocked_ids(self._last_pano_id)
         legal = navigation_allowed_actions(world, state)
+        full_path = [state.pano_id, *self._nav_path] if self._nav_path else [state.pano_id]
         prompt = build_map_navigation_prompt(
             world,
             state,
             poles_in_view,
             allowed_actions=legal,
             blocked_move_targets=sorted(blocked) if blocked else None,
+            neighbor_moves=build_neighbor_move_options(
+                world,
+                state,
+                neighbors,
+                blocked,
+                nav_path=full_path,
+            ),
+            goal_pano_id=self._goal_pano_id,
+            planned_next_hop=next_path_hop(full_path),
         )
         self.last_prompt = prompt
 
@@ -160,7 +182,14 @@ class VlmPolicy(Policy):
             if blocked and "move" in legal:
                 last_error = "invalid action or backtrack move to previous pano"
 
-        fallback = pick_forward_neighbor(world, state, neighbors, blocked)
+        full_path = [state.pano_id, *self._nav_path] if self._nav_path else [state.pano_id]
+        fallback = pick_planned_neighbor(
+            world,
+            state,
+            neighbors,
+            blocked,
+            nav_path=full_path,
+        )
         if fallback:
             return Action(type=ActionType.MOVE, target_pano_id=fallback), False
         return None, False
@@ -249,18 +278,7 @@ def apply_vlm_consideration(
     if track_id and track_id in next_state.classified:
         track_id = None
     if not track_id:
-        pano = world.panos_by_id[next_state.pano_id]
-        from agent.geo import distance_m
-
-        best: tuple[float, str] | None = None
-        for pole in world.poles:
-            if pole.track_id in next_state.classified:
-                continue
-            dist = distance_m(pano.lat, pano.lon, pole.lat, pole.lon)
-            if best is None or dist < best[0]:
-                best = (dist, pole.track_id)
-        if best:
-            track_id = best[1]
+        track_id = select_target_pole(world, next_state)
     if not track_id:
         return next_state
 
