@@ -30,9 +30,9 @@ POLE_TYPE_GUIDE: dict[PoleType, str] = {
         "(rectangular panel), not just a light fixture."
     ),
     "low_tension_pole": (
-        "ONE ordinary utility pole with low-tension distribution wires "
-        "(multiple small lines along the pole / cross-arm). No billboard, "
-        "no street lamp as primary feature, not a two-pole transformer setup."
+        "ONE ordinary utility pole with clearly visible low-tension distribution wires "
+        "(multiple small lines along the pole / cross-arm). Use ONLY when lamp, "
+        "billboard, and two-pole transformer setups are ruled out — never as a default."
     ),
 }
 
@@ -83,8 +83,8 @@ def build_map_navigation_prompt(
     }
     payload["rules"] = [
         DUAL_IMAGE_GUIDE["use_both"],
-        "target_pole_in_clear_view was set for pole_in_consideration only (not your action).",
-        "If target_pole_in_clear_view is true, the agent classifies that target automatically.",
+        "target_pole_in_clear_view means VLM judged the target unambiguously identifiable (not your action).",
+        "If true, the agent classifies using that type; you only navigate when false.",
         "MAP (image 1): choose move along gray lines to light neighbor dots only.",
         "STREET VIEW (image 2): decide if you should turn to find the orange target pole.",
         "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
@@ -155,17 +155,32 @@ def build_pole_in_clear_view_prompt(
             "Target is not in the current viewshed cone yet; "
             "pole_in_clear_view should be false unless you clearly see that pole anyway."
         )
+    payload["pole_type_definitions"] = POLE_TYPE_GUIDE
+    payload["allowed_pole_types"] = list(POLE_TYPES)
     return (
         "You receive TWO images: (1) MAP — orange dot = TARGET pole "
         "(2) STREET VIEW — current facing.\n\n"
-        f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n"
-        "Set pole_in_clear_view=true only for THIS target pole when it is visible and "
-        "clear enough to classify (readable structure, not a different pole).\n"
-        "If only other poles are visible, use false.\n\n"
+        f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
+        "Set pole_in_clear_view=true ONLY when ALL hold:\n"
+        "1) The visible structure is the TARGET pole (not another pole).\n"
+        "2) You can identify its type UNAMBIGUOUSLY as exactly ONE of the four types below.\n"
+        "3) You are NOT guessing low_tension_pole because it is a generic utility pole — "
+        "rule out lamp_post (street light on top), billboard_pole (sign board), "
+        "and distribution_transformer (two poles + large transformer between) first.\n\n"
+        "Use false / unambiguous_identifiable false when:\n"
+        "- Target not visible, too small, or occluded\n"
+        "- A different pole is clearer than the target\n"
+        "- Two or more types could fit (ambiguous)\n"
+        "- Only generic pole visible without distinctive features\n\n"
+        "Definitions:\n"
+        + "\n".join(f"- {key}: {desc}" for key, desc in POLE_TYPE_GUIDE.items())
+        + "\n\n"
         "Reply JSON only:\n"
         '{"pole_in_clear_view":true|false,'
+        '"unambiguous_identifiable":true|false,'
+        f'"identifiable_pole_type":"one of {list(POLE_TYPES)} or null",'
         f'"confirmed_target_pole_id":"{pole.pole_id if pole else "null"}" or null,'
-        '"reason":"short"}\n\n'
+        '"reason":"why type is unambiguous or why not"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -194,7 +209,9 @@ def build_pole_type_classification_prompt(
         "clearly on top of a single pole.\n"
         "- distribution_transformer needs TWO poles + transformer between.\n"
         "- billboard_pole needs a sign/board, not just a lamp.\n"
-        "- low_tension_pole is a plain utility pole with small LT wires, none of the above.\n"
+        "- low_tension_pole: ONLY if clearly a plain utility pole with LT wires and "
+        "NOT a lamp, billboard, or transformer setup.\n"
+        "- If ambiguous, use confidence low and do NOT use low_tension_pole as a guess.\n"
         "Reply JSON only:\n"
         '{"classified_pole_id":"must equal target pole_id",'
         '"pole_type":"distribution_transformer|lamp_post|billboard_pole|low_tension_pole",'

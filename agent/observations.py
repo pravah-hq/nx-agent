@@ -26,7 +26,7 @@ def format_state(
         f"pano: {pano.id}",
         f"direction: {bin_label(state.direction_bin)} (world yaw {view_yaw:.1f} deg)",
         f"pole_in_consideration: {target or 'none'} ({target_pole_id})",
-        f"target_pole_in_clear_view: {pole_in_clear_view}",
+        f"target_pole_in_clear_view: {pole_in_clear_view} (unambiguous type identifiable)",
         f"pole_guess: {_format_guess(state)}",
         f"classified: {len(state.classified)}/{len(world.poles)}",
         f"neighbors ({len(neighbors)}): {', '.join(_compact_id(n) for n in neighbors[:6])}"

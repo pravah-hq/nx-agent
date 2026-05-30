@@ -47,6 +47,7 @@ class VlmPolicy(Policy):
         self.last_street_image: Path | None = None
         self.last_phase: str = ""
         self.last_pole_in_clear_view: bool = False
+        self.last_identifiable_pole_type: PoleType | None = None
         self._last_pano_id: str | None = None
         self._goal_pano_id: str | None = None
         self._nav_path: list[str] = []
@@ -62,6 +63,7 @@ class VlmPolicy(Policy):
         self.last_street_image = None
         self.last_phase = ""
         self.last_pole_in_clear_view = False
+        self.last_identifiable_pole_type = None
         self._last_pano_id = None
         self._goal_pano_id = None
         self._nav_path = []
@@ -83,11 +85,11 @@ class VlmPolicy(Policy):
         self._invalidate_cache()
 
     def observe(self, world: World, state: AgentState) -> bool:
-        """VLM street-view check: is the target pole in clear view to classify?"""
+        """VLM: target pole unambiguously identifiable as one pole type?"""
         self._ensure_navigation_plan(world, state)
         map_path, street_path = self._render_dual_observation(world, state)
         self.last_phase = "pole_in_clear_view"
-        clear, prompt, raw = evaluate_pole_in_clear_view(
+        clear, pole_type, prompt, raw = evaluate_pole_in_clear_view(
             self.client,
             world,
             state,
@@ -98,6 +100,7 @@ class VlmPolicy(Policy):
         self.last_prompt = prompt
         self.last_response = raw
         self.last_pole_in_clear_view = clear
+        self.last_identifiable_pole_type = pole_type if clear else None
         return clear
 
     def choose(self, world: World, state: AgentState, pole_in_clear_view: bool) -> Action:
@@ -108,9 +111,11 @@ class VlmPolicy(Policy):
         map_path, street_path = self._render_dual_observation(world, state)
 
         if pole_in_clear_view:
-            pole_type = self._classify_pole_type(
-                world, state, map_path, street_path, pole_in_clear_view=True
-            )
+            pole_type = self.last_identifiable_pole_type
+            if pole_type is None:
+                pole_type = self._classify_pole_type(
+                    world, state, map_path, street_path, pole_in_clear_view=True
+                )
             self._maybe_trace(state)
             if pole_type is None:
                 return Action(type=ActionType.TURN_RIGHT)

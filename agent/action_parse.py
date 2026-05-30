@@ -72,24 +72,47 @@ def parse_navigation_response(
     return Action(type=action_type, target_pano_id=target_pano_id)
 
 
+def _truthy(value) -> bool:
+    return value in (True, "true", "True", 1, "1")
+
+
 def parse_pole_in_clear_view_response(
     text: str,
     *,
     expected_pole_id: str,
-    geometric_sight=None,
-) -> tuple[bool | None, str]:
+) -> tuple[bool | None, PoleType | None, str]:
+    """
+    clear true only when target is confirmed AND type is unambiguously one of POLE_TYPES.
+    Returns (clear, identifiable_pole_type, error).
+    """
     from agent.pole_ids import pole_ids_match
-    from agent.sight import geometric_sight_clear
 
     payload = extract_json_object(text)
     if not payload:
-        return None, "no JSON"
-    if "pole_in_clear_view" not in payload:
-        return None, "missing pole_in_clear_view"
+        return None, None, "no JSON"
 
-    clear = payload.get("pole_in_clear_view") in (True, "true", "True", 1, "1")
-    if not clear:
-        return False, ""
+    unambiguous = _truthy(payload.get("unambiguous_identifiable", False))
+    raw_clear = _truthy(payload.get("pole_in_clear_view", False))
+
+    raw_type = payload.get("identifiable_pole_type") or payload.get("pole_type")
+    pole_type: PoleType | None = None
+    if raw_type is not None and str(raw_type).lower() not in {"null", "none", ""}:
+        candidate = str(raw_type).strip().lower()
+        if candidate not in POLE_TYPES:
+            return False, None, f"invalid identifiable_pole_type {candidate}"
+        pole_type = candidate  # type: ignore[assignment]
+
+    if not raw_clear and not unambiguous:
+        return False, None, ""
+
+    if not unambiguous or pole_type is None:
+        if raw_clear or unambiguous:
+            return (
+                False,
+                None,
+                "unambiguous_identifiable and identifiable_pole_type required for clear view",
+            )
+        return False, None, ""
 
     confirmed = (
         payload.get("confirmed_target_pole_id")
@@ -100,15 +123,15 @@ def parse_pole_in_clear_view_response(
         if not pole_ids_match(str(confirmed), expected_pole_id):
             return (
                 False,
+                None,
                 f"confirmed id {confirmed} is not target {expected_pole_id}",
             )
-        return True, ""
 
-    # VLM said true but omitted id — accept if geometry shows target in cone close enough.
-    if geometric_sight_clear(geometric_sight):
-        return True, ""
+    reason = str(payload.get("reason", "")).lower()
+    if any(word in reason for word in ("ambiguous", "uncertain", "multiple types", "not sure")):
+        return False, None, "reason indicates ambiguity"
 
-    return False, "pole_in_clear_view true but target not corroborated"
+    return True, pole_type, ""
 
 
 def parse_action_response(
@@ -166,6 +189,16 @@ def parse_pole_type_response(
     if classified_id is not None and str(classified_id).lower() not in {"null", "none", ""}:
         if not pole_ids_match(str(classified_id), expected_pole_id):
             return None, f"classified_pole_id {classified_id} != target {expected_pole_id}"
+
+    if candidate == "low_tension_pole":
+        conf = str(payload.get("confidence", "")).lower()
+        reason = str(payload.get("reason", "")).lower()
+        if conf == "low" or (
+            "wire" not in reason
+            and "tension" not in reason
+            and "lt " not in reason
+        ):
+            return None, "low_tension_pole requires high confidence or wire evidence"
 
     return candidate, ""  # type: ignore[return-value]
 

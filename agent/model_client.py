@@ -49,11 +49,13 @@ class VlmClient:
     def complete_images(self, prompt: str, image_paths: list[Path]) -> str:
         if self.dry_run:
             lower = prompt.lower()
-            if "pole_in_consideration" in lower and "confirmed_target_pole_id" in lower:
+            if "unambiguous_identifiable" in lower or "identifiable_pole_type" in lower:
                 return (
                     '{"pole_in_clear_view":false,'
+                    '"unambiguous_identifiable":false,'
+                    '"identifiable_pole_type":null,'
                     '"confirmed_target_pole_id":null,'
-                    '"reason":"dry run"}'
+                    '"reason":"dry run — not unambiguous"}'
                 )
             if "pole_in_clear_view" in lower and "pole_type_definitions" not in lower:
                 return '{"pole_in_clear_view":false,"reason":"dry run clear view"}'

@@ -6,15 +6,10 @@ from agent.action_parse import parse_pole_in_clear_view_response
 from agent.environment import World
 from agent.model_client import VlmClient
 from agent.prompts import build_pole_in_clear_view_prompt
-from agent.sight import (
-    geometric_sight_clear,
-    target_pole_primary_in_viewshed,
-)
-from agent.types import AgentState, PoleInView
+from agent.types import AgentState, PoleInView, PoleType
 
 
 def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
-    """Target pole (pole_in_consideration) in the 100° cone within 42 m viewshed."""
     track = state.pole_in_consideration
     if not track:
         return None
@@ -22,11 +17,8 @@ def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
 
 
 def geometric_pole_in_clear_view(world: World, state: AgentState) -> bool:
-    """Stub: target in viewshed and close enough to classify."""
-    sight = target_pole_sight(world, state)
-    if sight is None:
-        return False
-    return geometric_sight_clear(sight)
+    """Stub only: geometry does not prove unambiguous type — always false for VLM path."""
+    return False
 
 
 def evaluate_pole_in_clear_view(
@@ -37,18 +29,18 @@ def evaluate_pole_in_clear_view(
     street_path: Path,
     *,
     parse_retries: int = 2,
-) -> tuple[bool, str, str]:
+) -> tuple[bool, PoleType | None, str, str]:
     """
-    VLM: is pole_in_consideration in clear view (not any pole).
-    No hard block when target is outside viewshed — VLM may still say false.
+    VLM decides if the TARGET pole is unambiguously identifiable as one pole type.
+    Returns (clear, identifiable_pole_type, prompt, raw_response).
     """
     track = state.pole_in_consideration
     if not track or track in state.classified:
-        return False, "", ""
+        return False, None, "", ""
 
     pole = world.poles_by_track.get(track)
     if not pole:
-        return False, "", ""
+        return False, None, "", ""
 
     sight = target_pole_sight(world, state)
     prompt = build_pole_in_clear_view_prompt(world, state, target_sight=sight)
@@ -60,52 +52,22 @@ def evaluate_pole_in_clear_view(
         extra = ""
         if attempt > 0:
             extra = (
-                f"\n\nInvalid ({last_error}). JSON: "
-                f'{{"pole_in_clear_view":bool,"confirmed_target_pole_id":"{expected_id}"|null,"reason":"..."}}'
+                f"\n\nInvalid ({last_error}). When unambiguous, reply with "
+                f"pole_in_clear_view true, unambiguous_identifiable true, "
+                f'identifiable_pole_type one of the four types, '
+                f'confirmed_target_pole_id "{expected_id}". '
+                "If unsure between types, all must be false/null."
             )
         full_prompt = prompt + extra
         raw = client.complete_images(full_prompt, [map_path, street_path])
         last_raw = raw
-        clear, err = parse_pole_in_clear_view_response(
+        clear, pole_type, err = parse_pole_in_clear_view_response(
             raw,
             expected_pole_id=expected_id,
-            geometric_sight=sight,
         )
         if err:
             last_error = err
             continue
-        if clear:
-            return True, full_prompt, raw
+        return bool(clear), pole_type, full_prompt, raw
 
-        # Target is in the viewshed cone but VLM said false — one simpler retry.
-        if geometric_sight_clear(sight) and attempt == 0:
-            retry_prompt = (
-                f"The target pole {expected_id} is in the viewshed at "
-                f"{sight.distance_m:.0f} m, {sight.angle_from_view_deg:.0f} deg from view center. "
-                "Look at STREET VIEW (image 2). If that pole is visible and classifiable, "
-                f'reply {{"pole_in_clear_view":true,"confirmed_target_pole_id":"{expected_id}","reason":"..."}}. '
-                "Otherwise false.\n"
-            )
-            raw2 = client.complete_images(retry_prompt, [map_path, street_path])
-            last_raw = raw2
-            clear2, err2 = parse_pole_in_clear_view_response(
-                raw2,
-                expected_pole_id=expected_id,
-                geometric_sight=sight,
-            )
-            if not err2 and clear2:
-                return True, retry_prompt, raw2
-
-        last_error = "pole_in_clear_view is false"
-        continue
-
-    # VLM said false or failed to parse — allow geometry only for the target pole.
-    if target_pole_primary_in_viewshed(world, state):
-        return (
-            True,
-            prompt,
-            last_raw
-            or '{"pole_in_clear_view":true,"reason":"target primary in viewshed"}',
-        )
-
-    return False, prompt, last_raw
+    return False, None, prompt, last_raw
