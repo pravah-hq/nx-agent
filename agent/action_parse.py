@@ -76,8 +76,10 @@ def parse_pole_in_clear_view_response(
     text: str,
     *,
     expected_pole_id: str,
+    geometric_sight=None,
 ) -> tuple[bool | None, str]:
     from agent.pole_ids import pole_ids_match
+    from agent.sight import geometric_sight_clear
 
     payload = extract_json_object(text)
     if not payload:
@@ -94,20 +96,19 @@ def parse_pole_in_clear_view_response(
         or payload.get("visible_pole_id")
         or payload.get("pole_id")
     )
-    if confirmed is None or str(confirmed).lower() in {"null", "none", ""}:
-        return False, "pole_in_clear_view true requires confirmed_target_pole_id"
+    if confirmed is not None and str(confirmed).lower() not in {"null", "none", ""}:
+        if not pole_ids_match(str(confirmed), expected_pole_id):
+            return (
+                False,
+                f"confirmed id {confirmed} is not target {expected_pole_id}",
+            )
+        return True, ""
 
-    if not pole_ids_match(str(confirmed), expected_pole_id):
-        return (
-            False,
-            f"confirmed_target_pole_id {confirmed} != target {expected_pole_id}",
-        )
+    # VLM said true but omitted id — accept if geometry shows target in cone close enough.
+    if geometric_sight_clear(geometric_sight):
+        return True, ""
 
-    other = payload.get("other_pole_clearer")
-    if other in (True, "true", "True", 1, "1"):
-        return False, "another pole is clearer than the target"
-
-    return True, ""
+    return False, "pole_in_clear_view true but target not corroborated"
 
 
 def parse_action_response(
@@ -162,10 +163,9 @@ def parse_pole_type_response(
         return None, f"invalid pole_type {candidate}"
 
     classified_id = payload.get("classified_pole_id") or payload.get("pole_id")
-    if classified_id is None or str(classified_id).lower() in {"null", "none", ""}:
-        return None, "missing classified_pole_id"
-    if not pole_ids_match(str(classified_id), expected_pole_id):
-        return None, f"classified_pole_id {classified_id} != target {expected_pole_id}"
+    if classified_id is not None and str(classified_id).lower() not in {"null", "none", ""}:
+        if not pole_ids_match(str(classified_id), expected_pole_id):
+            return None, f"classified_pole_id {classified_id} != target {expected_pole_id}"
 
     return candidate, ""  # type: ignore[return-value]
 

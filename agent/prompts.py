@@ -147,31 +147,25 @@ def build_pole_in_clear_view_prompt(
             payload["target_pole"]["angle_from_view_deg"] = round(
                 target_sight.angle_from_view_deg, 1
             )
-    other_poles = [
-        p.pole_id
-        for p in world.poles
-        if p.track_id != state.pole_in_consideration
-        and p.track_id not in state.classified
-    ]
-    payload["other_unclassified_pole_ids"] = other_poles
+    if target_sight:
+        payload["geometric_target_in_viewshed"] = True
+    else:
+        payload["geometric_target_in_viewshed"] = False
+        payload["hint"] = (
+            "Target is not in the current viewshed cone yet; "
+            "pole_in_clear_view should be false unless you clearly see that pole anyway."
+        )
     return (
-        "You receive TWO images: (1) MAP — orange dot is the TARGET pole only "
+        "You receive TWO images: (1) MAP — orange dot = TARGET pole "
         "(2) STREET VIEW — current facing.\n\n"
-        f"TARGET pole (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n"
-        "pole_in_clear_view means: the TARGET pole (not another pole) is in clear view.\n\n"
-        "pole_in_clear_view=true ONLY when ALL are true:\n"
-        "- The structure at the orange map location / target bearing is visible in street view\n"
-        "- That visible structure is the TARGET pole, not a different nearby pole\n"
-        "- Clear enough to classify type (not tiny, not mostly occluded)\n\n"
-        "pole_in_clear_view=false if:\n"
-        "- A different pole is clearer than the target\n"
-        "- Only non-target poles are visible\n"
-        "- Target direction is empty or target is too small/occluded\n\n"
+        f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n"
+        "Set pole_in_clear_view=true only for THIS target pole when it is visible and "
+        "clear enough to classify (readable structure, not a different pole).\n"
+        "If only other poles are visible, use false.\n\n"
         "Reply JSON only:\n"
         '{"pole_in_clear_view":true|false,'
-        f'"confirmed_target_pole_id":"{pole.pole_id if pole else "POLE_XXXXXX"} or null",'
-        '"other_pole_clearer":false,'
-        '"reason":"which pole you see and why it is/is not the target"}\n\n'
+        f'"confirmed_target_pole_id":"{pole.pole_id if pole else "null"}" or null,'
+        '"reason":"short"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 
