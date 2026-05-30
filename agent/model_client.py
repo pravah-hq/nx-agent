@@ -48,9 +48,16 @@ class VlmClient:
 
     def complete_images(self, prompt: str, image_paths: list[Path]) -> str:
         if self.dry_run:
+            lower = prompt.lower()
+            if "view_clear" in lower and "pole_type_definitions" not in lower:
+                return '{"view_clear":true,"reason":"dry run visibility"}'
+            if "pole_type_definitions" in lower or "classify the target pole" in lower:
+                return (
+                    '{"pole_type":"distribution_transformer",'
+                    '"confidence":"low","reason":"dry run type pass"}'
+                )
             return (
-                '{"action":"turn_right","pole_type":null,"stop_after":false,'
-                '"target_pano_id":null,"view_clear":false,'
+                '{"action":"turn_right","target_pano_id":null,'
                 '"reason":"dry run — no model loaded"}'
             )
 

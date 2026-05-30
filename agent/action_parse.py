@@ -110,3 +110,26 @@ def parse_action_response(
         stop_after = False
 
     return Action(type=action_type, pole_type=pole_type, stop_after=stop_after)
+
+
+def parse_pole_type_response(text: str) -> tuple[PoleType | None, str]:
+    payload = extract_json_object(text)
+    if not payload:
+        return None, "no JSON"
+    raw_type = payload.get("pole_type")
+    if raw_type is None or str(raw_type).lower() in {"null", "none", ""}:
+        return None, "missing pole_type"
+    candidate = str(raw_type).strip().lower()
+    if candidate not in POLE_TYPES:
+        return None, f"invalid pole_type {candidate}"
+    return candidate, ""  # type: ignore[return-value]
+
+
+def parse_visibility_response(text: str) -> tuple[bool | None, str]:
+    payload = extract_json_object(text)
+    if not payload:
+        return None, "no JSON"
+    if "view_clear" not in payload:
+        return None, "missing view_clear"
+    view_clear = payload.get("view_clear") in (True, "true", "True", 1, "1")
+    return view_clear, ""

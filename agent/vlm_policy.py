@@ -3,7 +3,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from agent.action_parse import extract_json_object, parse_navigation_response
+from agent.action_parse import (
+    parse_navigation_response,
+    parse_pole_type_response,
+    parse_visibility_response,
+)
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
@@ -16,8 +20,9 @@ from agent.navigation import (
 from agent.targeting import next_path_hop, plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
 from agent.prompts import (
-    build_classify_assessment_prompt,
     build_map_navigation_prompt,
+    build_pole_type_classification_prompt,
+    build_visibility_assessment_prompt,
     navigation_allowed_actions,
 )
 from agent.types import Action, ActionType, AgentState, PoleGuess, PoleType
@@ -194,61 +199,89 @@ class VlmPolicy(Policy):
             return Action(type=ActionType.MOVE, target_pano_id=fallback), False
         return None, False
 
+    def _assess_crop_fov_deg(self) -> float:
+        return float(os.environ.get("VLM_ASSESS_CROP_FOV", "100"))
+
     def _assess_street_view(
         self,
         world: World,
         state: AgentState,
         poles_in_view,
     ) -> Action:
-        self.last_phase = "classify_assessment"
         if not state.pole_in_consideration:
             return Action(type=ActionType.TURN_RIGHT)
 
         pano = world.panos_by_id[state.pano_id]
-        street_path = render_direction_crop(pano, state.direction_bin)
+        crop_fov = self._assess_crop_fov_deg()
+        street_path = render_direction_crop(
+            pano, state.direction_bin, crop_fov_deg=crop_fov
+        )
         self.last_street_image = street_path
 
-        prompt = build_classify_assessment_prompt(world, state, poles_in_view)
-        self.last_prompt = prompt
+        if not self._confirm_visibility(world, state, poles_in_view, street_path):
+            return Action(type=ActionType.TURN_RIGHT)
 
+        pole_type = self._classify_pole_type(world, state, poles_in_view, street_path)
+        if pole_type is None:
+            return Action(type=ActionType.TURN_RIGHT)
+
+        would_complete = len(state.classified) + 1 >= len(world.poles)
+        return Action(
+            type=ActionType.CLASSIFY_OR_STOP,
+            pole_type=pole_type,
+            stop_after=would_complete,
+        )
+
+    def _confirm_visibility(
+        self,
+        world: World,
+        state: AgentState,
+        poles_in_view,
+        street_path: Path,
+    ) -> bool:
+        self.last_phase = "visibility_assessment"
+        prompt = build_visibility_assessment_prompt(world, state, poles_in_view)
         last_error = ""
         for attempt in range(self.parse_retries + 1):
             extra = ""
             if attempt > 0:
-                extra = f"\n\nPrevious reply invalid ({last_error}). JSON with view_clear and pole_type."
-            raw = self.client.complete_images(prompt + extra, [street_path])
+                extra = f"\n\nInvalid ({last_error}). JSON: view_clear boolean only."
+            self.last_prompt = prompt + extra
+            raw = self.client.complete_images(self.last_prompt, [street_path])
             self.last_response = raw
-            payload = extract_json_object(raw)
-            if not payload:
-                last_error = "no JSON"
+            view_clear, err = parse_visibility_response(raw)
+            if err:
+                last_error = err
                 continue
+            return bool(view_clear)
+        return False
 
-            view_clear = payload.get("view_clear") in (True, "true", "True", 1, "1")
-            if not view_clear:
-                return Action(
-                    type=ActionType.TURN_RIGHT,
+    def _classify_pole_type(
+        self,
+        world: World,
+        state: AgentState,
+        poles_in_view,
+        street_path: Path,
+    ) -> PoleType | None:
+        self.last_phase = "pole_type_classification"
+        prompt = build_pole_type_classification_prompt(world, state, poles_in_view)
+        last_error = ""
+        for attempt in range(self.parse_retries + 1):
+            extra = ""
+            if attempt > 0:
+                extra = (
+                    f"\n\nInvalid ({last_error}). Pick one specific pole_type; "
+                    "do not default to lamp_post unless a street light is clearly on top."
                 )
-
-            raw_type = payload.get("pole_type")
-            pole_type = self.fallback_type
-            if raw_type is not None and str(raw_type).lower() not in {"null", "none", ""}:
-                candidate = str(raw_type).strip().lower()
-                from agent.types import POLE_TYPES
-
-                if candidate not in POLE_TYPES:
-                    last_error = f"invalid pole_type {candidate}"
-                    continue
-                pole_type = candidate  # type: ignore[assignment]
-
-            would_complete = len(state.classified) + 1 >= len(world.poles)
-            stop_after = bool(payload.get("stop_after", False)) or would_complete
-            return Action(
-                type=ActionType.CLASSIFY_OR_STOP,
-                pole_type=pole_type,
-                stop_after=stop_after,
-            )
-
-        return Action(type=ActionType.TURN_RIGHT)
+            self.last_prompt = prompt + extra
+            raw = self.client.complete_images(self.last_prompt, [street_path])
+            self.last_response = raw
+            pole_type, err = parse_pole_type_response(raw)
+            if err:
+                last_error = err
+                continue
+            return pole_type
+        return None
 
     def _maybe_trace(self, state: AgentState) -> None:
         trace_dir = os.environ.get("VLM_TRACE_DIR")
@@ -287,7 +320,7 @@ def apply_vlm_consideration(
     next_state.pole_guess = PoleGuess(
         track_id=pole.track_id,
         pole_id=pole.pole_id,
-        pole_type=fallback_type,
-        note="vlm map-navigation target",
+        pole_type=None,
+        note="vlm navigation target (type chosen from street view only)",
     )
     return next_state

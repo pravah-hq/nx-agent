@@ -35,7 +35,8 @@ def render_direction_crop(
 
     cache = cache_dir or repo_root() / ".cache" / "agent_views"
     cache.mkdir(parents=True, exist_ok=True)
-    out_path = cache / f"{pano.id.replace('/', '_')}_bin{direction_bin}.jpg"
+    fov_key = int(round(crop_fov_deg))
+    out_path = cache / f"{pano.id.replace('/', '_')}_bin{direction_bin}_fov{fov_key}.jpg"
     if out_path.is_file():
         return out_path
 
