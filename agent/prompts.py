@@ -5,7 +5,7 @@ import json
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
-from agent.types import POLE_TYPES, AgentState, PoleType
+from agent.types import POLE_TYPES, AgentState, PoleInView, PoleType
 
 DUAL_IMAGE_GUIDE = {
     "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, goal hop)",
@@ -83,8 +83,8 @@ def build_map_navigation_prompt(
     }
     payload["rules"] = [
         DUAL_IMAGE_GUIDE["use_both"],
-        "pole_in_clear_view in JSON was set by a prior street-view check (not your action).",
-        "If pole_in_clear_view is true, the agent will classify automatically — you only navigate when it is false.",
+        "target_pole_in_clear_view was set for pole_in_consideration only (not your action).",
+        "If target_pole_in_clear_view is true, the agent classifies that target automatically.",
         "MAP (image 1): choose move along gray lines to light neighbor dots only.",
         "STREET VIEW (image 2): decide if you should turn to find the orange target pole.",
         "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
@@ -126,19 +126,52 @@ def _classification_context(
     return payload
 
 
-def build_pole_in_clear_view_prompt(world: World, state: AgentState) -> str:
+def build_pole_in_clear_view_prompt(
+    world: World,
+    state: AgentState,
+    *,
+    target_sight: PoleInView | None = None,
+) -> str:
     pole = _target_pole(world, state)
     payload = _classification_context(world, state, pole_in_clear_view=False)
+    payload["images"] = DUAL_IMAGE_GUIDE
+    if pole:
+        payload["target_pole"] = {
+            "track_id": pole.track_id,
+            "pole_id": pole.pole_id,
+            "note": "ONLY this pole may set pole_in_clear_view true",
+        }
+        if target_sight:
+            payload["target_pole"]["bearing_deg"] = round(target_sight.bearing_deg, 1)
+            payload["target_pole"]["distance_m"] = round(target_sight.distance_m, 1)
+            payload["target_pole"]["angle_from_view_deg"] = round(
+                target_sight.angle_from_view_deg, 1
+            )
+    other_poles = [
+        p.pole_id
+        for p in world.poles
+        if p.track_id != state.pole_in_consideration
+        and p.track_id not in state.classified
+    ]
+    payload["other_unclassified_pole_ids"] = other_poles
     return (
-        "You see ONE image: STREET VIEW from the agent's current position and facing.\n"
-        f"Target pole (orange on map): {pole.pole_id if pole else 'unknown'}.\n\n"
-        "Decide if that target pole is in CLEAR VIEW for classification.\n"
-        "pole_in_clear_view=true ONLY when:\n"
-        "- The target pole structure is visible in this street view\n"
-        "- Unobstructed enough to read type (not tiny, not mostly hidden)\n"
-        "- Complete enough to distinguish transformer / lamp / billboard / LT pole\n\n"
+        "You receive TWO images: (1) MAP — orange dot is the TARGET pole only "
+        "(2) STREET VIEW — current facing.\n\n"
+        f"TARGET pole (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n"
+        "pole_in_clear_view means: the TARGET pole (not another pole) is in clear view.\n\n"
+        "pole_in_clear_view=true ONLY when ALL are true:\n"
+        "- The structure at the orange map location / target bearing is visible in street view\n"
+        "- That visible structure is the TARGET pole, not a different nearby pole\n"
+        "- Clear enough to classify type (not tiny, not mostly occluded)\n\n"
+        "pole_in_clear_view=false if:\n"
+        "- A different pole is clearer than the target\n"
+        "- Only non-target poles are visible\n"
+        "- Target direction is empty or target is too small/occluded\n\n"
         "Reply JSON only:\n"
-        '{"pole_in_clear_view":true|false,"reason":"short"}\n\n'
+        '{"pole_in_clear_view":true|false,'
+        f'"confirmed_target_pole_id":"{pole.pole_id if pole else "POLE_XXXXXX"} or null",'
+        '"other_pole_clearer":false,'
+        '"reason":"which pole you see and why it is/is not the target"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -169,8 +202,9 @@ def build_pole_type_classification_prompt(
         "- billboard_pole needs a sign/board, not just a lamp.\n"
         "- low_tension_pole is a plain utility pole with small LT wires, none of the above.\n"
         "Reply JSON only:\n"
-        '{"pole_type":"distribution_transformer|lamp_post|billboard_pole|low_tension_pole",'
-        '"confidence":"low|medium|high","reason":"what visual features you used"}\n\n'
+        '{"classified_pole_id":"must equal target pole_id",'
+        '"pole_type":"distribution_transformer|lamp_post|billboard_pole|low_tension_pole",'
+        '"confidence":"low|medium|high","reason":"features of the TARGET pole only"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 

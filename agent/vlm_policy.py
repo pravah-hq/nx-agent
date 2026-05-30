@@ -85,12 +85,13 @@ class VlmPolicy(Policy):
     def observe(self, world: World, state: AgentState) -> bool:
         """VLM street-view check: is the target pole in clear view to classify?"""
         self._ensure_navigation_plan(world, state)
-        _, street_path = self._render_dual_observation(world, state)
+        map_path, street_path = self._render_dual_observation(world, state)
         self.last_phase = "pole_in_clear_view"
         clear, prompt, raw = evaluate_pole_in_clear_view(
             self.client,
             world,
             state,
+            map_path,
             street_path,
             parse_retries=self.parse_retries,
         )
@@ -288,8 +289,13 @@ class VlmPolicy(Policy):
                     "do not default to lamp_post unless a street light is clearly on top."
                 )
             self.last_prompt = prompt + extra
+            pole = world.poles_by_track.get(state.pole_in_consideration or "")
+            if not pole:
+                return None
             raw = self._vlm_dual(self.last_prompt, map_path, street_path)
-            pole_type, err = parse_pole_type_response(raw)
+            pole_type, err = parse_pole_type_response(
+                raw, expected_pole_id=pole.pole_id
+            )
             if err:
                 last_error = err
                 continue

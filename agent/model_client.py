@@ -49,13 +49,21 @@ class VlmClient:
     def complete_images(self, prompt: str, image_paths: list[Path]) -> str:
         if self.dry_run:
             lower = prompt.lower()
+            if "confirmed_target_pole_id" in lower:
+                return (
+                    '{"pole_in_clear_view":false,'
+                    '"confirmed_target_pole_id":null,'
+                    '"other_pole_clearer":false,'
+                    '"reason":"dry run — target not confirmed"}'
+                )
             if "pole_in_clear_view" in lower and "pole_type_definitions" not in lower:
                 return '{"pole_in_clear_view":false,"reason":"dry run clear view"}'
             if "view_clear" in lower and "pole_type_definitions" not in lower:
                 return '{"view_clear":true,"reason":"dry run visibility"}'
             if "pole_type_definitions" in lower or "classify the target pole" in lower:
                 return (
-                    '{"pole_type":"distribution_transformer",'
+                    '{"classified_pole_id":"POLE_000057",'
+                    '"pole_type":"distribution_transformer",'
                     '"confidence":"low","reason":"dry run type pass"}'
                 )
             if "two images" in lower or "image 1" in lower:

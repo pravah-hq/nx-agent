@@ -72,14 +72,42 @@ def parse_navigation_response(
     return Action(type=action_type, target_pano_id=target_pano_id)
 
 
-def parse_pole_in_clear_view_response(text: str) -> tuple[bool | None, str]:
+def parse_pole_in_clear_view_response(
+    text: str,
+    *,
+    expected_pole_id: str,
+) -> tuple[bool | None, str]:
+    from agent.pole_ids import pole_ids_match
+
     payload = extract_json_object(text)
     if not payload:
         return None, "no JSON"
     if "pole_in_clear_view" not in payload:
         return None, "missing pole_in_clear_view"
+
     clear = payload.get("pole_in_clear_view") in (True, "true", "True", 1, "1")
-    return clear, ""
+    if not clear:
+        return False, ""
+
+    confirmed = (
+        payload.get("confirmed_target_pole_id")
+        or payload.get("visible_pole_id")
+        or payload.get("pole_id")
+    )
+    if confirmed is None or str(confirmed).lower() in {"null", "none", ""}:
+        return False, "pole_in_clear_view true requires confirmed_target_pole_id"
+
+    if not pole_ids_match(str(confirmed), expected_pole_id):
+        return (
+            False,
+            f"confirmed_target_pole_id {confirmed} != target {expected_pole_id}",
+        )
+
+    other = payload.get("other_pole_clearer")
+    if other in (True, "true", "True", 1, "1"):
+        return False, "another pole is clearer than the target"
+
+    return True, ""
 
 
 def parse_action_response(
@@ -116,7 +144,13 @@ def parse_action_response(
     return Action(type=action_type, pole_type=pole_type, stop_after=stop_after)
 
 
-def parse_pole_type_response(text: str) -> tuple[PoleType | None, str]:
+def parse_pole_type_response(
+    text: str,
+    *,
+    expected_pole_id: str,
+) -> tuple[PoleType | None, str]:
+    from agent.pole_ids import pole_ids_match
+
     payload = extract_json_object(text)
     if not payload:
         return None, "no JSON"
@@ -126,6 +160,13 @@ def parse_pole_type_response(text: str) -> tuple[PoleType | None, str]:
     candidate = str(raw_type).strip().lower()
     if candidate not in POLE_TYPES:
         return None, f"invalid pole_type {candidate}"
+
+    classified_id = payload.get("classified_pole_id") or payload.get("pole_id")
+    if classified_id is None or str(classified_id).lower() in {"null", "none", ""}:
+        return None, "missing classified_pole_id"
+    if not pole_ids_match(str(classified_id), expected_pole_id):
+        return None, f"classified_pole_id {classified_id} != target {expected_pole_id}"
+
     return candidate, ""  # type: ignore[return-value]
 
 
