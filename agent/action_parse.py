@@ -38,28 +38,22 @@ def parse_navigation_response(
     allowed: list[str] | None = None,
     neighbor_ids: list[str] | None = None,
     blocked_move_targets: frozenset[str] | None = None,
-) -> tuple[Action | None, bool]:
-    """Returns (action, wants_assess). wants_assess True when action is assess_classify."""
+) -> Action | None:
     payload = extract_json_object(text)
     if not payload:
-        return None, False
+        return None
 
     raw_action = str(payload.get("action", "")).strip().lower()
-    if raw_action in {"classify_or_stop", "classify"}:
-        return None, False
-
-    if raw_action == "assess_classify":
-        if allowed and "assess_classify" not in allowed:
-            return None, False
-        return None, True
+    if raw_action in {"classify_or_stop", "classify", "assess_classify"}:
+        return None
 
     try:
         action_type = ActionType(raw_action)
     except ValueError:
-        return None, False
+        return None
 
     if allowed and action_type.value not in allowed:
-        return None, False
+        return None
 
     target_pano_id = payload.get("target_pano_id")
     if target_pano_id is not None and str(target_pano_id).lower() in {"null", "none", ""}:
@@ -69,13 +63,23 @@ def parse_navigation_response(
 
     if action_type == ActionType.MOVE:
         if not target_pano_id:
-            return None, False
+            return None
         if neighbor_ids is not None and target_pano_id not in neighbor_ids:
-            return None, False
+            return None
         if blocked_move_targets and target_pano_id in blocked_move_targets:
-            return None, False
+            return None
 
-    return Action(type=action_type, target_pano_id=target_pano_id), False
+    return Action(type=action_type, target_pano_id=target_pano_id)
+
+
+def parse_pole_in_clear_view_response(text: str) -> tuple[bool | None, str]:
+    payload = extract_json_object(text)
+    if not payload:
+        return None, "no JSON"
+    if "pole_in_clear_view" not in payload:
+        return None, "missing pole_in_clear_view"
+    clear = payload.get("pole_in_clear_view") in (True, "true", "True", 1, "1")
+    return clear, ""
 
 
 def parse_action_response(
@@ -126,10 +130,12 @@ def parse_pole_type_response(text: str) -> tuple[PoleType | None, str]:
 
 
 def parse_visibility_response(text: str) -> tuple[bool | None, str]:
+    """Legacy alias; prefer pole_in_clear_view."""
     payload = extract_json_object(text)
     if not payload:
         return None, "no JSON"
-    if "view_clear" not in payload:
-        return None, "missing view_clear"
-    view_clear = payload.get("view_clear") in (True, "true", "True", 1, "1")
-    return view_clear, ""
+    key = "pole_in_clear_view" if "pole_in_clear_view" in payload else "view_clear"
+    if key not in payload:
+        return None, f"missing {key}"
+    clear = payload.get(key) in (True, "true", "True", 1, "1")
+    return clear, ""

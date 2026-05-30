@@ -5,6 +5,7 @@ import sys
 
 from agent.data_loader import repo_root
 from agent.environment import World
+from agent.clear_view import geometric_pole_in_clear_view
 from agent.loop import AgentLoop
 from agent.observations import print_observation
 from agent.policy import Policy, StubPolicy
@@ -105,8 +106,8 @@ def run_interactive(world: World, start_pano: str | None) -> int:
     print(f"Pole types: {', '.join(POLE_TYPES)}\n")
 
     while True:
-        poles_in_view = world.poles_in_view(state)
-        print_observation(world, state, poles_in_view)
+        pole_in_clear_view = geometric_pole_in_clear_view(world, state)
+        print_observation(world, state, pole_in_clear_view=pole_in_clear_view)
         if world.is_task_complete(state):
             print("\nAll poles classified.")
             return 0
@@ -148,10 +149,10 @@ def run_interactive(world: World, start_pano: str | None) -> int:
             continue
 
         if state.pole_in_consideration is None and raw.startswith("c"):
-            visible = poles_in_view[0] if poles_in_view else None
+            visible = world.poles_in_view(state)
             if visible:
-                state.pole_in_consideration = visible.track_id
-                print(f"Considering {visible.pole_id}")
+                state.pole_in_consideration = visible[0].track_id
+                print(f"Considering {visible[0].pole_id}")
 
         state, record = loop.step(state, action)
         print(record.message)
@@ -168,13 +169,13 @@ def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
         return 1
 
     state = world.initial_state(start_pano)
-    poles_in_view = world.poles_in_view(state)
     from agent.policy import apply_consideration
 
-    state = apply_consideration(state, world, policy, poles_in_view)
-    print_observation(world, state, poles_in_view)
+    pole_in_clear_view = policy.observe(world, state)
+    state = apply_consideration(state, world, policy)
+    print_observation(world, state, pole_in_clear_view=pole_in_clear_view)
     print("\nLoading VLM on this machine and running one step...", flush=True)
-    action = policy.choose(world, state, poles_in_view)
+    action = policy.choose(world, state, pole_in_clear_view)
     print(f"\nmap image: {getattr(policy, 'last_map_image', None)}")
     print(f"street image: {getattr(policy, 'last_street_image', None)}")
     print(f"phase: {getattr(policy, 'last_phase', None)}")
@@ -195,7 +196,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "state":
         state = world.initial_state(getattr(args, "start_pano", None))
-        print_observation(world, state, world.poles_in_view(state), as_json=args.json)
+        print_observation(
+            world,
+            state,
+            pole_in_clear_view=geometric_pole_in_clear_view(world, state),
+            as_json=args.json,
+        )
         return 0
 
     if args.command == "step":
@@ -204,7 +210,11 @@ def main(argv: list[str] | None = None) -> int:
         loop = AgentLoop(world)
         state, record = loop.step(state, action)
         print(record.message)
-        print_observation(world, state, world.poles_in_view(state))
+        print_observation(
+            world,
+            state,
+            pole_in_clear_view=geometric_pole_in_clear_view(world, state),
+        )
         return 0
 
     if args.command == "probe":

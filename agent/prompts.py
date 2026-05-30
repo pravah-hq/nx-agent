@@ -5,7 +5,16 @@ import json
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
-from agent.types import POLE_TYPES, AgentState, PoleInView, PoleType
+from agent.types import POLE_TYPES, AgentState, PoleType
+
+DUAL_IMAGE_GUIDE = {
+    "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, goal hop)",
+    "image_2": "STREET VIEW — panorama crop from your current position and facing",
+    "use_both": (
+        "Use the MAP for where to move along gray edges; use STREET VIEW for "
+        "what is ahead and whether to turn before moving or assessing."
+    ),
+}
 
 POLE_TYPE_GUIDE: dict[PoleType, str] = {
     "distribution_transformer": (
@@ -31,15 +40,15 @@ POLE_TYPE_GUIDE: dict[PoleType, str] = {
 def build_map_navigation_prompt(
     world: World,
     state: AgentState,
-    poles_in_view: list[PoleInView],
     *,
+    pole_in_clear_view: bool,
     allowed_actions: list[str],
     blocked_move_targets: list[str] | None = None,
     neighbor_moves: list[dict] | None = None,
     goal_pano_id: str | None = None,
     planned_next_hop: str | None = None,
 ) -> str:
-    payload = state_to_json(world, state, poles_in_view)
+    payload = state_to_json(world, state, pole_in_clear_view=pole_in_clear_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
     payload["neighbor_pano_ids"] = neighbors
     if blocked_move_targets:
@@ -61,6 +70,7 @@ def build_map_navigation_prompt(
         payload["planned_next_hop"] = planned_next_hop
         payload["planned_next_hop_label"] = pano_compact_id(planned_next_hop)
     payload["pole_types"] = list(POLE_TYPES)
+    payload["images"] = DUAL_IMAGE_GUIDE
     payload["map_legend"] = {
         "blue_dot": "you (current pano)",
         "yellow_ring": "planned next pano hop",
@@ -69,22 +79,27 @@ def build_map_navigation_prompt(
         "orange": "target pole to find",
         "green": "other unclassified poles",
         "gray": "classified poles",
-        "wedge": "viewing direction",
+        "wedge": "viewing direction (should match street view)",
     }
     payload["rules"] = [
-        "The map is a LOCAL zoom around you; gray lines are the only valid move links.",
+        DUAL_IMAGE_GUIDE["use_both"],
+        "pole_in_clear_view in JSON was set by a prior street-view check (not your action).",
+        "If pole_in_clear_view is true, the agent will classify automatically — you only navigate when it is false.",
+        "MAP (image 1): choose move along gray lines to light neighbor dots only.",
+        "STREET VIEW (image 2): decide if you should turn to find the orange target pole.",
         "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
         "Prefer neighbor_moves where recommended_next_hop is true, or lower distance_to_target_pole_m.",
         "Do not move to blocked_move_targets (immediate backtrack).",
         "Navigate toward goal_view_pano_id along the graph, not across empty map space.",
-        "Do NOT classify from this step; assess_classify is automatic when the target pole is in poles_in_view.",
         "classify_or_stop is NOT allowed in this step.",
     ]
     return (
-        "You navigate a street panorama agent using the MAP screenshot.\n"
+        "You control a street panorama agent. You receive TWO images every step.\n"
+        "Image 1 = local MAP. Image 2 = STREET VIEW from current pano and facing.\n"
+        "Use BOTH to decide where to go next (only when pole_in_clear_view is false).\n"
         "Choose exactly one action as JSON.\n\n"
         "Schema:\n"
-        '{"action":"turn_left|turn_right|move|assess_classify",'
+        '{"action":"turn_left|turn_right|move",'
         '"target_pano_id":"neighbor id or null",'
         '"reason":"short"}\n\n'
         f"State:\n{json.dumps(payload, indent=2)}"
@@ -97,12 +112,13 @@ def _target_pole(world: World, state: AgentState):
     return world.poles_by_track.get(state.pole_in_consideration)
 
 
-def _assessment_context(
+def _classification_context(
     world: World,
     state: AgentState,
-    poles_in_view: list[PoleInView],
+    *,
+    pole_in_clear_view: bool,
 ) -> dict:
-    payload = state_to_json(world, state, poles_in_view)
+    payload = state_to_json(world, state, pole_in_clear_view=pole_in_clear_view)
     payload.pop("pole_guess", None)
     pole = _target_pole(world, state)
     if pole:
@@ -110,21 +126,19 @@ def _assessment_context(
     return payload
 
 
-def build_visibility_assessment_prompt(
-    world: World,
-    state: AgentState,
-    poles_in_view: list[PoleInView],
-) -> str:
+def build_pole_in_clear_view_prompt(world: World, state: AgentState) -> str:
     pole = _target_pole(world, state)
-    payload = _assessment_context(world, state, poles_in_view)
+    payload = _classification_context(world, state, pole_in_clear_view=False)
     return (
-        "You see a STREET VIEW crop (not the map).\n"
-        f"Target pole to classify later: {pole.pole_id if pole else 'unknown'}.\n"
-        "Decide ONLY if that pole is visible enough to identify its type.\n"
+        "You see ONE image: STREET VIEW from the agent's current position and facing.\n"
+        f"Target pole (orange on map): {pole.pole_id if pole else 'unknown'}.\n\n"
+        "Decide if that target pole is in CLEAR VIEW for classification.\n"
+        "pole_in_clear_view=true ONLY when:\n"
+        "- The target pole structure is visible in this street view\n"
+        "- Unobstructed enough to read type (not tiny, not mostly hidden)\n"
+        "- Complete enough to distinguish transformer / lamp / billboard / LT pole\n\n"
         "Reply JSON only:\n"
-        '{"view_clear":true|false,"reason":"short"}\n\n'
-        "view_clear=true requires: pole structure readable, not mostly hidden, "
-        "not extremely tiny in the image.\n\n"
+        '{"pole_in_clear_view":true|false,"reason":"short"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -132,14 +146,17 @@ def build_visibility_assessment_prompt(
 def build_pole_type_classification_prompt(
     world: World,
     state: AgentState,
-    poles_in_view: list[PoleInView],
+    *,
+    pole_in_clear_view: bool = True,
 ) -> str:
     pole = _target_pole(world, state)
-    payload = _assessment_context(world, state, poles_in_view)
+    payload = _classification_context(world, state, pole_in_clear_view=pole_in_clear_view)
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
+    payload["images"] = DUAL_IMAGE_GUIDE
     return (
-        "You see a STREET VIEW crop. Classify the TARGET pole's type.\n"
+        "You receive TWO images: (1) MAP with orange target (2) STREET VIEW crop.\n"
+        "Classify the TARGET pole's type using STREET VIEW; MAP confirms which pole is target.\n"
         f"Target pole: {pole.pole_id if pole else 'unknown'} "
         "(match the structure at that location; ignore other poles if possible).\n\n"
         "Definitions — pick the ONE best match:\n"
@@ -158,26 +175,8 @@ def build_pole_type_classification_prompt(
     )
 
 
-def build_classify_assessment_prompt(
-    world: World,
-    state: AgentState,
-    poles_in_view: list[PoleInView],
-) -> str:
-    """Legacy combined prompt; prefer two-step visibility + type prompts."""
-    return build_pole_type_classification_prompt(world, state, poles_in_view)
-
-
 def navigation_allowed_actions(world: World, state: AgentState) -> list[str]:
-    actions = ["turn_left", "turn_right", "assess_classify"]
+    actions = ["turn_left", "turn_right"]
     if get_neighbors(world.neighbor_map, state.pano_id):
         actions.insert(2, "move")
     return actions
-
-
-def parse_assessment_response(text: str) -> dict | None:
-    from agent.action_parse import extract_json_object
-
-    payload = extract_json_object(text)
-    if not payload:
-        return None
-    return payload

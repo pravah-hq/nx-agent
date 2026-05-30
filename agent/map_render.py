@@ -8,7 +8,7 @@ from agent.directions import bin_center_world_yaw
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.targeting import pano_compact_id
-from agent.types import AgentState, PoleInView
+from agent.types import AgentState
 
 MAP_SIZE = 900
 PADDING_PX = 60
@@ -69,7 +69,6 @@ def _project(
 def render_map_image(
     world: World,
     state: AgentState,
-    poles_in_view: list[PoleInView],
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,

@@ -22,7 +22,7 @@ from agent.types import (
 
 class Policy(ABC):
     @abstractmethod
-    def choose(self, world: World, state: AgentState, poles_in_view) -> Action:
+    def choose(self, world: World, state: AgentState, pole_in_clear_view: bool) -> Action:
         raise NotImplementedError
 
 
@@ -57,7 +57,7 @@ class StubPolicy(Policy):
         self._last_signature = None
         self._tried_views.clear()
 
-    def choose(self, world: World, state: AgentState, poles_in_view) -> Action:
+    def choose(self, world: World, state: AgentState, pole_in_clear_view: bool) -> Action:
         if world.is_task_complete(state):
             return Action(type=ActionType.CLASSIFY_OR_STOP, stop_after=True)
 
@@ -75,9 +75,8 @@ class StubPolicy(Policy):
                 return Action(type=ActionType.CLASSIFY_OR_STOP, stop_after=True)
 
         pole = world.poles_by_track[self.target_track_id]
-        visible = next((p for p in poles_in_view if p.track_id == self.target_track_id), None)
 
-        if visible and visible.distance_m <= self.CLASSIFY_MAX_DISTANCE_M:
+        if pole_in_clear_view:
             would_complete = len(state.classified) + 1 >= len(world.poles)
             return Action(
                 type=ActionType.CLASSIFY_OR_STOP,
@@ -87,7 +86,7 @@ class StubPolicy(Policy):
 
         if self.phase == "navigate":
             return self._navigate(world, state)
-        return self._scan(world, state, pole, poles_in_view)
+        return self._scan(world, state, pole, world.poles_in_view(state))
 
     def _navigate(self, world: World, state: AgentState) -> Action:
         if self.target_pano_id is None:
@@ -300,18 +299,12 @@ def apply_consideration(
     state: AgentState,
     world: World,
     policy: Policy,
-    poles_in_view=None,
 ) -> AgentState:
     """Sync pole_in_consideration / pole_guess from the active policy."""
     from agent.vlm_policy import VlmPolicy, apply_vlm_consideration
 
     if isinstance(policy, VlmPolicy):
-        return apply_vlm_consideration(
-            state,
-            world,
-            poles_in_view or [],
-            fallback_type=policy.fallback_type,
-        )
+        return apply_vlm_consideration(state, world, fallback_type=policy.fallback_type)
 
     next_state = state.copy()
     track_id: str | None = None

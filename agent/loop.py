@@ -1,9 +1,23 @@
 from __future__ import annotations
 
+from agent.clear_view import geometric_pole_in_clear_view
 from agent.environment import World
 from agent.observations import print_observation
 from agent.policy import Policy, apply_consideration
 from agent.types import Action, ActionType, AgentState, StepRecord
+from agent.vlm_policy import VlmPolicy
+
+
+def resolve_pole_in_clear_view(
+    world: World,
+    policy: Policy | None,
+    state: AgentState,
+) -> bool:
+    if policy is None:
+        return False
+    if isinstance(policy, VlmPolicy):
+        return policy.observe(world, state)
+    return geometric_pole_in_clear_view(world, state)
 
 
 class AgentLoop:
@@ -12,9 +26,9 @@ class AgentLoop:
         self.policy = policy
 
     def step(self, state: AgentState, action: Action | None = None) -> tuple[AgentState, StepRecord]:
-        poles_in_view = self.world.poles_in_view(state)
+        pole_in_clear_view = resolve_pole_in_clear_view(self.world, self.policy, state)
         state = (
-            apply_consideration(state, self.world, self.policy, poles_in_view)
+            apply_consideration(state, self.world, self.policy)
             if self.policy
             else state
         )
@@ -22,7 +36,7 @@ class AgentLoop:
         if action is None:
             if self.policy is None:
                 raise ValueError("No action provided and no policy configured.")
-            action = self.policy.choose(self.world, state, poles_in_view)
+            action = self.policy.choose(self.world, state, pole_in_clear_view)
 
         before = state.copy()
         after, message = self.world.apply_action(state, action)
@@ -34,7 +48,7 @@ class AgentLoop:
             action=action,
             state_before=before,
             state_after=after,
-            poles_in_view=poles_in_view,
+            pole_in_clear_view=pole_in_clear_view,
             message=message,
         )
         return after, record
@@ -58,13 +72,20 @@ class AgentLoop:
         current = state
 
         for step_index in range(1, max_steps + 1):
-            poles_in_view = self.world.poles_in_view(current)
+            pole_in_clear_view = resolve_pole_in_clear_view(
+                self.world, self.policy, current
+            )
             if verbose:
                 print(f"\n--- step {step_index} ---")
-                print_observation(self.world, current, poles_in_view, as_json=json_obs)
+                print_observation(
+                    self.world,
+                    current,
+                    pole_in_clear_view=pole_in_clear_view,
+                    as_json=json_obs,
+                )
 
-            current = apply_consideration(current, self.world, self.policy, poles_in_view)
-            action = self.policy.choose(self.world, current, poles_in_view)
+            current = apply_consideration(current, self.world, self.policy)
+            action = self.policy.choose(self.world, current, pole_in_clear_view)
             before = current.copy()
             current, message = self.world.apply_action(current, action)
             record_step = getattr(self.policy, "record_step", None)
@@ -76,7 +97,7 @@ class AgentLoop:
                 action=action,
                 state_before=before,
                 state_after=current.copy(),
-                poles_in_view=poles_in_view,
+                pole_in_clear_view=pole_in_clear_view,
                 message=message,
             )
             history.append(record)

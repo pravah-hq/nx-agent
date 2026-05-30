@@ -102,7 +102,7 @@ make frontend
 
 ## Agent CLI
 
-Python agent with discrete state: current pano, direction bin (12 × 30°), poles in view, and pole guess. Actions: `turn_left`, `turn_right`, `move` (aligned neighbor within 20 m), `classify_or_stop`.
+Python agent with discrete state: current pano, direction bin (12 × 30°), `pole_in_clear_view` (VLM street-view check for the target pole), and pole guess. Actions: `turn_left`, `turn_right`, `move` (aligned neighbor within 20 m), `classify_or_stop`.
 
 Requires `data/metadata/panoramas.json` and `data/metadata/poles.geojson` (see Data Setup).
 
@@ -125,7 +125,7 @@ python -m agent run --policy vlm --max-steps 50
 Set `VLM_DRY_RUN=1` to test the pipeline without loading the model. See [docs/GCP_VLM.md](docs/GCP_VLM.md).
 
 - `--policy stub` — graph planner + placeholder labels (no GPU).
-- `--policy vlm` — map screenshot for navigation; street-view crop + `view_clear` gate before classify (GPU on VM).
+- `--policy vlm` — MAP + street view each step; VLM sets `pole_in_clear_view` from street crop, then navigates or classifies (GPU on VM).
 
 ## Notes
 

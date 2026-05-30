@@ -3,11 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from agent.action_parse import (
-    parse_navigation_response,
-    parse_pole_type_response,
-    parse_visibility_response,
-)
+from agent.action_parse import parse_navigation_response, parse_pole_type_response
+from agent.clear_view import evaluate_pole_in_clear_view
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
@@ -22,7 +19,6 @@ from agent.policy import Policy
 from agent.prompts import (
     build_map_navigation_prompt,
     build_pole_type_classification_prompt,
-    build_visibility_assessment_prompt,
     navigation_allowed_actions,
 )
 from agent.types import Action, ActionType, AgentState, PoleGuess, PoleType
@@ -31,8 +27,8 @@ from agent.views import render_direction_crop
 
 class VlmPolicy(Policy):
     """
-    Map-based VLM navigation + street-view assessment before classify.
-    No graph planner; the model reads the map screenshot to choose moves and facing.
+    MAP + STREET VIEW each step. pole_in_clear_view comes from VLM street view;
+    when true, classify (no assess_classify action).
     """
 
     def __init__(
@@ -50,9 +46,14 @@ class VlmPolicy(Policy):
         self.last_map_image: Path | None = None
         self.last_street_image: Path | None = None
         self.last_phase: str = ""
+        self.last_pole_in_clear_view: bool = False
         self._last_pano_id: str | None = None
         self._goal_pano_id: str | None = None
         self._nav_path: list[str] = []
+        self._cached_pano_id: str | None = None
+        self._cached_direction_bin: int | None = None
+        self._cached_map_path: Path | None = None
+        self._cached_street_path: Path | None = None
 
     def reset(self) -> None:
         self.last_prompt = ""
@@ -60,9 +61,14 @@ class VlmPolicy(Policy):
         self.last_map_image = None
         self.last_street_image = None
         self.last_phase = ""
+        self.last_pole_in_clear_view = False
         self._last_pano_id = None
         self._goal_pano_id = None
         self._nav_path = []
+        self._cached_pano_id = None
+        self._cached_direction_bin = None
+        self._cached_map_path = None
+        self._cached_street_path = None
 
     def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
         if (
@@ -74,35 +80,107 @@ class VlmPolicy(Policy):
                 self._nav_path = self._nav_path[1:]
             if after.pano_id == self._goal_pano_id:
                 self._nav_path = []
+        self._invalidate_cache()
 
-    def choose(self, world: World, state: AgentState, poles_in_view) -> Action:
+    def observe(self, world: World, state: AgentState) -> bool:
+        """VLM street-view check: is the target pole in clear view to classify?"""
+        self._ensure_navigation_plan(world, state)
+        _, street_path = self._render_dual_observation(world, state)
+        self.last_phase = "pole_in_clear_view"
+        clear, prompt, raw = evaluate_pole_in_clear_view(
+            self.client,
+            world,
+            state,
+            street_path,
+            parse_retries=self.parse_retries,
+        )
+        self.last_prompt = prompt
+        self.last_response = raw
+        self.last_pole_in_clear_view = clear
+        return clear
+
+    def choose(self, world: World, state: AgentState, pole_in_clear_view: bool) -> Action:
         if world.is_task_complete(state):
             return Action(type=ActionType.CLASSIFY_OR_STOP, stop_after=True)
 
         self._ensure_navigation_plan(world, state)
+        map_path, street_path = self._render_dual_observation(world, state)
 
-        if self._target_pole_in_view(state, poles_in_view):
-            action = self._assess_street_view(world, state, poles_in_view)
+        if pole_in_clear_view:
+            pole_type = self._classify_pole_type(
+                world, state, map_path, street_path, pole_in_clear_view=True
+            )
             self._maybe_trace(state)
-            return action
+            if pole_type is None:
+                return Action(type=ActionType.TURN_RIGHT)
+            would_complete = len(state.classified) + 1 >= len(world.poles)
+            return Action(
+                type=ActionType.CLASSIFY_OR_STOP,
+                pole_type=pole_type,
+                stop_after=would_complete,
+            )
 
-        nav_action, assess = self._navigate_from_map(world, state, poles_in_view)
+        nav_action = self._navigate(
+            world, state, pole_in_clear_view, map_path, street_path
+        )
         self._maybe_trace(state)
-        if assess:
-            action = self._assess_street_view(world, state, poles_in_view)
-            self._maybe_trace(state)
-            return action
-
         if nav_action is not None:
             return nav_action
-
         return Action(type=ActionType.TURN_RIGHT)
 
-    def _target_pole_in_view(self, state: AgentState, poles_in_view) -> bool:
-        track_id = state.pole_in_consideration
-        if not track_id or track_id in state.classified:
-            return False
-        return any(p.track_id == track_id for p in poles_in_view)
+    def _invalidate_cache(self) -> None:
+        self._cached_pano_id = None
+        self._cached_direction_bin = None
+        self._cached_map_path = None
+        self._cached_street_path = None
+
+    def _assess_crop_fov_deg(self) -> float:
+        return float(os.environ.get("VLM_ASSESS_CROP_FOV", "100"))
+
+    def _render_dual_observation(
+        self,
+        world: World,
+        state: AgentState,
+    ) -> tuple[Path, Path]:
+        if (
+            self._cached_map_path
+            and self._cached_street_path
+            and self._cached_pano_id == state.pano_id
+            and self._cached_direction_bin == state.direction_bin
+        ):
+            self.last_map_image = self._cached_map_path
+            self.last_street_image = self._cached_street_path
+            return self._cached_map_path, self._cached_street_path
+
+        map_path = render_map_image(
+            world,
+            state,
+            goal_pano_id=self._goal_pano_id,
+            nav_path=self._nav_path,
+        )
+        pano = world.panos_by_id[state.pano_id]
+        street_path = render_direction_crop(
+            pano,
+            state.direction_bin,
+            crop_fov_deg=self._assess_crop_fov_deg(),
+        )
+        self._cached_pano_id = state.pano_id
+        self._cached_direction_bin = state.direction_bin
+        self._cached_map_path = map_path
+        self._cached_street_path = street_path
+        self.last_map_image = map_path
+        self.last_street_image = street_path
+        return map_path, street_path
+
+    def _vlm_dual(
+        self,
+        prompt: str,
+        map_path: Path,
+        street_path: Path,
+    ) -> str:
+        raw = self.client.complete_images(prompt, [map_path, street_path])
+        self.last_response = raw
+        return raw
 
     def _ensure_navigation_plan(self, world: World, state: AgentState) -> None:
         track = state.pole_in_consideration
@@ -119,22 +197,15 @@ class VlmPolicy(Policy):
         self._goal_pano_id = goal
         self._nav_path = path[1:] if path else []
 
-    def _navigate_from_map(
+    def _navigate(
         self,
         world: World,
         state: AgentState,
-        poles_in_view,
-    ) -> tuple[Action | None, bool]:
-        map_path = render_map_image(
-            world,
-            state,
-            poles_in_view,
-            goal_pano_id=self._goal_pano_id,
-            nav_path=self._nav_path,
-        )
-        self.last_map_image = map_path
-        self.last_street_image = None
-        self.last_phase = "map_navigation"
+        pole_in_clear_view: bool,
+        map_path: Path,
+        street_path: Path,
+    ) -> Action | None:
+        self.last_phase = "dual_navigation"
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
         blocked = backtrack_blocked_ids(self._last_pano_id)
@@ -143,7 +214,7 @@ class VlmPolicy(Policy):
         prompt = build_map_navigation_prompt(
             world,
             state,
-            poles_in_view,
+            pole_in_clear_view=pole_in_clear_view,
             allowed_actions=legal,
             blocked_move_targets=sorted(blocked) if blocked else None,
             neighbor_moves=build_neighbor_move_options(
@@ -156,7 +227,6 @@ class VlmPolicy(Policy):
             goal_pano_id=self._goal_pano_id,
             planned_next_hop=next_path_hop(full_path),
         )
-        self.last_prompt = prompt
 
         last_error = ""
         for attempt in range(self.parse_retries + 1):
@@ -171,23 +241,20 @@ class VlmPolicy(Policy):
                         f" Do not move to blocked_move_targets: "
                         f"{', '.join(sorted(blocked))}."
                     )
-            raw = self.client.complete_images(prompt + extra, [map_path])
-            self.last_response = raw
-            action, assess = parse_navigation_response(
+            self.last_prompt = prompt + extra
+            raw = self._vlm_dual(self.last_prompt, map_path, street_path)
+            action = parse_navigation_response(
                 raw,
                 allowed=legal,
                 neighbor_ids=neighbors,
                 blocked_move_targets=blocked,
             )
-            if assess:
-                return None, True
             if action is not None:
-                return action, False
+                return action
             last_error = "could not parse navigation JSON"
             if blocked and "move" in legal:
                 last_error = "invalid action or backtrack move to previous pano"
 
-        full_path = [state.pano_id, *self._nav_path] if self._nav_path else [state.pano_id]
         fallback = pick_planned_neighbor(
             world,
             state,
@@ -196,75 +263,22 @@ class VlmPolicy(Policy):
             nav_path=full_path,
         )
         if fallback:
-            return Action(type=ActionType.MOVE, target_pano_id=fallback), False
-        return None, False
-
-    def _assess_crop_fov_deg(self) -> float:
-        return float(os.environ.get("VLM_ASSESS_CROP_FOV", "100"))
-
-    def _assess_street_view(
-        self,
-        world: World,
-        state: AgentState,
-        poles_in_view,
-    ) -> Action:
-        if not state.pole_in_consideration:
-            return Action(type=ActionType.TURN_RIGHT)
-
-        pano = world.panos_by_id[state.pano_id]
-        crop_fov = self._assess_crop_fov_deg()
-        street_path = render_direction_crop(
-            pano, state.direction_bin, crop_fov_deg=crop_fov
-        )
-        self.last_street_image = street_path
-
-        if not self._confirm_visibility(world, state, poles_in_view, street_path):
-            return Action(type=ActionType.TURN_RIGHT)
-
-        pole_type = self._classify_pole_type(world, state, poles_in_view, street_path)
-        if pole_type is None:
-            return Action(type=ActionType.TURN_RIGHT)
-
-        would_complete = len(state.classified) + 1 >= len(world.poles)
-        return Action(
-            type=ActionType.CLASSIFY_OR_STOP,
-            pole_type=pole_type,
-            stop_after=would_complete,
-        )
-
-    def _confirm_visibility(
-        self,
-        world: World,
-        state: AgentState,
-        poles_in_view,
-        street_path: Path,
-    ) -> bool:
-        self.last_phase = "visibility_assessment"
-        prompt = build_visibility_assessment_prompt(world, state, poles_in_view)
-        last_error = ""
-        for attempt in range(self.parse_retries + 1):
-            extra = ""
-            if attempt > 0:
-                extra = f"\n\nInvalid ({last_error}). JSON: view_clear boolean only."
-            self.last_prompt = prompt + extra
-            raw = self.client.complete_images(self.last_prompt, [street_path])
-            self.last_response = raw
-            view_clear, err = parse_visibility_response(raw)
-            if err:
-                last_error = err
-                continue
-            return bool(view_clear)
-        return False
+            return Action(type=ActionType.MOVE, target_pano_id=fallback)
+        return None
 
     def _classify_pole_type(
         self,
         world: World,
         state: AgentState,
-        poles_in_view,
+        map_path: Path,
         street_path: Path,
+        *,
+        pole_in_clear_view: bool,
     ) -> PoleType | None:
-        self.last_phase = "pole_type_classification"
-        prompt = build_pole_type_classification_prompt(world, state, poles_in_view)
+        self.last_phase = "dual_pole_type_classification"
+        prompt = build_pole_type_classification_prompt(
+            world, state, pole_in_clear_view=pole_in_clear_view
+        )
         last_error = ""
         for attempt in range(self.parse_retries + 1):
             extra = ""
@@ -274,8 +288,7 @@ class VlmPolicy(Policy):
                     "do not default to lamp_post unless a street light is clearly on top."
                 )
             self.last_prompt = prompt + extra
-            raw = self.client.complete_images(self.last_prompt, [street_path])
-            self.last_response = raw
+            raw = self._vlm_dual(self.last_prompt, map_path, street_path)
             pole_type, err = parse_pole_type_response(raw)
             if err:
                 last_error = err
@@ -293,16 +306,15 @@ class VlmPolicy(Policy):
         (root / f"{stem}.prompt.txt").write_text(self.last_prompt, encoding="utf-8")
         if self.last_response:
             (root / f"{stem}.response.txt").write_text(self.last_response, encoding="utf-8")
-        image = self.last_street_image or self.last_map_image
-        if image and image.is_file():
-            dest = root / f"{stem}{image.suffix}"
-            dest.write_bytes(image.read_bytes())
+        for label, image in (("map", self.last_map_image), ("street", self.last_street_image)):
+            if image and image.is_file():
+                dest = root / f"{stem}_{label}{image.suffix}"
+                dest.write_bytes(image.read_bytes())
 
 
 def apply_vlm_consideration(
     state: AgentState,
     world: World,
-    poles_in_view,
     *,
     fallback_type: PoleType = "lamp_post",
 ) -> AgentState:

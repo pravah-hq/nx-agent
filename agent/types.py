@@ -111,5 +111,5 @@ class StepRecord:
     action: Action
     state_before: AgentState
     state_after: AgentState
-    poles_in_view: list[PoleInView]
+    pole_in_clear_view: bool
     message: str = ""
