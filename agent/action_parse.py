@@ -87,48 +87,55 @@ def _truthy(value) -> bool:
 def parse_pole_in_clear_view_response(
     text: str,
     *,
-    expected_pole_id: str,
-) -> tuple[bool | None, PoleType | None, str]:
+    classified_pole_ids: frozenset[str],
+    resolve_track_id,
+) -> tuple[bool | None, PoleType | None, str | None, str]:
     """
-    VLM-only clear view: pole_in_clear_view (or view_clear) true from the model.
+    VLM clear view: sees a pole in street view that is not already classified.
 
-    identifiable_pole_type is optional — choose() can run a separate classify prompt.
-    confirmed_target_pole_id is only checked when the model supplies it.
+    Returns (clear, pole_type, visible_track_id, error).
+    When clear, visible_pole_id must map to an unclassified pole in metadata.
     """
-    from agent.pole_ids import pole_ids_match
+    from agent.pole_ids import normalize_pole_id, pole_ids_match
 
     payload = extract_json_object(text)
     if not payload:
-        return None, None, "no JSON"
+        return None, None, None, "no JSON"
 
     raw_clear = _truthy(payload.get("pole_in_clear_view", False)) or _truthy(
         payload.get("view_clear", False)
     )
     if not raw_clear:
-        return False, None, ""
+        return False, None, None, ""
 
     raw_type = payload.get("identifiable_pole_type") or payload.get("pole_type")
     pole_type: PoleType | None = None
     if raw_type is not None and str(raw_type).lower() not in {"null", "none", ""}:
         candidate = str(raw_type).strip().lower()
         if candidate not in POLE_TYPES:
-            return False, None, f"invalid identifiable_pole_type {candidate}"
+            return False, None, None, f"invalid identifiable_pole_type {candidate}"
         pole_type = candidate  # type: ignore[assignment]
 
-    confirmed = (
-        payload.get("confirmed_target_pole_id")
-        or payload.get("visible_pole_id")
-        or payload.get("pole_id")
-    )
-    if confirmed is not None and str(confirmed).lower() not in {"null", "none", ""}:
-        if not pole_ids_match(str(confirmed), expected_pole_id):
+    visible_raw = payload.get("visible_pole_id") or payload.get("pole_id")
+    if visible_raw is None or str(visible_raw).lower() in {"null", "none", ""}:
+        return False, None, None, "visible_pole_id required when pole_in_clear_view is true"
+
+    visible_id = str(visible_raw).strip()
+    norm_visible = normalize_pole_id(visible_id)
+    for done_id in classified_pole_ids:
+        if pole_ids_match(norm_visible, done_id):
             return (
                 False,
                 None,
-                f"confirmed id {confirmed} is not target {expected_pole_id}",
+                None,
+                f"visible pole {visible_id} is already classified",
             )
 
-    return True, pole_type, ""
+    track_id = resolve_track_id(visible_id)
+    if track_id is None:
+        return False, None, None, f"unknown visible_pole_id {visible_id}"
+
+    return True, pole_type, track_id, ""
 
 
 def parse_action_response(

@@ -86,7 +86,7 @@ class PoleInView:
     """
     Geometric visibility of a pole from current pano + direction_bin.
     Used by stub policy and as hints in VLM JSON; not the same as
-    target_pole_in_clear_view (VLM unambiguous-type gate).
+    pole_in_clear_view (VLM: unclassified pole visible in street view).
     """
 
     track_id: str

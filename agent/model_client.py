@@ -62,12 +62,12 @@ class VlmClient:
         """
         if self.dry_run:
             lower = prompt.lower()
-            if "pole_type_definitions" in lower and "your answer controls" in lower:
+            if "already_classified_pole_ids" in lower and "visible_pole_id" in lower:
                 return (
                     '{"pole_in_clear_view":true,'
+                    '"visible_pole_id":"POLE_000057",'
                     '"identifiable_pole_type":"lamp_post",'
-                    '"confirmed_target_pole_id":null,'
-                    '"reason":"dry run — target visible"}'
+                    '"reason":"dry run — new pole visible"}'
                 )
             if "pole_in_clear_view" in lower and "pole_type_definitions" not in lower:
                 return '{"pole_in_clear_view":false,"reason":"dry run clear view"}'

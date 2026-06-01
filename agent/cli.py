@@ -186,7 +186,9 @@ def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
         policy.begin_agent_step()
     state = apply_consideration(state, world, policy)
     pole_in_clear_view = policy.observe(world, state)
-    print_observation(world, state, pole_in_clear_view=pole_in_clear_view)
+    print_observation(
+        world, state, pole_in_clear_view=pole_in_clear_view, policy=policy
+    )
     print("\nLoading VLM on this machine and running one step...", flush=True)
     action = policy.choose(world, state, pole_in_clear_view)
     print_vlm_step_responses(policy)

@@ -12,7 +12,7 @@ import json
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
-from agent.types import POLE_TYPES, AgentState, PoleInView, PoleType
+from agent.types import POLE_TYPES, AgentState, PoleType
 
 DUAL_IMAGE_GUIDE = {
     "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, goal hop)",
@@ -90,10 +90,10 @@ def build_map_navigation_prompt(
     }
     payload["rules"] = [
         DUAL_IMAGE_GUIDE["use_both"],
-        "target_pole_in_clear_view is set by a prior VLM clear-view check (not your action).",
-        "If true in state JSON, the agent classifies; you only navigate when false.",
+        "pole_in_clear_view is set by a prior VLM check (not your action).",
+        "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
         "MAP (image 1): choose move along gray lines to light neighbor dots only.",
-        "STREET VIEW (image 2): decide if you should turn to find the orange target pole.",
+        "STREET VIEW (image 2): turn/move to find unclassified (green) poles.",
         "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
         "Prefer neighbor_moves where recommended_next_hop is true, or lower distance_to_target_pole_m.",
         "Do not move to blocked_move_targets (immediate backtrack).",
@@ -137,55 +137,47 @@ def build_pole_in_clear_view_prompt(
     world: World,
     state: AgentState,
     *,
-    target_sight: PoleInView | None = None,
+    classified_pole_ids: frozenset[str],
 ) -> str:
-    pole = _target_pole(world, state)
     payload = _classification_context(world, state, pole_in_clear_view=False)
     payload["images"] = DUAL_IMAGE_GUIDE
-    if pole:
-        payload["target_pole"] = {
-            "track_id": pole.track_id,
-            "pole_id": pole.pole_id,
-            "note": "ONLY this pole may set pole_in_clear_view true",
+    payload["map_legend"] = {
+        "green": "unclassified poles (candidates you may identify)",
+        "gray": "already classified — do NOT set pole_in_clear_view for these",
+        "orange": "navigation hint only (where the agent is heading)",
+        "wedge": "your viewing direction (street view)",
+    }
+    payload["already_classified_pole_ids"] = sorted(classified_pole_ids)
+    payload["unclassified_poles"] = [
+        {
+            "pole_id": p.pole_id,
+            "map_label": p.pole_id.replace("POLE_", ""),
+            "on_map_color": "green",
         }
-        if target_sight:
-            payload["target_pole"]["bearing_deg"] = round(target_sight.bearing_deg, 1)
-            payload["target_pole"]["distance_m"] = round(target_sight.distance_m, 1)
-            payload["target_pole"]["angle_from_view_deg"] = round(
-                target_sight.angle_from_view_deg, 1
-            )
-    if target_sight:
-        payload["target_geometry_hint"] = {
-            "distance_m": round(target_sight.distance_m, 1),
-            "angle_from_view_deg": round(target_sight.angle_from_view_deg, 1),
-            "note": "hint only — YOU decide pole_in_clear_view from street view",
-        }
-    else:
-        payload["target_geometry_hint"] = {
-            "note": "target may be off-screen; use street view + map to judge visibility",
-        }
+        for p in world.poles
+        if p.track_id not in state.classified
+    ]
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
     return (
-        "You receive TWO images: (1) MAP — orange dot = TARGET pole "
-        "(2) STREET VIEW — current facing.\n\n"
-        f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
-        "Your answer controls whether the agent classifies this step.\n"
-        "Set pole_in_clear_view=true when the TARGET pole (orange on map) is clearly "
-        "visible in STREET VIEW (image 2) — unobstructed, large enough to judge, and "
-        "you believe it is that pole (not a different one).\n"
-        "If true, also set identifiable_pole_type to your best match from the definitions "
-        "(or null if visible but type unclear — agent may ask again).\n"
-        "Set pole_in_clear_view=false when the target is not visible, blocked, too far/small, "
-        "or a different pole dominates the view.\n\n"
-        "Definitions:\n"
+        "You receive TWO images: (1) LOCAL MAP with pole labels (2) STREET VIEW ahead.\n\n"
+        "You do NOT know any pole types yet — only whether a pole is visible enough to classify.\n\n"
+        "Set pole_in_clear_view=true ONLY when ALL are true:\n"
+        "1) STREET VIEW shows a utility pole clearly (unobstructed, large enough to judge).\n"
+        "2) That pole matches one GREEN labeled pole on the map (visible_pole_id).\n"
+        "3) visible_pole_id is NOT listed in already_classified_pole_ids (not gray / done).\n\n"
+        "Set pole_in_clear_view=false when: no pole visible, pole too far/occluded, only "
+        "classified (gray) poles visible, or you cannot match the street pole to a green map label.\n\n"
+        "If true, set visible_pole_id to the green pole label (e.g. POLE_000057) and "
+        "identifiable_pole_type to your best type guess (or null if visible but type unclear).\n\n"
+        "Definitions (for type guess only):\n"
         + "\n".join(f"- {key}: {desc}" for key, desc in POLE_TYPE_GUIDE.items())
         + "\n\n"
         "Reply JSON only:\n"
         '{"pole_in_clear_view":true|false,'
+        '"visible_pole_id":"POLE_... or null",'
         f'"identifiable_pole_type":"one of {list(POLE_TYPES)} or null",'
-        f'"confirmed_target_pole_id":"{pole.pole_id if pole else "null"}" or null,'
-        '"reason":"what you see at the target bearing"}\n\n'
+        '"reason":"what pole you see and why it is or is not a new unclassified pole"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 
@@ -202,10 +194,10 @@ def build_pole_type_classification_prompt(
     payload["allowed_pole_types"] = list(POLE_TYPES)
     payload["images"] = DUAL_IMAGE_GUIDE
     return (
-        "You receive TWO images: (1) MAP with orange target (2) STREET VIEW crop.\n"
-        "Classify the TARGET pole's type using STREET VIEW; MAP confirms which pole is target.\n"
-        f"Target pole: {pole.pole_id if pole else 'unknown'} "
-        "(match the structure at that location; ignore other poles if possible).\n\n"
+        "You receive TWO images: (1) MAP (2) STREET VIEW crop.\n"
+        "Classify the visible pole's type using STREET VIEW.\n"
+        f"Pole to classify: {pole.pole_id if pole else 'unknown'} "
+        "(the pole identified in the prior clear-view step).\n\n"
         "Definitions — pick the ONE best match:\n"
         + "\n".join(f"- {key}: {desc}" for key, desc in POLE_TYPE_GUIDE.items())
         + "\n\n"
@@ -218,7 +210,7 @@ def build_pole_type_classification_prompt(
         "NOT a lamp, billboard, or transformer setup.\n"
         "- If ambiguous, use confidence low and do NOT use low_tension_pole as a guess.\n"
         "Reply JSON only:\n"
-        '{"classified_pole_id":"must equal target pole_id",'
+        '{"classified_pole_id":"must equal the pole you are classifying",'
         '"pole_type":"distribution_transformer|lamp_post|billboard_pole|low_tension_pole",'
         '"confidence":"low|medium|high","reason":"features of the TARGET pole only"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"

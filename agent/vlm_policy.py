@@ -61,6 +61,7 @@ class VlmPolicy(Policy):
         self.last_phase: str = ""
         self.last_pole_in_clear_view: bool = False
         self.last_identifiable_pole_type: PoleType | None = None
+        self.last_visible_track_id: str | None = None
         self._last_pano_id: str | None = None
         self._goal_pano_id: str | None = None
         self._nav_path: list[str] = []
@@ -94,6 +95,7 @@ class VlmPolicy(Policy):
         self.last_phase = ""
         self.last_pole_in_clear_view = False
         self.last_identifiable_pole_type = None
+        self.last_visible_track_id = None
         self._last_pano_id = None
         self._goal_pano_id = None
         self._nav_path = []
@@ -116,11 +118,11 @@ class VlmPolicy(Policy):
         self._invalidate_cache()
 
     def observe(self, world: World, state: AgentState) -> bool:
-        """VLM: target pole unambiguously identifiable as one pole type?"""
+        """VLM: is an unclassified pole clearly visible in street view?"""
         self._ensure_navigation_plan(world, state)
         map_path, street_path = self._render_dual_observation(world, state)
         self.last_phase = "pole_in_clear_view"
-        clear, pole_type, prompt, raw = evaluate_pole_in_clear_view(
+        clear, pole_type, track_id, prompt, raw = evaluate_pole_in_clear_view(
             self.client,
             world,
             state,
@@ -133,6 +135,7 @@ class VlmPolicy(Policy):
         )
         self.last_prompt = prompt
         self.last_pole_in_clear_view = clear
+        self.last_visible_track_id = track_id if clear else None
         self.last_identifiable_pole_type = pole_type if clear else None
         return clear
 
@@ -144,6 +147,17 @@ class VlmPolicy(Policy):
         map_path, street_path = self._render_dual_observation(world, state)
 
         if pole_in_clear_view:
+            track_id = self.last_visible_track_id
+            if not track_id or track_id in state.classified:
+                return Action(type=ActionType.TURN_RIGHT)
+            state.pole_in_consideration = track_id
+            pole = world.poles_by_track[track_id]
+            state.pole_guess = PoleGuess(
+                track_id=track_id,
+                pole_id=pole.pole_id,
+                pole_type=None,
+                note="vlm visible pole",
+            )
             pole_type = self.last_identifiable_pole_type
             if pole_type is None:
                 pole_type = self._classify_pole_type(
@@ -392,6 +406,6 @@ def apply_vlm_consideration(
         track_id=pole.track_id,
         pole_id=pole.pole_id,
         pole_type=None,
-        note="vlm navigation target (type chosen from street view only)",
+        note="graph navigation hint (classify uses VLM visible_pole_id)",
     )
     return next_state

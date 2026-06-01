@@ -101,6 +101,7 @@ class AgentLoop:
                     current,
                     pole_in_clear_view=pole_in_clear_view,
                     as_json=json_obs,
+                    policy=self.policy,
                 )
 
             action = self.policy.choose(self.world, current, pole_in_clear_view)

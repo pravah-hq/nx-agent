@@ -1,10 +1,10 @@
 """
-Target pole clear-view gate — VLM only (map + street images).
+Clear-view gate — VLM only (map + street).
 
-Step order in AgentLoop: apply_consideration (pick target) → observe (this module) →
-choose (classify if clear, else navigate).
+The model decides pole_in_clear_view: a utility pole is clearly visible in street view
+and visible_pole_id is an unclassified pole (not in already_classified_pole_ids).
 
-Does not set target_pole_in_clear_view from geometry; sight data is only context in the prompt.
+Step order: apply_consideration (nav hint) → observe → choose (classify or navigate).
 """
 
 from __future__ import annotations
@@ -15,19 +15,22 @@ from pathlib import Path
 from agent.action_parse import parse_pole_in_clear_view_response
 from agent.environment import World
 from agent.model_client import VlmClient
+from agent.pole_ids import track_id_for_pole_id
 from agent.prompts import build_pole_in_clear_view_prompt
-from agent.sight import compute_target_pole_sight
-from agent.types import AgentState, PoleInView, PoleType
-
-
-def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
-    """Optional geometry hints for the VLM prompt (not used to force clear view)."""
-    return compute_target_pole_sight(world, state)
+from agent.types import AgentState, PoleType
 
 
 def geometric_pole_in_clear_view(world: World, state: AgentState) -> bool:
-    """Non-VLM paths never auto-clear from geometry."""
     return False
+
+
+def _classified_pole_ids(world: World, state: AgentState) -> frozenset[str]:
+    ids: set[str] = set()
+    for track_id in state.classified:
+        pole = world.poles_by_track.get(track_id)
+        if pole:
+            ids.add(pole.pole_id)
+    return frozenset(ids)
 
 
 def evaluate_pole_in_clear_view(
@@ -39,18 +42,15 @@ def evaluate_pole_in_clear_view(
     *,
     parse_retries: int = 2,
     record_vlm: Callable[..., None] | None = None,
-) -> tuple[bool, PoleType | None, str, str]:
-    track = state.pole_in_consideration
-    if not track or track in state.classified:
-        return False, None, "", ""
+) -> tuple[bool, PoleType | None, str | None, str, str]:
+    """
+    Returns (clear, pole_type, visible_track_id, prompt, raw_response).
+    """
+    if world.is_task_complete(state):
+        return False, None, None, "", ""
 
-    pole = world.poles_by_track.get(track)
-    if not pole:
-        return False, None, "", ""
-
-    sight = compute_target_pole_sight(world, state)
-    prompt = build_pole_in_clear_view_prompt(world, state, target_sight=sight)
-    expected_id = pole.pole_id
+    classified_ids = _classified_pole_ids(world, state)
+    prompt = build_pole_in_clear_view_prompt(world, state, classified_pole_ids=classified_ids)
 
     last_error = ""
     last_raw = ""
@@ -59,22 +59,24 @@ def evaluate_pole_in_clear_view(
         extra = ""
         if attempt > 0:
             extra = (
-                f"\n\nInvalid ({last_error}). If the TARGET pole is visible in street view, "
-                f'reply {{"pole_in_clear_view":true,"identifiable_pole_type":"<one of four types>"}}. '
-                f"If not visible, pole_in_clear_view false. Target id: {expected_id}."
+                f"\n\nInvalid ({last_error}). If you see a NEW unclassified pole, reply "
+                '{"pole_in_clear_view":true,"visible_pole_id":"POLE_...","identifiable_pole_type":"..."}. '
+                "visible_pole_id must be green on the map and NOT in already_classified_pole_ids. "
+                "If no new pole is visible, pole_in_clear_view false."
             )
         full_prompt = prompt + extra
         raw = client.complete_images(full_prompt, [map_path, street_path])
         last_raw = raw
         if record_vlm is not None:
             record_vlm("pole_in_clear_view", raw, attempt=attempt + 1)
-        clear, pole_type, err = parse_pole_in_clear_view_response(
+        clear, pole_type, track_id, err = parse_pole_in_clear_view_response(
             raw,
-            expected_pole_id=expected_id,
+            classified_pole_ids=classified_ids,
+            resolve_track_id=lambda pid: track_id_for_pole_id(world, pid),
         )
         if err:
             last_error = err
             continue
-        return bool(clear), pole_type, full_prompt, raw
+        return bool(clear), pole_type, track_id, full_prompt, raw
 
-    return False, None, prompt, last_raw
+    return False, None, None, prompt, last_raw
