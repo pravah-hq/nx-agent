@@ -88,10 +88,14 @@ def parse_pole_in_clear_view_response(
     text: str,
     *,
     expected_pole_id: str,
+    geometric_corroboration: bool = False,
 ) -> tuple[bool | None, PoleType | None, str]:
     """
-    clear true only when target is confirmed AND type is unambiguously one of POLE_TYPES.
-    Returns (clear, identifiable_pole_type, error).
+    Clear view when the model marks visibility and supplies a valid pole type.
+
+    Relaxed vs earlier: pole_in_clear_view=true + identifiable_pole_type is enough;
+    unambiguous_identifiable is optional. confirmed_target_pole_id is optional unless
+    present and wrong. geometric_corroboration allows type + viewshed when flags are soft.
     """
     from agent.pole_ids import pole_ids_match
 
@@ -100,7 +104,9 @@ def parse_pole_in_clear_view_response(
         return None, None, "no JSON"
 
     unambiguous = _truthy(payload.get("unambiguous_identifiable", False))
-    raw_clear = _truthy(payload.get("pole_in_clear_view", False))
+    raw_clear = _truthy(payload.get("pole_in_clear_view", False)) or _truthy(
+        payload.get("view_clear", False)
+    )
 
     raw_type = payload.get("identifiable_pole_type") or payload.get("pole_type")
     pole_type: PoleType | None = None
@@ -110,16 +116,13 @@ def parse_pole_in_clear_view_response(
             return False, None, f"invalid identifiable_pole_type {candidate}"
         pole_type = candidate  # type: ignore[assignment]
 
-    if not raw_clear and not unambiguous:
+    wants_clear = raw_clear or unambiguous
+    if not wants_clear and not geometric_corroboration:
         return False, None, ""
 
-    if not unambiguous or pole_type is None:
-        if raw_clear or unambiguous:
-            return (
-                False,
-                None,
-                "unambiguous_identifiable and identifiable_pole_type required for clear view",
-            )
+    if pole_type is None:
+        if wants_clear or geometric_corroboration:
+            return False, None, "identifiable_pole_type required for clear view"
         return False, None, ""
 
     confirmed = (
@@ -136,10 +139,27 @@ def parse_pole_in_clear_view_response(
             )
 
     reason = str(payload.get("reason", "")).lower()
-    if any(word in reason for word in ("ambiguous", "uncertain", "multiple types", "not sure")):
+    if any(
+        phrase in reason
+        for phrase in (
+            "ambiguous between",
+            "multiple types could",
+            "multiple types fit",
+            "cannot identify type",
+            "too ambiguous to",
+            "not the target pole",
+            "wrong pole",
+        )
+    ):
         return False, None, "reason indicates ambiguity"
 
-    return True, pole_type, ""
+    if raw_clear or unambiguous:
+        return True, pole_type, ""
+
+    if geometric_corroboration:
+        return True, pole_type, ""
+
+    return False, None, ""
 
 
 def parse_action_response(

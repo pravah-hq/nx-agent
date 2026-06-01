@@ -156,11 +156,16 @@ def build_pole_in_clear_view_prompt(
             )
     if target_sight:
         payload["geometric_target_in_viewshed"] = True
+        payload["hint"] = (
+            "Geometry says the TARGET pole is in the current street-view cone. "
+            "If you see a pole at that bearing with a clear best-matching type, "
+            "set pole_in_clear_view true and fill identifiable_pole_type."
+        )
     else:
         payload["geometric_target_in_viewshed"] = False
         payload["hint"] = (
-            "Target is not in the current viewshed cone yet; "
-            "pole_in_clear_view should be false unless you clearly see that pole anyway."
+            "Target may be off-screen or far — use pole_in_clear_view false unless "
+            "you still clearly see that specific pole in street view."
         )
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
@@ -168,14 +173,15 @@ def build_pole_in_clear_view_prompt(
         "You receive TWO images: (1) MAP — orange dot = TARGET pole "
         "(2) STREET VIEW — current facing.\n\n"
         f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
-        "Set pole_in_clear_view=true ONLY when ALL hold:\n"
-        "1) The visible structure is the TARGET pole (not another pole).\n"
-        "2) You can identify its type as one of the four types below.\n\n"
-        "Use false / unambiguous_identifiable false when:\n"
-        "- Target not visible, too small, or occluded\n"
-        "- A different pole is clearer than the target\n"
-        "- Two or more types could fit (ambiguous)\n"
-        "- Only generic pole visible without distinctive features\n\n"
+        "Set pole_in_clear_view=true when BOTH hold:\n"
+        "1) The TARGET pole (orange on map) is visible in street view — not a different pole.\n"
+        "2) You can assign its best-matching type from the four definitions below "
+        "(single best guess is OK; you do not need 100% certainty).\n\n"
+        "Set pole_in_clear_view=false when:\n"
+        "- Target not visible, too small, heavily occluded, or wrong pole dominates view\n"
+        "- You cannot pick any of the four types\n\n"
+        "Optional: unambiguous_identifiable true if you are very confident; "
+        "confirmed_target_pole_id if you can read the pole id.\n\n"
         "Definitions:\n"
         + "\n".join(f"- {key}: {desc}" for key, desc in POLE_TYPE_GUIDE.items())
         + "\n\n"
@@ -184,7 +190,7 @@ def build_pole_in_clear_view_prompt(
         '"unambiguous_identifiable":true|false,'
         f'"identifiable_pole_type":"one of {list(POLE_TYPES)} or null",'
         f'"confirmed_target_pole_id":"{pole.pole_id if pole else "null"}" or null,'
-        '"reason":"why type is unambiguous or why not"}\n\n'
+        '"reason":"what you see at the target bearing"}\n\n'
         f"Context:\n{json.dumps(payload, indent=2)}"
     )
 

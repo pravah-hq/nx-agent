@@ -1,5 +1,8 @@
 """
-Target pole "clear view" gate — VLM must say type is unambiguous before classify.
+Target pole "clear view" gate — VLM marks target visible + type before classify.
+
+Relaxed parser: pole_in_clear_view + identifiable_pole_type suffices; optional
+geometric corroboration when target is in viewshed (sight.py thresholds).
 
 Flow: VlmPolicy.observe() -> evaluate_pole_in_clear_view() -> parse_pole_in_clear_view_response()
 Tweak prompts in prompts.build_pole_in_clear_view_prompt; parser in action_parse.
@@ -13,6 +16,7 @@ from agent.action_parse import parse_pole_in_clear_view_response
 from agent.environment import World
 from agent.model_client import VlmClient
 from agent.prompts import build_pole_in_clear_view_prompt
+from agent.sight import geometric_sight_clear
 from agent.types import AgentState, PoleInView, PoleType
 
 
@@ -64,18 +68,19 @@ def evaluate_pole_in_clear_view(
         extra = ""
         if attempt > 0:
             extra = (
-                f"\n\nInvalid ({last_error}). When unambiguous, reply with "
-                f"pole_in_clear_view true, unambiguous_identifiable true, "
-                f'identifiable_pole_type one of the four types, '
-                f'confirmed_target_pole_id "{expected_id}". '
-                "If unsure between types, all must be false/null."
+                f"\n\nInvalid ({last_error}). When the target is visible, reply with "
+                f'pole_in_clear_view true, identifiable_pole_type one of the four types '
+                f'(confirmed_target_pole_id "{expected_id}" if you can). '
+                "If the target is not visible or type is unknown, use false and null type."
             )
         full_prompt = prompt + extra
         raw = client.complete_images(full_prompt, [map_path, street_path])
         last_raw = raw
+        corroborate = sight is not None and geometric_sight_clear(sight)
         clear, pole_type, err = parse_pole_in_clear_view_response(
             raw,
             expected_pole_id=expected_id,
+            geometric_corroboration=corroborate,
         )
         if err:
             last_error = err

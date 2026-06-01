@@ -62,13 +62,20 @@ class VlmClient:
         """
         if self.dry_run:
             lower = prompt.lower()
-            if "unambiguous_identifiable" in lower or "identifiable_pole_type" in lower:
+            if "pole_type_definitions" in lower and "pole_in_clear_view" in lower:
+                in_viewshed = '"geometric_target_in_viewshed": true' in lower
+                if in_viewshed:
+                    return (
+                        '{"pole_in_clear_view":true,'
+                        '"unambiguous_identifiable":true,'
+                        '"identifiable_pole_type":"lamp_post",'
+                        '"confirmed_target_pole_id":null,'
+                        '"reason":"dry run — target in viewshed"}'
+                    )
                 return (
                     '{"pole_in_clear_view":false,'
-                    '"unambiguous_identifiable":false,'
                     '"identifiable_pole_type":null,'
-                    '"confirmed_target_pole_id":null,'
-                    '"reason":"dry run — not unambiguous"}'
+                    '"reason":"dry run — target not in viewshed"}'
                 )
             if "pole_in_clear_view" in lower and "pole_type_definitions" not in lower:
                 return '{"pole_in_clear_view":false,"reason":"dry run clear view"}'

@@ -12,8 +12,8 @@ import os
 from agent.environment import World
 from agent.types import AgentState, PoleInView
 
-CLEAR_VIEW_MAX_DISTANCE_M = float(os.environ.get("VLM_CLEAR_VIEW_MAX_M", "40"))
-CLEAR_VIEW_MAX_ANGLE_DEG = float(os.environ.get("VLM_CLEAR_VIEW_MAX_ANGLE_DEG", "45"))
+CLEAR_VIEW_MAX_DISTANCE_M = float(os.environ.get("VLM_CLEAR_VIEW_MAX_M", "50"))
+CLEAR_VIEW_MAX_ANGLE_DEG = float(os.environ.get("VLM_CLEAR_VIEW_MAX_ANGLE_DEG", "55"))
 
 
 def geometric_sight_clear(sight: PoleInView | None) -> bool:
