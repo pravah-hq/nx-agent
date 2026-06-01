@@ -1,3 +1,10 @@
+"""
+All VLM prompt text — primary place to tune behavior.
+
+POLE_TYPE_GUIDE: edit definitions for classification / clear-view.
+build_map_navigation_prompt / build_pole_in_clear_view_prompt: JSON schemas the model must follow.
+"""
+
 from __future__ import annotations
 
 import json
@@ -163,10 +170,7 @@ def build_pole_in_clear_view_prompt(
         f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
         "Set pole_in_clear_view=true ONLY when ALL hold:\n"
         "1) The visible structure is the TARGET pole (not another pole).\n"
-        "2) You can identify its type UNAMBIGUOUSLY as exactly ONE of the four types below.\n"
-        "3) You are NOT guessing low_tension_pole because it is a generic utility pole — "
-        "rule out lamp_post (street light on top), billboard_pole (sign board), "
-        "and distribution_transformer (two poles + large transformer between) first.\n\n"
+        "2) You can identify its type UNAMBIGUOUSLY as exactly ONE of the four types below.\n\n"
         "Use false / unambiguous_identifiable false when:\n"
         "- Target not visible, too small, or occluded\n"
         "- A different pole is clearer than the target\n"

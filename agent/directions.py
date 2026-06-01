@@ -1,3 +1,9 @@
+"""
+Discrete viewing directions (12 bins × 30°).
+
+View yaw = pano.heading_deg + direction_bin * 30°. Used for poles_in_view and crops.
+"""
+
 from __future__ import annotations
 
 from agent.types import DIRECTION_BIN_COUNT, DIRECTION_BIN_WIDTH_DEG, Pano
@@ -9,7 +15,7 @@ def clamp_bin(value: int) -> int:
 
 
 def bin_center_world_yaw(pano: Pano, direction_bin: int) -> float:
-    """View direction in world coordinates: pano forward + bin * 30°."""
+    """World compass yaw of the center of this direction bin."""
     return normalize_deg(pano.heading_deg + direction_bin * DIRECTION_BIN_WIDTH_DEG)
 
 

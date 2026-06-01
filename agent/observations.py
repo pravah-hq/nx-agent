@@ -1,3 +1,9 @@
+"""
+Human-readable and JSON observations printed each step (CLI verbose mode).
+
+target_pole_in_clear_view in JSON mirrors pole_in_clear_view bool from the loop.
+"""
+
 from __future__ import annotations
 
 import json

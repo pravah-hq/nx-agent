@@ -1,3 +1,9 @@
+"""
+Main control loop: observe -> consider target -> choose action -> apply.
+
+AgentLoop.run() is used by `python -m agent run`; step() for single-step debugging.
+"""
+
 from __future__ import annotations
 
 from agent.clear_view import geometric_pole_in_clear_view
@@ -13,6 +19,11 @@ def resolve_pole_in_clear_view(
     policy: Policy | None,
     state: AgentState,
 ) -> bool:
+    """
+    Before choose(): is the target pole unambiguously identifiable?
+
+    VlmPolicy.observe() runs dual-image clear-view VLM; stub uses geometric (always false).
+    """
     if policy is None:
         return False
     if isinstance(policy, VlmPolicy):
@@ -26,6 +37,7 @@ class AgentLoop:
         self.policy = policy
 
     def step(self, state: AgentState, action: Action | None = None) -> tuple[AgentState, StepRecord]:
+        """One step; pass action to override policy (manual testing)."""
         pole_in_clear_view = resolve_pole_in_clear_view(self.world, self.policy, state)
         state = (
             apply_consideration(state, self.world, self.policy)
@@ -61,6 +73,7 @@ class AgentLoop:
         verbose: bool = True,
         json_obs: bool = False,
     ) -> tuple[AgentState, list[StepRecord]]:
+        """Autonomous episode until classify+stop, max_steps, or all poles classified."""
         if self.policy is None:
             raise ValueError("Autonomous run requires a policy.")
 

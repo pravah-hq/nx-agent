@@ -1,3 +1,9 @@
+"""
+Graph search helpers on the 20 m pano graph.
+
+Used by StubPolicy and VlmPolicy (via targeting / navigation fallbacks).
+"""
+
 from __future__ import annotations
 
 from collections import deque
@@ -11,6 +17,7 @@ def shortest_path(
     start_id: str,
     goal_id: str,
 ) -> list[str] | None:
+    """BFS shortest path of pano ids from start to goal (inclusive)."""
     if start_id == goal_id:
         return [start_id]
     if start_id not in neighbor_map or goal_id not in neighbor_map:
@@ -40,6 +47,7 @@ def shortest_path(
 
 
 def closest_pano_to_pole(panos: list[Pano], pole: Pole) -> tuple[Pano, float]:
+    """Straight-line nearest pano to a pole (may be > 20 m from graph neighbors)."""
     best_pano = panos[0]
     best_dist = distance_m(best_pano.lat, best_pano.lon, pole.lat, pole.lon)
     for pano in panos[1:]:
@@ -51,6 +59,7 @@ def closest_pano_to_pole(panos: list[Pano], pole: Pole) -> tuple[Pano, float]:
 
 
 def panos_near_pole(panos: list[Pano], pole: Pole, max_m: float) -> list[tuple[Pano, float]]:
+    """Panos within max_m of pole, sorted by distance."""
     nearby: list[tuple[Pano, float]] = []
     for pano in panos:
         dist = distance_m(pano.lat, pano.lon, pole.lat, pole.lon)

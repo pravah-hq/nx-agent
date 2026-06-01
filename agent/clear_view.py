@@ -1,3 +1,10 @@
+"""
+Target pole "clear view" gate — VLM must say type is unambiguous before classify.
+
+Flow: VlmPolicy.observe() -> evaluate_pole_in_clear_view() -> parse_pole_in_clear_view_response()
+Tweak prompts in prompts.build_pole_in_clear_view_prompt; parser in action_parse.
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -10,6 +17,7 @@ from agent.types import AgentState, PoleInView, PoleType
 
 
 def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
+    """Geometric visibility entry for the current target pole, if any."""
     track = state.pole_in_consideration
     if not track:
         return None
@@ -17,7 +25,7 @@ def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
 
 
 def geometric_pole_in_clear_view(world: World, state: AgentState) -> bool:
-    """Stub only: geometry does not prove unambiguous type — always false for VLM path."""
+    """Non-VLM policies: we do not auto-classify from geometry alone."""
     return False
 
 
@@ -31,8 +39,12 @@ def evaluate_pole_in_clear_view(
     parse_retries: int = 2,
 ) -> tuple[bool, PoleType | None, str, str]:
     """
-    VLM decides if the TARGET pole is unambiguously identifiable as one pole type.
-    Returns (clear, identifiable_pole_type, prompt, raw_response).
+    Dual-image VLM call for clear-view gate.
+
+    Returns:
+        clear — may classify this step if True
+        identifiable_pole_type — stored on VlmPolicy for classify_or_stop
+        prompt, raw_response — for VLM_TRACE_DIR debugging
     """
     track = state.pole_in_consideration
     if not track or track in state.classified:

@@ -1,3 +1,10 @@
+"""
+Street-view crops from equirectangular panoramas for the VLM.
+
+Cached under .cache/agent_views/ — delete cache after changing FOV or bin logic.
+Env: VLM_ASSESS_CROP_FOV (degrees horizontal slice from full pano width).
+"""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,8 +31,9 @@ def render_direction_crop(
     out_size: tuple[int, int] = DEFAULT_VIEW_SIZE,
 ) -> Path:
     """
-    Extract a rectilinear-ish crop from the equirectangular pano centered on
-    direction_bin (offset from pano forward in degrees).
+    Rectilinear crop centered on direction_bin (offset from pano forward, 30° per bin).
+
+    Handles equirectangular wrap at the 0°/360° seam.
     """
     from PIL import Image
 

@@ -1,3 +1,10 @@
+"""
+Simulation world: panos, poles, 20 m graph, viewshed, and action physics.
+
+World.apply_action implements turn / move / classify — policies only propose Actions.
+Tweak poles_in_view() here to change geometric visibility (HFOV, VIEW_SHED_RADIUS_M).
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -23,6 +30,8 @@ from agent.types import (
 
 @dataclass
 class World:
+    """Loaded dataset + neighbor graph; use World.load() from CLI."""
+
     panos: list[Pano]
     panos_by_id: dict[str, Pano]
     poles: list[Pole]
@@ -56,6 +65,7 @@ class World:
         return bin_center_world_yaw(pano, state.direction_bin)
 
     def poles_in_view(self, state: AgentState) -> list[PoleInView]:
+        """Poles within VIEW_SHED_RADIUS_M and DEFAULT_HFOV_DEG cone, sorted by angle."""
         pano = self.panos_by_id[state.pano_id]
         view_yaw = self.view_yaw_deg(state)
         half_fov = DEFAULT_HFOV_DEG / 2
@@ -99,6 +109,7 @@ class World:
         return [item[2] for item in candidates]
 
     def apply_action(self, state: AgentState, action: Action) -> tuple[AgentState, str]:
+        """Apply one action; returns (new_state, human message). Move requires neighbor or alignment."""
         next_state = state.copy()
 
         if action.type == ActionType.TURN_LEFT:

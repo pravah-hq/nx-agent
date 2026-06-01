@@ -1,3 +1,9 @@
+"""
+Move selection helpers: anti-backtrack and graph-planned neighbor fallback.
+
+When VLM navigation JSON fails, VlmPolicy uses pick_planned_neighbor.
+"""
+
 from __future__ import annotations
 
 from agent.environment import World
@@ -7,6 +13,7 @@ from agent.types import AgentState
 
 
 def backtrack_blocked_ids(last_pano_id: str | None) -> frozenset[str]:
+    """Neighbor pano ids the agent must not move back to (immediate previous)."""
     if last_pano_id:
         return frozenset({last_pano_id})
     return frozenset()
@@ -29,8 +36,10 @@ def pick_planned_neighbor(
     nav_path: list[str] | None = None,
 ) -> str | None:
     """
-    Next move along the BFS path toward the view pano for the target pole.
-    Falls back to any unblocked neighbor that reduces distance to the pole.
+    1) Next hop on cached nav_path toward view pano
+    2) Recompute path via plan_mission_to_pole
+    3) Any neighbor closer to target pole
+    4) First unblocked neighbor
     """
     candidates = allowed_move_targets(neighbor_ids, blocked)
     if not candidates:
@@ -73,6 +82,7 @@ def build_neighbor_move_options(
     *,
     nav_path: list[str] | None = None,
 ) -> list[dict]:
+    """Structured neighbor list embedded in VLM navigation prompts."""
     pole = (
         world.poles_by_track.get(state.pole_in_consideration)
         if state.pole_in_consideration

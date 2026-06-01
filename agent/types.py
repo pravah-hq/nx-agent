@@ -1,15 +1,32 @@
+"""
+Core types and constants for the agent.
+
+Tweak geometry here to match the React app (src/App.tsx) or experiment with
+stricter/looser visibility rules in environment.poles_in_view().
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Literal
 
+# --- Geometry (aligned with web UI) -----------------------------------------
+
+# Max edge length in the pano graph; move only goes to neighbors within this.
 PANO_PROXIMITY_MAX_M = 20
+# When using aligned move (no explicit target_pano_id), neighbor must be within this
+# bearing cone from the current view direction.
 STEP_ALIGNMENT_MAX_DEG = 45
+# Poles farther than this are never in poles_in_view (geometric viewshed).
 VIEW_SHED_RADIUS_M = 42
+# Horizontal field of view used for poles_in_view cone (degrees).
 DEFAULT_HFOV_DEG = 100
+# Agent heading is discrete: 12 bins × 30° each.
 DIRECTION_BIN_COUNT = 12
 DIRECTION_BIN_WIDTH_DEG = 30
+
+# --- Pole labels (task definition) --------------------------------------------
 
 PoleType = Literal[
     "distribution_transformer",
@@ -27,6 +44,8 @@ POLE_TYPES: tuple[PoleType, ...] = (
 
 
 class ActionType(str, Enum):
+    """Discrete actions the environment.apply_action understands."""
+
     TURN_LEFT = "turn_left"
     TURN_RIGHT = "turn_right"
     MOVE = "move"
@@ -35,6 +54,8 @@ class ActionType(str, Enum):
 
 @dataclass(frozen=True)
 class Pano:
+    """One street panorama node (position + equirectangular image metadata)."""
+
     id: str
     image_path: str
     session_id: str
@@ -48,6 +69,8 @@ class Pano:
 
 @dataclass(frozen=True)
 class Pole:
+    """Ground-truth pole location from poles.geojson (not the predicted type)."""
+
     track_id: str
     pole_id: str
     lat: float
@@ -60,6 +83,12 @@ class Pole:
 
 @dataclass(frozen=True)
 class PoleInView:
+    """
+    Geometric visibility of a pole from current pano + direction_bin.
+    Used by stub policy and as hints in VLM JSON; not the same as
+    target_pole_in_clear_view (VLM unambiguous-type gate).
+    """
+
     track_id: str
     pole_id: str
     bearing_deg: float
@@ -70,6 +99,8 @@ class PoleInView:
 
 @dataclass
 class PoleGuess:
+    """Working hypothesis for the pole being hunted (type filled after classify)."""
+
     track_id: str
     pole_id: str
     pole_type: PoleType | None = None
@@ -79,6 +110,14 @@ class PoleGuess:
 
 @dataclass
 class AgentState:
+    """
+    Full agent state each step.
+
+    - pano_id + direction_bin: where you stand and which way you face
+    - pole_in_consideration: track_id of the pole you are trying to classify next
+    - classified: map track_id -> predicted PoleType
+    """
+
     pano_id: str
     direction_bin: int
     pole_in_consideration: str | None = None
@@ -97,19 +136,21 @@ class AgentState:
 
 @dataclass(frozen=True)
 class Action:
+    """Command issued by a policy; applied by World.apply_action."""
+
     type: ActionType
-    # For classify_or_stop: set pole_type to classify; omit to only stop the run.
-    pole_type: PoleType | None = None
-    stop_after: bool = False
-    # For move: VLM picks a neighbor pano id from the map (must be within 20 m).
-    target_pano_id: str | None = None
+    pole_type: PoleType | None = None  # required for classify_or_stop (VLM/stub)
+    stop_after: bool = False  # end autonomous run after this classify
+    target_pano_id: str | None = None  # required for VLM move (full pano id string)
 
 
 @dataclass
 class StepRecord:
+    """One step of a run (for logging / debugging)."""
+
     step: int
     action: Action
     state_before: AgentState
     state_after: AgentState
-    pole_in_clear_view: bool
+    pole_in_clear_view: bool  # VLM: target unambiguously identifiable this step
     message: str = ""

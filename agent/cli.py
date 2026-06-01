@@ -1,3 +1,12 @@
+"""
+CLI entry: python -m agent <command>
+
+Commands:
+  run          — autonomous loop (AgentLoop + stub or vlm policy)
+  probe        — one VLM step (GPU smoke test)
+  state / step / interactive — debugging without full run
+"""
+
 from __future__ import annotations
 
 import argparse

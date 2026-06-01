@@ -1,3 +1,16 @@
+"""
+VLM policy: dual map + street images every step.
+
+Tinker here:
+  observe()     — clear-view gate (evaluate_pole_in_clear_view)
+  choose()      — classify if clear, else _navigate()
+  prompts       — agent/prompts.py (POLE_TYPE_GUIDE, build_*_prompt)
+  parsers       — agent/action_parse.py
+  dry run       — VLM_DRY_RUN=1 (model_client keyword stubs)
+
+Env: VLM_TRACE_DIR, VLM_ASSESS_CROP_FOV
+"""
+
 from __future__ import annotations
 
 import os

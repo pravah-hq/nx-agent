@@ -1,3 +1,11 @@
+"""
+Parse VLM JSON text into Actions and clear-view / pole-type results.
+
+Models often wrap JSON in markdown fences — extract_json_object handles that.
+To loosen/tighten classify gates, edit parse_pole_in_clear_view_response and
+parse_pole_type_response.
+"""
+
 from __future__ import annotations
 
 import json

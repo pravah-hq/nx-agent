@@ -1,3 +1,9 @@
+"""
+Normalize and compare pole id strings from VLM JSON vs metadata.
+
+VLM may return "57" or "POLE_000057"; both should match metadata pole_id.
+"""
+
 from __future__ import annotations
 
 import re

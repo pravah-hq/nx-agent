@@ -1,3 +1,9 @@
+"""
+Load panorama and pole metadata from data/metadata/.
+
+Paths mirror the web app: panoramas.json + poles.geojson under repo data/.
+"""
+
 from __future__ import annotations
 
 import json
@@ -7,10 +13,12 @@ from agent.types import Pano, Pole
 
 
 def repo_root() -> Path:
+    """Repository root (parent of agent/)."""
     return Path(__file__).resolve().parent.parent
 
 
 def load_panos(metadata_dir: Path | None = None) -> list[Pano]:
+    """Load all panorama records from panoramas.json."""
     root = metadata_dir or repo_root() / "data" / "metadata"
     path = root / "panoramas.json"
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -34,6 +42,7 @@ def load_panos(metadata_dir: Path | None = None) -> list[Pano]:
 
 
 def load_poles(metadata_dir: Path | None = None) -> list[Pole]:
+    """Load pole features from poles.geojson."""
     root = metadata_dir or repo_root() / "data" / "metadata"
     path = root / "poles.geojson"
     payload = json.loads(path.read_text(encoding="utf-8"))

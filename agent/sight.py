@@ -1,3 +1,10 @@
+"""
+Geometric sight helpers (stub policy + optional corroboration).
+
+VLM clear-view gate does NOT use geometric_pole_in_clear_view anymore (always False
+in clear_view.py for stub path). Tune VLM_CLEAR_VIEW_MAX_M / VLM_CLEAR_VIEW_MAX_ANGLE_DEG.
+"""
+
 from __future__ import annotations
 
 import os
@@ -10,6 +17,7 @@ CLEAR_VIEW_MAX_ANGLE_DEG = float(os.environ.get("VLM_CLEAR_VIEW_MAX_ANGLE_DEG", 
 
 
 def geometric_sight_clear(sight: PoleInView | None) -> bool:
+    """True if target pole entry is within distance/angle thresholds."""
     if sight is None:
         return False
     return (
@@ -19,7 +27,7 @@ def geometric_sight_clear(sight: PoleInView | None) -> bool:
 
 
 def target_pole_primary_in_viewshed(world: World, state: AgentState) -> bool:
-    """Target is in viewshed and is the most centered visible pole."""
+    """True if target is visible and most centered among visible poles."""
     track = state.pole_in_consideration
     if not track:
         return False

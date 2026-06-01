@@ -1,3 +1,11 @@
+"""
+Qwen3-VL wrapper for map + street image prompts.
+
+Environment:
+  VLM_MODEL_ID, VLM_MAX_NEW_TOKENS, VLM_DRY_RUN=1 (keyword-based fake JSON, no GPU)
+  VLM_DEVICE_MAP, VLM_ATTN_IMPLEMENTATION
+"""
+
 from __future__ import annotations
 
 import os
@@ -5,7 +13,7 @@ from pathlib import Path
 
 
 class VlmClient:
-    """Lazy-loaded Qwen3-VL on this machine (run agent + VLM together on GCP GPU VM)."""
+    """Lazy-loads Hugging Face Qwen3-VL; use one instance per VlmPolicy."""
 
     def __init__(
         self,
@@ -47,6 +55,11 @@ class VlmClient:
         return self.complete_images(prompt, [image_path])
 
     def complete_images(self, prompt: str, image_paths: list[Path]) -> str:
+        """
+        Multi-image chat: image order must match prompt (map first, street second).
+
+        dry_run branches on prompt keywords — update when adding new prompt types.
+        """
         if self.dry_run:
             lower = prompt.lower()
             if "unambiguous_identifiable" in lower or "identifiable_pole_type" in lower:

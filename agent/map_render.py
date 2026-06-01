@@ -1,3 +1,10 @@
+"""
+PNG local map for VLM image 1 (cached under .cache/agent_maps/).
+
+Legend: YOU=blue+wedge, yellow ring=planned next hop, gray lines=20 m edges,
+orange=target pole, green=other unclassified, gray=classified.
+"""
+
 from __future__ import annotations
 
 import math

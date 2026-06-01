@@ -1,3 +1,9 @@
+"""
+Policy interface and StubPolicy (graph BFS + scan, no VLM).
+
+For VLM behavior see vlm_policy.py. apply_consideration() syncs pole_in_consideration.
+"""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -21,6 +27,8 @@ from agent.types import (
 
 
 class Policy(ABC):
+    """choose() is called after observe/clear-view and apply_consideration in AgentLoop."""
+
     @abstractmethod
     def choose(self, world: World, state: AgentState, pole_in_clear_view: bool) -> Action:
         raise NotImplementedError
