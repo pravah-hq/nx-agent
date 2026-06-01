@@ -170,7 +170,7 @@ def build_pole_in_clear_view_prompt(
         f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
         "Set pole_in_clear_view=true ONLY when ALL hold:\n"
         "1) The visible structure is the TARGET pole (not another pole).\n"
-        "2) You can identify its type UNAMBIGUOUSLY as exactly ONE of the four types below.\n\n"
+        "2) You can identify its type as one of the four types below.\n\n"
         "Use false / unambiguous_identifiable false when:\n"
         "- Target not visible, too small, or occluded\n"
         "- A different pole is clearer than the target\n"
