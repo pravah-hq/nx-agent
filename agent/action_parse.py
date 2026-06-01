@@ -88,14 +88,12 @@ def parse_pole_in_clear_view_response(
     text: str,
     *,
     expected_pole_id: str,
-    geometric_corroboration: bool = False,
 ) -> tuple[bool | None, PoleType | None, str]:
     """
-    Clear view when the model marks visibility and supplies a valid pole type.
+    VLM-only clear view: pole_in_clear_view (or view_clear) true from the model.
 
-    Relaxed vs earlier: pole_in_clear_view=true + identifiable_pole_type is enough;
-    unambiguous_identifiable is optional. confirmed_target_pole_id is optional unless
-    present and wrong. geometric_corroboration allows type + viewshed when flags are soft.
+    identifiable_pole_type is optional — choose() can run a separate classify prompt.
+    confirmed_target_pole_id is only checked when the model supplies it.
     """
     from agent.pole_ids import pole_ids_match
 
@@ -103,10 +101,11 @@ def parse_pole_in_clear_view_response(
     if not payload:
         return None, None, "no JSON"
 
-    unambiguous = _truthy(payload.get("unambiguous_identifiable", False))
     raw_clear = _truthy(payload.get("pole_in_clear_view", False)) or _truthy(
         payload.get("view_clear", False)
     )
+    if not raw_clear:
+        return False, None, ""
 
     raw_type = payload.get("identifiable_pole_type") or payload.get("pole_type")
     pole_type: PoleType | None = None
@@ -115,15 +114,6 @@ def parse_pole_in_clear_view_response(
         if candidate not in POLE_TYPES:
             return False, None, f"invalid identifiable_pole_type {candidate}"
         pole_type = candidate  # type: ignore[assignment]
-
-    wants_clear = raw_clear or unambiguous
-    if not wants_clear and not geometric_corroboration:
-        return False, None, ""
-
-    if pole_type is None:
-        if wants_clear or geometric_corroboration:
-            return False, None, "identifiable_pole_type required for clear view"
-        return False, None, ""
 
     confirmed = (
         payload.get("confirmed_target_pole_id")
@@ -138,28 +128,7 @@ def parse_pole_in_clear_view_response(
                 f"confirmed id {confirmed} is not target {expected_pole_id}",
             )
 
-    reason = str(payload.get("reason", "")).lower()
-    if any(
-        phrase in reason
-        for phrase in (
-            "ambiguous between",
-            "multiple types could",
-            "multiple types fit",
-            "cannot identify type",
-            "too ambiguous to",
-            "not the target pole",
-            "wrong pole",
-        )
-    ):
-        return False, None, "reason indicates ambiguity"
-
-    if raw_clear or unambiguous:
-        return True, pole_type, ""
-
-    if geometric_corroboration:
-        return True, pole_type, ""
-
-    return False, None, ""
+    return True, pole_type, ""
 
 
 def parse_action_response(

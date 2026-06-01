@@ -2,7 +2,7 @@
 VLM policy: dual map + street images every step.
 
 Tinker here:
-  observe()     — clear-view gate (evaluate_pole_in_clear_view)
+  observe()     — VLM clear-view gate only (after apply_consideration in loop)
   choose()      — classify if clear, else _navigate()
   prompts       — agent/prompts.py (POLE_TYPE_GUIDE, build_*_prompt)
   parsers       — agent/action_parse.py
@@ -68,6 +68,23 @@ class VlmPolicy(Policy):
         self._cached_direction_bin: int | None = None
         self._cached_map_path: Path | None = None
         self._cached_street_path: Path | None = None
+        self.vlm_step_calls: list[dict[str, str | int]] = []
+
+    def begin_agent_step(self) -> None:
+        """Clear per-step VLM log; call once at the start of each agent step."""
+        self.vlm_step_calls = []
+
+    def _record_vlm(
+        self,
+        phase: str,
+        response: str,
+        *,
+        attempt: int = 1,
+    ) -> None:
+        self.vlm_step_calls.append(
+            {"phase": phase, "attempt": attempt, "response": response}
+        )
+        self.last_response = response
 
     def reset(self) -> None:
         self.last_prompt = ""
@@ -84,6 +101,7 @@ class VlmPolicy(Policy):
         self._cached_direction_bin = None
         self._cached_map_path = None
         self._cached_street_path = None
+        self.vlm_step_calls = []
 
     def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
         if (
@@ -109,9 +127,11 @@ class VlmPolicy(Policy):
             map_path,
             street_path,
             parse_retries=self.parse_retries,
+            record_vlm=lambda phase, raw, attempt=1: self._record_vlm(
+                phase, raw, attempt=attempt
+            ),
         )
         self.last_prompt = prompt
-        self.last_response = raw
         self.last_pole_in_clear_view = clear
         self.last_identifiable_pole_type = pole_type if clear else None
         return clear
@@ -196,9 +216,12 @@ class VlmPolicy(Policy):
         prompt: str,
         map_path: Path,
         street_path: Path,
+        *,
+        phase: str,
+        attempt: int = 1,
     ) -> str:
         raw = self.client.complete_images(prompt, [map_path, street_path])
-        self.last_response = raw
+        self._record_vlm(phase, raw, attempt=attempt)
         return raw
 
     def _ensure_navigation_plan(self, world: World, state: AgentState) -> None:
@@ -261,7 +284,13 @@ class VlmPolicy(Policy):
                         f"{', '.join(sorted(blocked))}."
                     )
             self.last_prompt = prompt + extra
-            raw = self._vlm_dual(self.last_prompt, map_path, street_path)
+            raw = self._vlm_dual(
+                self.last_prompt,
+                map_path,
+                street_path,
+                phase="dual_navigation",
+                attempt=attempt + 1,
+            )
             action = parse_navigation_response(
                 raw,
                 allowed=legal,
@@ -310,7 +339,13 @@ class VlmPolicy(Policy):
             pole = world.poles_by_track.get(state.pole_in_consideration or "")
             if not pole:
                 return None
-            raw = self._vlm_dual(self.last_prompt, map_path, street_path)
+            raw = self._vlm_dual(
+                self.last_prompt,
+                map_path,
+                street_path,
+                phase="dual_pole_type_classification",
+                attempt=attempt + 1,
+            )
             pole_type, err = parse_pole_type_response(
                 raw, expected_pole_id=pole.pole_id
             )

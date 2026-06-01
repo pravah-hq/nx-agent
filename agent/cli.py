@@ -16,7 +16,7 @@ from agent.data_loader import repo_root
 from agent.environment import World
 from agent.clear_view import geometric_pole_in_clear_view
 from agent.loop import AgentLoop
-from agent.observations import print_observation
+from agent.observations import print_observation, print_vlm_step_responses
 from agent.policy import Policy, StubPolicy
 from agent.types import POLE_TYPES, Action, ActionType, PoleType
 
@@ -180,16 +180,20 @@ def run_probe(world: World, policy: Policy, start_pano: str | None) -> int:
     state = world.initial_state(start_pano)
     from agent.policy import apply_consideration
 
-    pole_in_clear_view = policy.observe(world, state)
+    from agent.vlm_policy import VlmPolicy
+
+    if isinstance(policy, VlmPolicy):
+        policy.begin_agent_step()
     state = apply_consideration(state, world, policy)
+    pole_in_clear_view = policy.observe(world, state)
     print_observation(world, state, pole_in_clear_view=pole_in_clear_view)
     print("\nLoading VLM on this machine and running one step...", flush=True)
     action = policy.choose(world, state, pole_in_clear_view)
+    print_vlm_step_responses(policy)
     print(f"\nmap image: {getattr(policy, 'last_map_image', None)}")
     print(f"street image: {getattr(policy, 'last_street_image', None)}")
     print(f"phase: {getattr(policy, 'last_phase', None)}")
     print(f"action: {action.type.value} pole_type={action.pole_type} stop_after={action.stop_after}")
-    print(f"\nmodel response:\n{policy.last_response}")
     return 0
 
 

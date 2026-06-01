@@ -1,5 +1,10 @@
 """
-Main control loop: observe -> consider target -> choose action -> apply.
+Main control loop per step:
+
+  apply_consideration (pick target pole)
+  -> observe / resolve_pole_in_clear_view (VLM: is target in clear view?)
+  -> choose (classify if clear, else navigate)
+  -> apply_action
 
 AgentLoop.run() is used by `python -m agent run`; step() for single-step debugging.
 """
@@ -8,12 +13,10 @@ from __future__ import annotations
 
 from agent.clear_view import geometric_pole_in_clear_view
 from agent.environment import World
-from agent.observations import print_observation
+from agent.observations import print_observation, print_vlm_step_responses
+from agent.vlm_policy import VlmPolicy
 from agent.policy import Policy, apply_consideration
 from agent.types import Action, ActionType, AgentState, StepRecord
-from agent.vlm_policy import VlmPolicy
-
-
 def resolve_pole_in_clear_view(
     world: World,
     policy: Policy | None,
@@ -22,7 +25,7 @@ def resolve_pole_in_clear_view(
     """
     Before choose(): is the target pole unambiguously identifiable?
 
-    VlmPolicy.observe() runs dual-image clear-view VLM; stub uses geometric (always false).
+    VlmPolicy.observe(): VLM clear-view check (after target is chosen).
     """
     if policy is None:
         return False
@@ -38,17 +41,17 @@ class AgentLoop:
 
     def step(self, state: AgentState, action: Action | None = None) -> tuple[AgentState, StepRecord]:
         """One step; pass action to override policy (manual testing)."""
+        if isinstance(self.policy, VlmPolicy):
+            self.policy.begin_agent_step()
+        if self.policy:
+            state = apply_consideration(state, self.world, self.policy)
         pole_in_clear_view = resolve_pole_in_clear_view(self.world, self.policy, state)
-        state = (
-            apply_consideration(state, self.world, self.policy)
-            if self.policy
-            else state
-        )
 
         if action is None:
             if self.policy is None:
                 raise ValueError("No action provided and no policy configured.")
             action = self.policy.choose(self.world, state, pole_in_clear_view)
+            print_vlm_step_responses(self.policy)
 
         before = state.copy()
         after, message = self.world.apply_action(state, action)
@@ -85,6 +88,9 @@ class AgentLoop:
         current = state
 
         for step_index in range(1, max_steps + 1):
+            if isinstance(self.policy, VlmPolicy):
+                self.policy.begin_agent_step()
+            current = apply_consideration(current, self.world, self.policy)
             pole_in_clear_view = resolve_pole_in_clear_view(
                 self.world, self.policy, current
             )
@@ -97,8 +103,9 @@ class AgentLoop:
                     as_json=json_obs,
                 )
 
-            current = apply_consideration(current, self.world, self.policy)
             action = self.policy.choose(self.world, current, pole_in_clear_view)
+            if verbose:
+                print_vlm_step_responses(self.policy)
             before = current.copy()
             current, message = self.world.apply_action(current, action)
             record_step = getattr(self.policy, "record_step", None)

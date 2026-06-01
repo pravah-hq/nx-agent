@@ -1,35 +1,32 @@
 """
-Target pole "clear view" gate — VLM marks target visible + type before classify.
+Target pole clear-view gate — VLM only (map + street images).
 
-Relaxed parser: pole_in_clear_view + identifiable_pole_type suffices; optional
-geometric corroboration when target is in viewshed (sight.py thresholds).
+Step order in AgentLoop: apply_consideration (pick target) → observe (this module) →
+choose (classify if clear, else navigate).
 
-Flow: VlmPolicy.observe() -> evaluate_pole_in_clear_view() -> parse_pole_in_clear_view_response()
-Tweak prompts in prompts.build_pole_in_clear_view_prompt; parser in action_parse.
+Does not set target_pole_in_clear_view from geometry; sight data is only context in the prompt.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 
 from agent.action_parse import parse_pole_in_clear_view_response
 from agent.environment import World
 from agent.model_client import VlmClient
 from agent.prompts import build_pole_in_clear_view_prompt
-from agent.sight import geometric_sight_clear
+from agent.sight import compute_target_pole_sight
 from agent.types import AgentState, PoleInView, PoleType
 
 
 def target_pole_sight(world: World, state: AgentState) -> PoleInView | None:
-    """Geometric visibility entry for the current target pole, if any."""
-    track = state.pole_in_consideration
-    if not track:
-        return None
-    return next((p for p in world.poles_in_view(state) if p.track_id == track), None)
+    """Optional geometry hints for the VLM prompt (not used to force clear view)."""
+    return compute_target_pole_sight(world, state)
 
 
 def geometric_pole_in_clear_view(world: World, state: AgentState) -> bool:
-    """Non-VLM policies: we do not auto-classify from geometry alone."""
+    """Non-VLM paths never auto-clear from geometry."""
     return False
 
 
@@ -41,15 +38,8 @@ def evaluate_pole_in_clear_view(
     street_path: Path,
     *,
     parse_retries: int = 2,
+    record_vlm: Callable[..., None] | None = None,
 ) -> tuple[bool, PoleType | None, str, str]:
-    """
-    Dual-image VLM call for clear-view gate.
-
-    Returns:
-        clear — may classify this step if True
-        identifiable_pole_type — stored on VlmPolicy for classify_or_stop
-        prompt, raw_response — for VLM_TRACE_DIR debugging
-    """
     track = state.pole_in_consideration
     if not track or track in state.classified:
         return False, None, "", ""
@@ -58,29 +48,29 @@ def evaluate_pole_in_clear_view(
     if not pole:
         return False, None, "", ""
 
-    sight = target_pole_sight(world, state)
+    sight = compute_target_pole_sight(world, state)
     prompt = build_pole_in_clear_view_prompt(world, state, target_sight=sight)
     expected_id = pole.pole_id
 
     last_error = ""
     last_raw = ""
+
     for attempt in range(parse_retries + 1):
         extra = ""
         if attempt > 0:
             extra = (
-                f"\n\nInvalid ({last_error}). When the target is visible, reply with "
-                f'pole_in_clear_view true, identifiable_pole_type one of the four types '
-                f'(confirmed_target_pole_id "{expected_id}" if you can). '
-                "If the target is not visible or type is unknown, use false and null type."
+                f"\n\nInvalid ({last_error}). If the TARGET pole is visible in street view, "
+                f'reply {{"pole_in_clear_view":true,"identifiable_pole_type":"<one of four types>"}}. '
+                f"If not visible, pole_in_clear_view false. Target id: {expected_id}."
             )
         full_prompt = prompt + extra
         raw = client.complete_images(full_prompt, [map_path, street_path])
         last_raw = raw
-        corroborate = sight is not None and geometric_sight_clear(sight)
+        if record_vlm is not None:
+            record_vlm("pole_in_clear_view", raw, attempt=attempt + 1)
         clear, pole_type, err = parse_pole_in_clear_view_response(
             raw,
             expected_pole_id=expected_id,
-            geometric_corroboration=corroborate,
         )
         if err:
             last_error = err

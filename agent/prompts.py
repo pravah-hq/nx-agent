@@ -90,8 +90,8 @@ def build_map_navigation_prompt(
     }
     payload["rules"] = [
         DUAL_IMAGE_GUIDE["use_both"],
-        "target_pole_in_clear_view means VLM judged the target unambiguously identifiable (not your action).",
-        "If true, the agent classifies using that type; you only navigate when false.",
+        "target_pole_in_clear_view is set by a prior VLM clear-view check (not your action).",
+        "If true in state JSON, the agent classifies; you only navigate when false.",
         "MAP (image 1): choose move along gray lines to light neighbor dots only.",
         "STREET VIEW (image 2): decide if you should turn to find the orange target pole.",
         "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
@@ -155,39 +155,34 @@ def build_pole_in_clear_view_prompt(
                 target_sight.angle_from_view_deg, 1
             )
     if target_sight:
-        payload["geometric_target_in_viewshed"] = True
-        payload["hint"] = (
-            "Geometry says the TARGET pole is in the current street-view cone. "
-            "If you see a pole at that bearing with a clear best-matching type, "
-            "set pole_in_clear_view true and fill identifiable_pole_type."
-        )
+        payload["target_geometry_hint"] = {
+            "distance_m": round(target_sight.distance_m, 1),
+            "angle_from_view_deg": round(target_sight.angle_from_view_deg, 1),
+            "note": "hint only — YOU decide pole_in_clear_view from street view",
+        }
     else:
-        payload["geometric_target_in_viewshed"] = False
-        payload["hint"] = (
-            "Target may be off-screen or far — use pole_in_clear_view false unless "
-            "you still clearly see that specific pole in street view."
-        )
+        payload["target_geometry_hint"] = {
+            "note": "target may be off-screen; use street view + map to judge visibility",
+        }
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
     return (
         "You receive TWO images: (1) MAP — orange dot = TARGET pole "
         "(2) STREET VIEW — current facing.\n\n"
         f"TARGET (pole_in_consideration): {pole.pole_id if pole else 'unknown'}.\n\n"
-        "Set pole_in_clear_view=true when BOTH hold:\n"
-        "1) The TARGET pole (orange on map) is visible in street view — not a different pole.\n"
-        "2) You can assign its best-matching type from the four definitions below "
-        "(single best guess is OK; you do not need 100% certainty).\n\n"
-        "Set pole_in_clear_view=false when:\n"
-        "- Target not visible, too small, heavily occluded, or wrong pole dominates view\n"
-        "- You cannot pick any of the four types\n\n"
-        "Optional: unambiguous_identifiable true if you are very confident; "
-        "confirmed_target_pole_id if you can read the pole id.\n\n"
+        "Your answer controls whether the agent classifies this step.\n"
+        "Set pole_in_clear_view=true when the TARGET pole (orange on map) is clearly "
+        "visible in STREET VIEW (image 2) — unobstructed, large enough to judge, and "
+        "you believe it is that pole (not a different one).\n"
+        "If true, also set identifiable_pole_type to your best match from the definitions "
+        "(or null if visible but type unclear — agent may ask again).\n"
+        "Set pole_in_clear_view=false when the target is not visible, blocked, too far/small, "
+        "or a different pole dominates the view.\n\n"
         "Definitions:\n"
         + "\n".join(f"- {key}: {desc}" for key, desc in POLE_TYPE_GUIDE.items())
         + "\n\n"
         "Reply JSON only:\n"
         '{"pole_in_clear_view":true|false,'
-        '"unambiguous_identifiable":true|false,'
         f'"identifiable_pole_type":"one of {list(POLE_TYPES)} or null",'
         f'"confirmed_target_pole_id":"{pole.pole_id if pole else "null"}" or null,'
         '"reason":"what you see at the target bearing"}\n\n'
