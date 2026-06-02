@@ -105,10 +105,13 @@ select {
 }
 
 .viewer-pane {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   padding: 16px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .viewer-header,
@@ -156,13 +159,24 @@ select {
   border-radius: 6px;
 }
 
+.viewer-header {
+  flex-shrink: 0;
+}
+
 .viewer-shell {
   position: relative;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 380px;
   overflow: hidden;
   background: #111827;
   border: 1px solid #111827;
   border-radius: 8px;
+}
+
+/* Keep panorama size once trace content is shown; scroll the pane instead. */
+.viewer-pane:has(.trace-step-detail) .viewer-shell {
+  flex: 0 0 auto;
+  height: clamp(380px, 52vh, 720px);
 }
 
 .pano-viewer,
@@ -201,6 +215,12 @@ select {
 .step-controls button:disabled {
   cursor: not-allowed;
   opacity: 0.38;
+}
+
+.neighbor-controls,
+.detail-row,
+.trace-panel {
+  flex-shrink: 0;
 }
 
 .neighbor-controls {
@@ -305,8 +325,6 @@ select {
   background: #ffffff;
   border: 1px solid #dbe3ec;
   border-radius: 8px;
-  max-height: 280px;
-  overflow: auto;
 }
 
 .trace-header {

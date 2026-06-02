@@ -1,0 +1,2506 @@
+{
+  "version": 1,
+  "policy": "vlm",
+  "pole_count": 5,
+  "steps": [
+    {
+      "step": 1,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000213.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000209.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is wide and open with no prominent poles in the foreground or mid-ground that match any green map labels. The map indicates POLE_000057 is a candidate, but it is not visible in the street view image.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000213.jpg\",\"reason\":\"The MAP indicates this is the recommended next hop with a short distance (46.6m) and recommended_next_hop=true, and the STREET VIEW confirms the path ahead is clear for moving forward.\"}"
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with a white car, buildings, and a billboard, but no pole is unobstructed or large enough to judge its type or match to a green map label. The map's green poles (like POLE_000057) are not visible in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The yellow ring on the map indicates 0000000227 as the next hop, and it's the closest recommended move (35.3m) with recommended_next_hop=true, aligning with the goal path.\"}"
+        }
+      ]
+    },
+    {
+      "step": 3,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001393.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to classify. The target pole ID POLE_000057 is not visible in this image, and no green map pole matches the visual content.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001393.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to 0000001393, which is recommended and closest (22.1m), and the street view confirms the path ahead is clear for moving forward.\"}"
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001469.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The STREET VIEW shows a large overhead green sign structure supported by multiple poles, but no single utility pole is clearly visible or unobstructed for classification. The map label 'POLE_000057' is an orange navigation hint, not a green unclassified pole, so it cannot be matched to a visible pole in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001469.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop, and the street view confirms the path ahead is clear. The target pano_id matches the planned next hop with recommended_next_hop true and shortest distance.\"}"
+        }
+      ]
+    },
+    {
+      "step": 5,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a wide intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map indicates POLE_000057 is a candidate, but it is not visible in the street view, so it cannot be matched.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\"reason\":\"The local map shows a direct 16.7m move to neighbor pano_id 0000001467 as the shortest available path, and the street view confirms the road ahead is clear for movement.\"}"
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001471.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large overhead banner across the road, but no utility pole is clearly visible in the frame. The pole labeled 'POLE_000057' on the map is not visible in the street view, and no pole matches the criteria for being clearly visible and unclassified.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001469.jpg\",\"reason\":\"The goal is to reach the target pano_id 0000001469, which is blocked and requires navigation via the graph. The neighbor_moves list shows it as blocked, but the planned_next_hop is set to it, indicating it's the intended destination despite being blocked. The agent must move to it as per the plan.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001471.jpg\",\"reason\":\"closest unblocked neighbor with low distance (18.9m) and no recommended_next_hop flag set\"}"
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001469.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The target pole ID 'POLE_000057' is marked orange on the map as a navigation hint, not a visible pole in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001469.jpg\",\"reason\":\"The map shows the goal pano (0000001469) as the recommended next hop with shortest distance (15.4m) and is not blocked, so move directly to it.\"}"
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide intersection with vehicles and buildings, but no utility pole is clearly visible, unobstructed, or large enough to classify. The map indicates POLE_000057 is a candidate, but it is not visible in the street view image. Therefore, no pole meets the criteria for pole_in_clear_view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\"reason\":\"closest neighbor at 16.7m with valid move option\"}"
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001471.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large overhead banner across the road, not a utility pole. No pole is clearly visible in the image to match any green map label. The pole labeled 'POLE_000057' on the map is not visible in the street view, and no pole matches the criteria for being in clear view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001469.jpg\",\"reason\":\"The goal view pano is blocked, but the map shows a direct move to 0000001469 is blocked. The next best available move is to 0000001471, which is unblocked and close (18.9m).\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001471.jpg\",\"reason\":\"shortest distance to next hop (18.9m) and not blocked, aligns with graph navigation\"}"
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001469.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge its type or match to a green map label.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001469.jpg\",\"reason\":\"The map indicates this is the recommended next hop with shortest distance (15.4m) and it's not blocked, aligning with the goal view.\"}"
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001469.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the scene shows a wide intersection with vehicles and buildings, but no pole is unobstructed or large enough to classify.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\"reason\":\"The local map shows a direct 16.7m edge to pano_id 0000001467, which is the closest neighbor and recommended next hop, and the street view confirms the path is clear for movement.\"}"
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "action": "classify_or_stop",
+      "target_pano_id": null,
+      "pole_type": "billboard_pole",
+      "stop_after": false,
+      "pole_in_clear_view": true,
+      "message": "Classified POLE_000057 as billboard_pole. Continuing.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_f1c552641a611bac",
+        "classified": {},
+        "pole_guess": {
+          "track_id": "tr_f1c552641a611bac",
+          "pole_id": "POLE_000057",
+          "pole_type": null,
+          "note": "vlm visible pole"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": null,
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": null
+      },
+      "visible_pole_id": "POLE_000057",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": true,\n  \"visible_pole_id\": \"POLE_000057\",\n  \"identifiable_pole_type\": \"billboard_pole\",\n  \"reason\": \"The street view shows a large red banner (billboard) stretched across a metal gantry, supported by a pole. This matches the green labeled pole 'POLE_000057' on the map, which is unclassified and not yet in already_classified_pole_ids. The pole is clearly visible and unobstructed, meeting the criteria for pole_in_clear_view=true.\"\n}"
+        }
+      ]
+    },
+    {
+      "step": 13,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001471.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large banner across the road, but no utility pole is clearly visible or unobstructed. The map indicates POLE_000052 is a candidate, but the street view does not show a pole matching its location or appearance. Also, POLE_000057 is already classified, so it cannot be set as visible_pole_id.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001471.jpg\",\"reason\":\"Planned next hop is recommended and closest available neighbor (90.7m), matching the yellow ring in map and street view direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 14,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000535.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000535.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001471.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000535.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by vehicles, buildings, and open space with no distinct pole structure that meets the criteria for clear visibility or matching to a green map label.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000535.jpg\",\"reason\":\"The map indicates this is the recommended next hop with shortest distance and it's not blocked, aligning with the goal path.\"}"
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000247.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000247.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000535.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000247.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a roundabout with buildings, vehicles, and a small red structure, but no pole is unobstructed or large enough to classify. The map shows unclassified poles (green), but none match the visual evidence in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000247.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to 0000000247.jpg, which is recommended and has the shortest distance (64.8m) among available moves.\"}"
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000250.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000250.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000247.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000250.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a road with trees, vehicles, and some roadside stalls, but no pole is unobstructed or large enough to classify. The only pole-like object is a small, possibly decorative post on the left, which is too small and not clearly identifiable as a utility pole.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000250.jpg\",\"reason\":\"The local map indicates this is the recommended next hop with shortest distance (52.8m) and it's not blocked, aligning with the goal direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 17,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000557.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000557.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000250.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000557.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by the road, trees, and a bright sky; no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none are visible in the current street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000557.jpg\",\"reason\":\"Planned next hop is recommended and closest (35.2m), aligned with goal path.\"}"
+        }
+      ]
+    },
+    {
+      "step": 18,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001718.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001718.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000557.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001718.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the view is dominated by the road, trees, and bright sky, with no pole large or unobstructed enough to classify. The map shows unclassified poles (green), but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001718.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to 0000001718, which is the closest recommended next hop (16.7m) and aligns with the planned route toward the goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 19,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001718.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a wide road with trees, a sidewalk, and distant vehicles, but no pole is unobstructed or large enough to classify. The only pole-like structure is a distant lamp post, but it is too far away and not clearly visible for classification.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is directly ahead (0000001491) and is marked as recommended_next_hop with shortest distance.\"}"
+        }
+      ]
+    },
+    {
+      "step": 20,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the view is dominated by the road, sky, and distant buildings with no identifiable pole structure.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"The map shows a direct 20m edge to this neighbor pano, and it's the closest (6.5m) unblocked target, aligning with the goal of navigating efficiently toward the goal view.\"}"
+        }
+      ]
+    },
+    {
+      "step": 21,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001494.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, a distant pedestrian, and a billboard on the right, but no pole is unobstructed or large enough to classify. The billboard is already classified (tr_f1c552641a611bac) and is not a pole in the sense of the task (it's a sign mounted on a pole, but the pole itself is not visible).\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is at 0000001491, which is blocked but has shortest distance (5.0m) and is the planned next hop, so move to it despite being blocked for immediate backtrack.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001494.jpg\",\"reason\":\"closest unblocked neighbor with recommended_next_hop false but within 20m move limit\"}"
+        }
+      ]
+    },
+    {
+      "step": 22,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide road with buildings and trees, but no pole is unobstructed or large enough to classify. The map indicates a green pole (POLE_000052) is the target, but it is not visible in the street view, so no match can be made.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to the goal, and the street view shows a clear road ahead with no obstructions, confirming the move is safe and aligned with the planned path.\"}"
+        }
+      ]
+    },
+    {
+      "step": 23,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a wide road with trees and buildings, but no pole is unobstructed or large enough to classify. The map indicates unclassified poles (green), but none are visible in the street view at this moment.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"closest neighbor at 6.5m, no blocked move, and aligned with street view ahead\"}"
+        }
+      ]
+    },
+    {
+      "step": 24,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001485.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by the road, a pedestrian, and a billboard on a pole (which is already classified as 'billboard_pole' and thus not a new unclassified pole). The billboard pole is not visible in the current frame, and no other pole meets the criteria for clear visibility or matches an unclassified green map label.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is at 0000001491 and it's blocked, but we must move along the graph to reach it; the map shows it as the next hop with a yellow ring, and we can move to it despite being blocked (as per rules, we navigate toward goal_view_pano_id along the graph).\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001485.jpg\",\"reason\":\"closest allowed neighbor with recommended_next_hop false but not blocked, and within 20m move range\"}"
+        }
+      ]
+    },
+    {
+      "step": 25,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000562.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The view shows a road with trees, a sidewalk, and distant buildings, but no pole is clearly visible, unobstructed, or large enough to judge. Therefore, no green map label can be matched, and the pole is not in clear view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000562.jpg\",\"reason\":\"The yellow ring on the map indicates the planned next hop to pano ID 0000000562, which is recommended and has the shortest distance (17.6m) among available moves.\"}"
+        }
+      ]
+    },
+    {
+      "step": 26,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, sky, and distant buildings with no distinct pole structure that matches any unclassified green map label.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop is 0000001491, which is the goal view pano, and it's the only neighbor with recommended_next_hop true and shortest distance to goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 27,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by the road, trees, and sky with no distinct pole structure that matches any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) and is not occluded or obstructed. Additionally, the pole_id 'POLE_000052' is the target but not visible in the image, and no pole matches the criteria for clear visibility.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"The neighbor at 0000001489 is closest (6.5m) and unblocked, allowing direct movement along the graph edge to the next hop.\"}"
+        }
+      ]
+    },
+    {
+      "step": 28,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001494.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by the road, a pedestrian, and a billboard on the right, but no pole meets the criteria of being unobstructed and large enough to judge. The only pole in the image is the billboard pole (already classified), which is not a new unclassified pole. The map indicates green unclassified poles, but none are visible in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is directly ahead and marked as next hop in map, with shortest distance and no block.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001494.jpg\",\"reason\":\"closest unblocked neighbor with recommended_next_hop false but valid move target\"}"
+        }
+      ]
+    },
+    {
+      "step": 29,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by a wide road with buildings and trees on either side, and no pole is unobstructed or large enough to judge. The map shows unclassified poles (green) but none are visible in the current street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop is 0000001491, and it's the closest recommended next hop (5.0m distance) with a clear path ahead in the street view.\"}"
+        }
+      ]
+    },
+    {
+      "step": 30,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view is dominated by a wide road with trees and buildings, and no pole is unobstructed or large enough to classify. The map shows unclassified poles (green), but none are visible in the current street view frame.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"The street view shows a clear road ahead with no obstacles, and the map indicates this neighbor is 6.5m away, making it the closest valid move target.\"}"
+        }
+      ]
+    },
+    {
+      "step": 31,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001494.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, a pedestrian, and a billboard pole (already classified as POLE_000057), which is not the target POLE_000052. The target POLE_000052 is not visible in the current street view frame.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is at 0000001491, which is the yellow ring on the map and is the only unblocked neighbor with recommended_next_hop=true, so move there.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001494.jpg\",\"reason\":\"closest unblocked neighbor with recommended_next_hop false, distance 15.1m\"}"
+        }
+      ]
+    },
+    {
+      "step": 32,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the view is dominated by the road, sky, and distant buildings. The map indicates a green pole (POLE_000052) is the target, but no corresponding pole is visible in the street view, so it cannot be matched. Also, the pole in the image is not visible enough to classify.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to the goal, and the neighbor move to this pano is recommended with the shortest distance (5.0m).\" }"
+        }
+      ]
+    },
+    {
+      "step": 33,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The view is of a wide road with trees and buildings, and no pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"Closest neighbor (6.5m) with no blocking, aligns with map edge and street view direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 34,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001485.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view that matches any unclassified green pole on the map, and the only visible pole is a billboard pole which is already classified (tr_f1c552641a611bac).\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is directly reachable by move along the graph edge, and it's not blocked.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001485.jpg\",\"reason\":\"closest allowed neighbor with non-blocked move and recommended_next_hop false, but distance 20.8m is within 20m move limit\"}"
+        }
+      ]
+    },
+    {
+      "step": 35,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000562.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view shows a road with trees, traffic barriers, and distant buildings, but no pole is unobstructed or large enough to classify. The map shows unclassified poles (green), but none match the visual evidence in the street view.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000562.jpg\",\"reason\":\"The yellow ring on the map indicates the planned next hop to pano_id 0000000562, which is recommended and has the shortest distance (17.6m) among available moves.\"}"
+        }
+      ]
+    },
+    {
+      "step": 36,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide road with some distant poles, but none are unobstructed, large enough to judge, or match any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) that is not already classified. The only pole visible is the billboard_pole (POLE_000057) which is already classified and not in consideration.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to the goal, and the neighbor move to this pano is recommended with the shortest distance.\"}"
+        }
+      ]
+    },
+    {
+      "step": 37,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is of an open road with trees and buildings, and no pole is unobstructed or large enough to classify. The map shows green poles, but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"closest neighbor at 6.5m with no blocked status, and aligns with map edge connectivity\"}"
+        }
+      ]
+    },
+    {
+      "step": 38,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001494.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The only pole-like structure is a billboard on a white fence on the right, but it is not a pole supporting the billboard; it is a fence with a sign attached. The map shows unclassified poles (green), but none are visible in the street view to match.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is directly reachable by move along the graph edge, and it's the only unblocked hop to the target.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001494.jpg\",\"reason\":\"closest allowed neighbor with recommended_next_hop false but not blocked, and within 20m move range\"}"
+        }
+      ]
+    },
+    {
+      "step": 39,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by a wide road with trees and buildings, and no pole is unobstructed or large enough to classify. The target pole (POLE_000052) is marked orange on the map as a navigation hint, but no corresponding pole is visible in the street view.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop is 0000001491, and it's the closest recommended next hop (5.0m distance) with a clear path from the current position.\"}"
+        }
+      ]
+    },
+    {
+      "step": 40,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the view is dominated by the road, sky, and distant buildings with no distinct pole structure in the foreground or midground.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"The street view shows a clear road ahead with no obstacles, and the map indicates this neighbor is the closest (6.5m) and unblocked, making it the optimal next move.\"}"
+        }
+      ]
+    },
+    {
+      "step": 41,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001485.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide road with a person walking, palm trees, and a billboard on a pole on the right, but the billboard pole is not visible in the current frame and is not matched to any green map label (POLE_000052 is not visible in the image). Also, POLE_000052 is not in the already_classified_pole_ids, but the condition requires the pole to be clearly visible in the street view to set pole_in_clear_view to true.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is at 0000001491, which is the yellow ring in the map and the only unblocked target_pano_id with recommended_next_hop true, so move directly to it.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001485.jpg\",\"reason\":\"closest allowed neighbor with recommended_next_hop false but not blocked, distance 20.8m\"}"
+        }
+      ]
+    },
+    {
+      "step": 42,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000562.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with trees, a sidewalk, and distant streetlights, but no pole is unobstructed and large enough to classify. The only pole in the image is a distant streetlight, which is not visible in the map's green pole list (POLE_000052 is not visible in this view).\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000562.jpg\",\"reason\":\"The yellow ring on the map indicates the planned next hop to pano ID 0000000562, which is recommended and has the shortest distance (17.6m) among available moves.\"}"
+        }
+      ]
+    },
+    {
+      "step": 43,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, sidewalk, and distant buildings. The pole labeled 'POLE_000052' on the map is not visible in the current street view frame, and no pole matches the criteria for clear visibility or classification.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop is 0000001491, which is the goal view pano, and it's the only neighbor with recommended_next_hop true and shortest distance to goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 44,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a wide road with trees, buildings, and streetlights, but no pole is unobstructed or large enough to classify. The map indicates unclassified poles (green), but none are visible in the current street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"Closest neighbor (6.5m) and unclassified pole (green) is visible ahead, aligning with navigation toward goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 45,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001485.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The only pole-like structure is a billboard on the right, but it is not a green labeled pole on the map (the map's green poles are not visible in the street view). Also, the billboard pole is already classified (tr_f1c552641a611bac), so it cannot be set as a new unclassified pole.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"Goal is directly ahead and is the only unblocked next hop with a recommended_next_hop flag, matching the map's yellow ring and shortest distance.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001485.jpg\",\"reason\":\"closest allowed neighbor with recommended_next_hop false but not blocked, and within 20m move range\"}"
+        }
+      ]
+    },
+    {
+      "step": 46,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000562.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001485.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with trees, barriers, and distant buildings, but no pole is unobstructed or large enough to classify. The only pole in the image is a distant, indistinct structure that cannot be matched to any green map label, and the map's green poles are not visible in the street view.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000562.jpg\",\"reason\":\"Yellow ring on map indicates next hop to 0000000562, which is recommended and closest (17.6m)\"}"
+        }
+      ]
+    },
+    {
+      "step": 47,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000562.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, sky, and distant buildings. The pole labeled POLE_000052 on the map is not visible in the current street view frame.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to the goal, and the neighbor move to this pano has recommended_next_hop true with the shortest distance to target pole.\"}"
+        }
+      ]
+    },
+    {
+      "step": 48,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001489.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a wide road with trees and buildings, but no pole is unobstructed or large enough to classify. The map shows green unclassified poles, but none are visible in the current street view.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001489.jpg\",\"reason\":\"The neighbor at 0000001489 is closest (6.5m) and unblocked, allowing direct movement toward the goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 49,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001494.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001489.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by the road, a pedestrian, and a billboard pole (already classified), which does not match the target pole ID POLE_000052. The target pole is not visible in the current frame.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"goal is 0000001491 and it's blocked, but we must move to it as it's the next hop per map, and we can't move to blocked targets unless we're backtracking, which we're not.\"}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001494.jpg\",\"reason\":\"closest allowed neighbor with recommended_next_hop false but not blocked, and within 20m move range\"}"
+        }
+      ]
+    },
+    {
+      "step": 50,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001491.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001494.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001491.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        }
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by a wide road with buildings and trees, and no pole is unobstructed or large enough to classify. The map shows green poles, but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "dual_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The yellow ring on the map indicates the next hop to the goal, and the neighbor move to this pano is recommended with the shortest distance (5.0m) and is not blocked.\"}"
+        }
+      ]
+    }
+  ]
+}
