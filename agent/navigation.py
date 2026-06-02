@@ -1,7 +1,7 @@
 """
-Move selection helpers: anti-backtrack and graph-planned neighbor fallback.
+Move selection helpers for VLM navigation prompts.
 
-When VLM navigation JSON fails, VlmPolicy uses pick_planned_neighbor.
+build_neighbor_move_options: structured neighbor list in navigation JSON.
 """
 
 from __future__ import annotations
@@ -78,7 +78,6 @@ def build_neighbor_move_options(
     world: World,
     state: AgentState,
     neighbor_ids: list[str],
-    blocked: frozenset[str],
     *,
     nav_path: list[str] | None = None,
 ) -> list[dict]:
@@ -95,7 +94,6 @@ def build_neighbor_move_options(
             {
                 "target_pano_id": nid,
                 "label": pano_compact_id(nid),
-                "blocked": nid in blocked,
                 "distance_to_target_pole_m": round(distance_m(
                     world.panos_by_id[nid].lat,
                     world.panos_by_id[nid].lon,

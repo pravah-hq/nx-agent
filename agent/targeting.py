@@ -2,7 +2,7 @@
 Which pole to hunt next and how to reach a good view pano on the graph.
 
 select_target_pole: used by apply_consideration each step.
-plan_mission_to_pole / next_path_hop: fed into map labels and pick_planned_neighbor.
+plan_mission_to_pole / next_path_hop: fed into map labels and navigation prompts.
 """
 
 from __future__ import annotations
@@ -85,3 +85,23 @@ def next_path_hop(path_from_current: list[str]) -> str | None:
     if len(path_from_current) < 2:
         return None
     return path_from_current[1]
+
+
+def distance_to_target_pole_m(world: World, state: AgentState) -> float | None:
+    """Straight-line distance from current pano to pole_in_consideration, or None."""
+    track = state.pole_in_consideration
+    if not track or track not in world.poles_by_track:
+        return None
+    pole = world.poles_by_track[track]
+    return distance_to_pole_m(world, state.pano_id, pole)
+
+
+def is_close_to_target_pole(
+    world: World,
+    state: AgentState,
+    *,
+    threshold_m: float = VIEW_SHED_RADIUS_M,
+) -> bool:
+    """True when near enough to use node-zoom map only for navigation."""
+    dist = distance_to_target_pole_m(world, state)
+    return dist is not None and dist <= threshold_m

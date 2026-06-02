@@ -79,6 +79,11 @@ class VlmClient:
                     '"pole_type":"distribution_transformer",'
                     '"confidence":"low","reason":"dry run type pass"}'
                 )
+            if "three images" in lower or "overview map" in lower or "node zoom map" in lower:
+                return (
+                    '{"action":"turn_right","target_pano_id":null,'
+                    '"reason":"dry run dual-map navigation"}'
+                )
             if "two images" in lower or "image 1" in lower:
                 return (
                     '{"action":"turn_right","target_pano_id":null,'
