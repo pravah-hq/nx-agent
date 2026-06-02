@@ -74,35 +74,12 @@ def pick_planned_neighbor(
     return candidates[0]
 
 
-def build_neighbor_move_options(
-    world: World,
-    state: AgentState,
-    neighbor_ids: list[str],
-    *,
-    nav_path: list[str] | None = None,
-) -> list[dict]:
+def build_neighbor_move_options(neighbor_ids: list[str]) -> list[dict]:
     """Structured neighbor list embedded in VLM navigation prompts."""
-    pole = (
-        world.poles_by_track.get(state.pole_in_consideration)
-        if state.pole_in_consideration
-        else None
-    )
-    planned_hop = next_path_hop(nav_path) if nav_path else None
-    options: list[dict] = []
-    for nid in neighbor_ids:
-        options.append(
-            {
-                "target_pano_id": nid,
-                "label": pano_compact_id(nid),
-                "distance_to_target_pole_m": round(distance_m(
-                    world.panos_by_id[nid].lat,
-                    world.panos_by_id[nid].lon,
-                    pole.lat,
-                    pole.lon,
-                ), 1)
-                if pole
-                else None,
-                "recommended_next_hop": nid == planned_hop,
-            }
-        )
-    return options
+    return [
+        {
+            "target_pano_id": nid,
+            "label": pano_compact_id(nid),
+        }
+        for nid in neighbor_ids
+    ]

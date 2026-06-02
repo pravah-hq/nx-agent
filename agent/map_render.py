@@ -5,7 +5,7 @@ Two map views for navigation:
   overview — target, nodes, connections across the local area
   node_zoom — tight view centered on YOU and immediate neighbors
 
-Legend: YOU=blue+wedge, yellow ring=planned next hop, gray lines=20 m edges,
+Legend: YOU=blue+wedge, gray lines=20 m edges, GOAL=view pano near target,
 orange=target pole, green=other unclassified, gray=classified.
 """
 
@@ -33,7 +33,6 @@ def _overview_bounds(
     state: AgentState,
     *,
     goal_pano_id: str | None,
-    nav_path: list[str],
 ) -> tuple[float, float, float, float]:
     pano = world.panos_by_id[state.pano_id]
     lats = [pano.lat]
@@ -43,12 +42,6 @@ def _overview_bounds(
         n = world.panos_by_id[nid]
         lats.append(n.lat)
         lons.append(n.lon)
-
-    for hop in nav_path[:4]:
-        if hop in world.panos_by_id:
-            h = world.panos_by_id[hop]
-            lats.append(h.lat)
-            lons.append(h.lon)
 
     if goal_pano_id and goal_pano_id in world.panos_by_id:
         g = world.panos_by_id[goal_pano_id]
@@ -113,14 +106,11 @@ def _render_map_core(
     max_lat: float,
     max_lon: float,
     goal_pano_id: str | None,
-    nav_path: list[str] | None,
     map_variant: Literal["overview", "node_zoom"],
     out_path: Path,
 ) -> Path:
     from PIL import Image, ImageDraw, ImageFont
 
-    hops = nav_path or []
-    planned_hop = hops[0] if hops else None
     neighbor_map = world.neighbor_map
     pano = world.panos_by_id[state.pano_id]
     view_yaw = bin_center_world_yaw(pano, state.direction_bin)
@@ -132,7 +122,7 @@ def _render_map_core(
     if map_variant == "node_zoom":
         visible_panos = {state.pano_id, *current_neighbors}
     else:
-        visible_panos = {state.pano_id, *current_neighbors, *hops[:5]}
+        visible_panos = {state.pano_id, *current_neighbors}
         if goal_pano_id:
             visible_panos.add(goal_pano_id)
 
@@ -157,14 +147,6 @@ def _render_map_core(
             width = neighbor_edge_width if is_from_current else 1
             color = (148, 163, 184, 220) if is_from_current else (100, 116, 139, 140)
             draw.line((ax, ay, bx, by), fill=color, width=width)
-
-    if planned_hop and planned_hop in world.panos_by_id:
-        cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
-        hop_pano = world.panos_by_id[planned_hop]
-        hx, hy = _project(
-            hop_pano.lat, hop_pano.lon, min_lat, min_lon, max_lat, max_lon
-        )
-        draw.line((cx, cy, hx, hy), fill=(250, 204, 21, 220), width=4)
 
     target_track = state.pole_in_consideration
     for pole in world.poles:
@@ -193,7 +175,6 @@ def _render_map_core(
             continue
         is_neighbor = pano_id in current_neighbors
         is_goal = pano_id == goal_pano_id
-        is_hop = pano_id == planned_hop
         fill = (224, 242, 254, 255) if is_neighbor else (71, 85, 105, 200)
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
@@ -208,8 +189,6 @@ def _render_map_core(
                 )
         if is_goal:
             draw.text((px - 8, py - 22), "GOAL", fill=(250, 204, 21))
-        if is_hop and not is_neighbor:
-            draw.ellipse((px - 12, py - 12, px + 12, py + 12), outline=(250, 204, 21, 255), width=2)
 
     cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
     half_fov = 50
@@ -226,13 +205,6 @@ def _render_map_core(
         outline=(255, 255, 255),
     )
     draw.text((cx + you_radius + 4, cy - 10), "YOU", fill=(255, 255, 255))
-
-    if planned_hop and planned_hop in world.panos_by_id and planned_hop in current_neighbors:
-        hop_pano = world.panos_by_id[planned_hop]
-        hx, hy = _project(
-            hop_pano.lat, hop_pano.lon, min_lat, min_lon, max_lat, max_lon
-        )
-        draw.ellipse((hx - 14, hy - 14, hx + 14, hy + 14), outline=(250, 204, 21, 255), width=3)
 
     try:
         font = ImageFont.load_default()
@@ -273,12 +245,10 @@ def render_map_overview_image(
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-    nav_path: list[str] | None = None,
 ) -> Path:
     """Wide local map: target pole, graph nodes, and connections."""
-    hops = nav_path or []
     min_lat, min_lon, max_lat, max_lon = _overview_bounds(
-        world, state, goal_pano_id=goal_pano_id, nav_path=hops
+        world, state, goal_pano_id=goal_pano_id
     )
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
@@ -290,7 +260,6 @@ def render_map_overview_image(
         max_lat=max_lat,
         max_lon=max_lon,
         goal_pano_id=goal_pano_id,
-        nav_path=hops,
         map_variant="overview",
         out_path=out_path,
     )
@@ -302,10 +271,8 @@ def render_map_node_zoom_image(
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-    nav_path: list[str] | None = None,
 ) -> Path:
     """Tight map centered on the current pano and its immediate neighbors."""
-    hops = nav_path or []
     min_lat, min_lon, max_lat, max_lon = _node_zoom_bounds(world, state)
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_zoom_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
@@ -317,7 +284,6 @@ def render_map_node_zoom_image(
         max_lat=max_lat,
         max_lon=max_lon,
         goal_pano_id=goal_pano_id,
-        nav_path=hops,
         map_variant="node_zoom",
         out_path=out_path,
     )
@@ -329,7 +295,6 @@ def render_map_image(
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-    nav_path: list[str] | None = None,
 ) -> Path:
     """Overview map (used by clear-view / classification prompts)."""
     return render_map_overview_image(
@@ -337,5 +302,4 @@ def render_map_image(
         state,
         cache_dir=cache_dir,
         goal_pano_id=goal_pano_id,
-        nav_path=nav_path,
     )

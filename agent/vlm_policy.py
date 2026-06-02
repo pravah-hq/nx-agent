@@ -29,7 +29,6 @@ from agent.map_render import (
 from agent.navigation import build_neighbor_move_options
 from agent.targeting import (
     is_close_to_target_pole,
-    next_path_hop,
     plan_mission_to_pole,
     select_target_pole,
 )
@@ -68,9 +67,7 @@ class VlmPolicy(Policy):
         self.last_pole_in_clear_view: bool = False
         self.last_identifiable_pole_type: PoleType | None = None
         self.last_visible_track_id: str | None = None
-        self._last_pano_id: str | None = None
         self._goal_pano_id: str | None = None
-        self._nav_path: list[str] = []
         self._cached_pano_id: str | None = None
         self._cached_direction_bin: int | None = None
         self._cached_map_overview_path: Path | None = None
@@ -104,9 +101,7 @@ class VlmPolicy(Policy):
         self.last_pole_in_clear_view = False
         self.last_identifiable_pole_type = None
         self.last_visible_track_id = None
-        self._last_pano_id = None
         self._goal_pano_id = None
-        self._nav_path = []
         self._cached_pano_id = None
         self._cached_direction_bin = None
         self._cached_map_overview_path = None
@@ -115,15 +110,6 @@ class VlmPolicy(Policy):
         self.vlm_step_calls = []
 
     def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
-        if (
-            action.type == ActionType.MOVE
-            and before.pano_id != after.pano_id
-        ):
-            self._last_pano_id = before.pano_id
-            if self._nav_path and after.pano_id == self._nav_path[0]:
-                self._nav_path = self._nav_path[1:]
-            if after.pano_id == self._goal_pano_id:
-                self._nav_path = []
         self._invalidate_cache()
 
     def observe(self, world: World, state: AgentState) -> bool:
@@ -218,7 +204,6 @@ class VlmPolicy(Policy):
             world,
             state,
             goal_pano_id=self._goal_pano_id,
-            nav_path=self._nav_path,
         )
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
@@ -261,13 +246,11 @@ class VlmPolicy(Policy):
                 world,
                 state,
                 goal_pano_id=self._goal_pano_id,
-                nav_path=self._nav_path,
             )
         zoom_path = render_map_node_zoom_image(
             world,
             state,
             goal_pano_id=self._goal_pano_id,
-            nav_path=self._nav_path,
         )
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
@@ -305,12 +288,10 @@ class VlmPolicy(Policy):
                 state.pole_in_consideration = track
             else:
                 self._goal_pano_id = None
-                self._nav_path = []
                 return
 
-        goal, path = plan_mission_to_pole(world, state, track)
+        goal, _ = plan_mission_to_pole(world, state, track)
         self._goal_pano_id = goal
-        self._nav_path = path[1:] if path else []
 
     def _navigate(
         self,
@@ -326,21 +307,14 @@ class VlmPolicy(Policy):
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
         legal = navigation_allowed_actions(world, state)
-        full_path = [state.pano_id, *self._nav_path] if self._nav_path else [state.pano_id]
         map_mode = "zoom_only" if close else "overview_and_zoom"
         prompt = build_map_navigation_prompt(
             world,
             state,
             pole_in_clear_view=pole_in_clear_view,
             allowed_actions=legal,
-            neighbor_moves=build_neighbor_move_options(
-                world,
-                state,
-                neighbors,
-                nav_path=full_path,
-            ),
+            neighbor_moves=build_neighbor_move_options(neighbors),
             goal_pano_id=self._goal_pano_id,
-            planned_next_hop=next_path_hop(full_path),
             map_image_mode=map_mode,
             close_to_target_pole=close,
         )

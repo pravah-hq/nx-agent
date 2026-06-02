@@ -2,7 +2,7 @@
 Which pole to hunt next and how to reach a good view pano on the graph.
 
 select_target_pole: used by apply_consideration each step.
-plan_mission_to_pole / next_path_hop: fed into map labels and navigation prompts.
+plan_mission_to_pole: goal view pano for map labels and navigation prompts.
 """
 
 from __future__ import annotations

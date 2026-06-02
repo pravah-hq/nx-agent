@@ -17,7 +17,7 @@ from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
 
 DUAL_IMAGE_GUIDE = {
-    "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, goal hop)",
+    "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, GOAL pano)",
     "image_2": "STREET VIEW — panorama crop from your current position and facing",
     "use_both": (
         "Use the MAP for where to move along gray edges; use STREET VIEW for "
@@ -74,7 +74,6 @@ def build_map_navigation_prompt(
     allowed_actions: list[str],
     neighbor_moves: list[dict] | None = None,
     goal_pano_id: str | None = None,
-    planned_next_hop: str | None = None,
     map_image_mode: Literal["overview_and_zoom", "zoom_only"] = "overview_and_zoom",
     close_to_target_pole: bool = False,
 ) -> str:
@@ -91,11 +90,6 @@ def build_map_navigation_prompt(
 
         payload["goal_view_pano_id"] = goal_pano_id
         payload["goal_view_pano_label"] = pano_compact_id(goal_pano_id)
-    if planned_next_hop:
-        from agent.targeting import pano_compact_id
-
-        payload["planned_next_hop"] = planned_next_hop
-        payload["planned_next_hop_label"] = pano_compact_id(planned_next_hop)
     payload["pole_types"] = list(POLE_TYPES)
 
     if map_image_mode == "zoom_only":
@@ -103,7 +97,6 @@ def build_map_navigation_prompt(
         payload["images"] = image_guide
         payload["map_legend"] = {
             "blue_dot": "you (current pano)",
-            "yellow_ring": "planned next pano hop on a neighbor",
             "light_dots": "neighbors reachable by move (20 m edges)",
             "gray_lines": "pano graph edges (move only along edges to light dots)",
             "orange": "target pole (nearby)",
@@ -131,7 +124,7 @@ def build_map_navigation_prompt(
         payload["map_legend"] = {
             "overview_blue_dot": "you on the wide-area map",
             "overview_orange": "target pole to find",
-            "overview_yellow_ring": "planned next hop toward goal",
+            "overview_goal": "GOAL pano — good viewpoint near the target pole",
             "zoom_blue_dot": "you on the node zoom map",
             "zoom_light_dots": "immediate neighbors for move (20 m edges)",
             "zoom_gray_lines": "edges you may move along",
@@ -151,7 +144,7 @@ def build_map_navigation_prompt(
             "NODE ZOOM MAP: read neighbor labels and copy exact target_pano_id for move.",
             "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
             "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
-            "Prefer neighbor_moves where recommended_next_hop is true, or lower distance_to_target_pole_m.",
+            "Use the maps and goal_view_pano_id to pick the best move along graph edges.",
             "Navigate toward goal_view_pano_id along the graph, not across empty map space.",
             "classify_or_stop is NOT allowed in this step.",
         ]
