@@ -1,5 +1,7 @@
 import L from "leaflet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AgentTracePanel } from "./AgentTracePanel";
+import { type AgentTraceStep, viewYawDeg } from "./agentTrace";
 
 type Pano = {
   id: string;
@@ -358,6 +360,8 @@ function MapPanel({
   hfovDeg,
   reachableNeighborIds,
   onPanoSelect,
+  traceSteps,
+  activeTraceIndex,
 }: {
   data: LoadedData;
   activePano: Pano | null;
@@ -366,12 +370,15 @@ function MapPanel({
   hfovDeg: number;
   reachableNeighborIds: Set<string>;
   onPanoSelect: (id: string) => void;
+  traceSteps: AgentTraceStep[];
+  activeTraceIndex: number;
 }) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const layerRef = useRef<L.LayerGroup | null>(null);
   const viewshedLayerRef = useRef<L.LayerGroup | null>(null);
+  const traceLayerRef = useRef<L.LayerGroup | null>(null);
   const fitOnceRef = useRef(false);
   const [mapType, setMapType] = useState<MapTypeId>("dark");
   const [mapReady, setMapReady] = useState(false);
@@ -526,6 +533,66 @@ function MapPanel({
     }).addTo(layers);
   }, [activePano, hfovDeg, mapReady, yawDeg]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    traceLayerRef.current?.remove();
+
+    if (!traceSteps.length) return;
+
+    const layers = L.layerGroup().addTo(map);
+    traceLayerRef.current = layers;
+    const panoById = new Map(data.manifest.panoramas.map((p) => [p.id, p]));
+    const path: L.LatLngExpression[] = [];
+
+    for (const step of traceSteps) {
+      const pano = panoById.get(step.panoIdAfter);
+      if (pano) path.push([pano.lat, pano.lon]);
+    }
+
+    if (path.length >= 2) {
+      L.polyline(path, {
+        color: "#f59e0b",
+        weight: 4,
+        opacity: 0.85,
+        dashArray: "6 8",
+      }).addTo(layers);
+    }
+
+    traceSteps.forEach((step, index) => {
+      const pano = panoById.get(step.panoIdAfter);
+      if (!pano) return;
+      const isActive = index === activeTraceIndex;
+      const color =
+        step.action === "classify_or_stop"
+          ? "#22c55e"
+          : step.action === "move"
+            ? "#3b82f6"
+            : step.action.includes("turn")
+              ? "#a855f7"
+              : "#64748b";
+      L.circleMarker([pano.lat, pano.lon], {
+        radius: isActive ? 10 : 7,
+        color: isActive ? "#ffffff" : color,
+        weight: isActive ? 3 : 2,
+        fillColor: color,
+        fillOpacity: isActive ? 1 : 0.85,
+      })
+        .bindTooltip(`Step ${step.step}: ${step.action}`)
+        .addTo(layers);
+      if (isActive) {
+        const stepYaw = viewYawDeg(pano.headingDeg, step.directionBinAfter);
+        L.polygon(viewshedCoords(pano, stepYaw, DEFAULT_HFOV_DEG), {
+          stroke: true,
+          color: "#f59e0b",
+          weight: 2,
+          fillColor: "#f59e0b",
+          fillOpacity: 0.12,
+        }).addTo(layers);
+      }
+    });
+  }, [activeTraceIndex, data.manifest.panoramas, mapReady, traceSteps]);
+
   return (
     <>
       <div ref={mapElementRef} className="map" />
@@ -553,6 +620,8 @@ export function App() {
   const [viewerYaw, setViewerYaw] = useState(0);
   const [viewerHfov, setViewerHfov] = useState(DEFAULT_HFOV_DEG);
   const [initialYaw, setInitialYaw] = useState(0);
+  const [traceSteps, setTraceSteps] = useState<AgentTraceStep[]>([]);
+  const [traceStepIndex, setTraceStepIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -613,6 +682,17 @@ export function App() {
       .sort((a, b) => a.distM - b.distM || a.pano.id.localeCompare(b.pano.id));
   }, [activePano, panoNeighbors]);
 
+  useEffect(() => {
+    const step = traceSteps[traceStepIndex];
+    if (!step || !data) return;
+    const pano = panoById.get(step.panoIdAfter);
+    if (!pano) return;
+    const relativeYaw = normalizeDeg(viewYawDeg(pano.headingDeg, step.directionBinAfter) - pano.headingDeg);
+    setActivePanoId(step.panoIdAfter);
+    setInitialYaw(relativeYaw);
+    setViewerYaw(relativeYaw);
+  }, [data, panoById, traceStepIndex, traceSteps]);
+
   const navigateTo = useCallback(
     (target: Pano | null) => {
       if (!target || !activePano) return;
@@ -654,6 +734,8 @@ export function App() {
           hfovDeg={viewerHfov}
           reachableNeighborIds={reachableNeighborIds}
           onPanoSelect={(id) => navigateTo(panoById.get(id) ?? null)}
+          traceSteps={traceSteps}
+          activeTraceIndex={traceStepIndex}
         />
         <div className="map-summary">
           <strong>Bhelupur</strong>
@@ -691,6 +773,16 @@ export function App() {
             </button>
           </div>
         </div>
+
+        <AgentTracePanel
+          steps={traceSteps}
+          activeIndex={traceStepIndex}
+          onStepsChange={(steps) => {
+            setTraceSteps(steps);
+            setTraceStepIndex(0);
+          }}
+          onActiveIndexChange={setTraceStepIndex}
+        />
 
         <div className="neighbor-controls" aria-label="Nearby panoramas within 20 m">
           <p className="eyebrow">Within {PANO_PROXIMITY_MAX_M} m</p>

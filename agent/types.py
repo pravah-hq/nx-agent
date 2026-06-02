@@ -152,5 +152,7 @@ class StepRecord:
     action: Action
     state_before: AgentState
     state_after: AgentState
-    pole_in_clear_view: bool  # VLM: target unambiguously identifiable this step
+    pole_in_clear_view: bool
     message: str = ""
+    vlm_calls: list[dict] = field(default_factory=list)
+    visible_pole_id: str | None = None

@@ -38,6 +38,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     run_p.add_argument("--max-steps", type=int, default=500)
     run_p.add_argument("--start-pano", type=str, default=None)
     run_p.add_argument("--json", action="store_true", help="Print observations as JSON")
+    run_p.add_argument(
+        "--trace-out",
+        type=str,
+        default=None,
+        help="Write agent trace JSON for the web UI (steps, actions, VLM responses)",
+    )
     probe_p = sub.add_parser("probe", help="One VLM inference (smoke test on GPU VM)")
     _add_policy_args(probe_p, default_policy="vlm")
     probe_p.add_argument("--start-pano", type=str, default=None)
@@ -247,6 +253,17 @@ def main(argv: list[str] | None = None) -> int:
         for track_id, pole_type in final.classified.items():
             pole = world.poles_by_track[track_id]
             print(f"  {pole.pole_id}: {pole_type}")
+        if args.trace_out:
+            import json
+            from pathlib import Path
+
+            from agent.trace_export import trace_document
+
+            doc = trace_document(world, history, policy=args.policy)
+            out = Path(args.trace_out)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(doc, indent=2), encoding="utf-8")
+            print(f"Trace written to {out}", flush=True)
         return 0 if world.is_task_complete(final) else 1
 
     if args.command == "interactive":

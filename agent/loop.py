@@ -14,9 +14,25 @@ from __future__ import annotations
 from agent.clear_view import geometric_pole_in_clear_view
 from agent.environment import World
 from agent.observations import print_observation, print_vlm_step_responses
-from agent.vlm_policy import VlmPolicy
 from agent.policy import Policy, apply_consideration
 from agent.types import Action, ActionType, AgentState, StepRecord
+from agent.vlm_policy import VlmPolicy
+
+
+def _visible_pole_id(world: World, policy: Policy | None) -> str | None:
+    if isinstance(policy, VlmPolicy) and policy.last_visible_track_id:
+        pole = world.poles_by_track.get(policy.last_visible_track_id)
+        if pole:
+            return pole.pole_id
+    return None
+
+
+def _vlm_calls_from_policy(policy: Policy | None) -> list[dict]:
+    if isinstance(policy, VlmPolicy):
+        return [dict(entry) for entry in policy.vlm_step_calls]
+    return []
+
+
 def resolve_pole_in_clear_view(
     world: World,
     policy: Policy | None,
@@ -65,6 +81,8 @@ class AgentLoop:
             state_after=after,
             pole_in_clear_view=pole_in_clear_view,
             message=message,
+            vlm_calls=_vlm_calls_from_policy(self.policy),
+            visible_pole_id=_visible_pole_id(self.world, self.policy),
         )
         return after, record
 
@@ -120,6 +138,8 @@ class AgentLoop:
                 state_after=current.copy(),
                 pole_in_clear_view=pole_in_clear_view,
                 message=message,
+                vlm_calls=_vlm_calls_from_policy(self.policy),
+                visible_pole_id=_visible_pole_id(self.world, self.policy),
             )
             history.append(record)
 
