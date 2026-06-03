@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from agent.environment import World
 from agent.geo import distance_m
-from agent.targeting import next_path_hop, pano_compact_id, plan_mission_to_pole
+from agent.targeting import next_path_hop, plan_mission_to_pole
 from agent.types import AgentState
 
 
@@ -76,10 +76,4 @@ def pick_planned_neighbor(
 
 def build_neighbor_move_options(neighbor_ids: list[str]) -> list[dict]:
     """Structured neighbor list embedded in VLM navigation prompts."""
-    return [
-        {
-            "target_pano_id": nid,
-            "label": pano_compact_id(nid),
-        }
-        for nid in neighbor_ids
-    ]
+    return [{"target_pano_id": nid} for nid in neighbor_ids]

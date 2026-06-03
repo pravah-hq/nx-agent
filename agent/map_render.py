@@ -19,13 +19,104 @@ from agent.data_loader import repo_root
 from agent.directions import bin_center_world_yaw
 from agent.environment import World
 from agent.graph import get_neighbors
-from agent.targeting import pano_compact_id
 from agent.types import AgentState
 
 MAP_SIZE = 900
 PADDING_PX = 60
 OVERVIEW_PAD_DEG = 0.00008
 NODE_ZOOM_PAD_DEG = 0.000028
+
+
+def _load_map_font(size: int = 13):
+    from PIL import ImageFont
+
+    candidates = [
+        Path("C:/Windows/Fonts/arial.ttf"),
+        Path("C:/Windows/Fonts/segoeui.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"),
+    ]
+    for path in candidates:
+        if path.is_file():
+            try:
+                return ImageFont.truetype(str(path), size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
+def _pano_id_display_lines(pano_id: str, *, max_chars: int = 44) -> list[str]:
+    """Wrap the full pano id so rejoined lines equal target_pano_id exactly."""
+    if len(pano_id) <= max_chars:
+        return [pano_id]
+    return [pano_id[i : i + max_chars] for i in range(0, len(pano_id), max_chars)]
+
+
+def _text_block_size(
+    draw,
+    lines: list[str],
+    font,
+    *,
+    pad_x: int = 6,
+    pad_y: int = 4,
+    line_gap: int = 2,
+) -> tuple[int, int]:
+    line_heights: list[int] = []
+    max_w = 0
+    for line in lines:
+        box = draw.textbbox((0, 0), line, font=font)
+        w = box[2] - box[0]
+        h = box[3] - box[1]
+        max_w = max(max_w, w)
+        line_heights.append(h)
+    total_h = sum(line_heights) + line_gap * max(0, len(lines) - 1)
+    return max_w + 2 * pad_x, total_h + 2 * pad_y
+
+
+def _draw_text_block(
+    draw,
+    top_left: tuple[int, int],
+    lines: list[str],
+    font,
+    *,
+    fill: tuple[int, int, int, int] = (15, 23, 42, 230),
+    text_fill: tuple[int, int, int] = (226, 232, 240),
+    title: str | None = None,
+    pad_x: int = 6,
+    pad_y: int = 4,
+    line_gap: int = 2,
+) -> None:
+    display = ([title] if title else []) + lines
+    w, h = _text_block_size(
+        draw, display, font, pad_x=pad_x, pad_y=pad_y, line_gap=line_gap
+    )
+    x0, y0 = top_left
+    draw.rectangle((x0, y0, x0 + w, y0 + h), fill=fill)
+    y = y0 + pad_y
+    for line in display:
+        draw.text((x0 + pad_x, y), line, fill=text_fill, font=font)
+        box = draw.textbbox((0, 0), line, font=font)
+        y += box[3] - box[1] + line_gap
+
+
+def _neighbor_label_anchor(
+    cx: int,
+    cy: int,
+    px: int,
+    py: int,
+    block_w: int,
+    block_h: int,
+) -> tuple[int, int]:
+    """Place callout beside the neighbor, away from YOU."""
+    dx = px - cx
+    dy = py - cy
+    if abs(dx) >= abs(dy):
+        if dx >= 0:
+            return px + 14, py - block_h // 2
+        return px - block_w - 14, py - block_h // 2
+    if dy >= 0:
+        return px - block_w // 2, py + 14
+    return px - block_w // 2, py - block_h - 14
 
 
 def _overview_bounds(
@@ -168,6 +259,11 @@ def _render_map_core(
         label = pole.pole_id.replace("POLE_", "")
         draw.text((px + 10, py - 8), label, fill=(226, 232, 240))
 
+    cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
+    font = _load_map_font(12 if map_variant == "overview" else 13)
+    id_font = _load_map_font(11 if map_variant == "overview" else 12)
+
+    pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
     for pano_id in visible_panos:
         p = world.panos_by_id[pano_id]
         px, py = _project(p.lat, p.lon, min_lat, min_lon, max_lat, max_lon)
@@ -175,22 +271,11 @@ def _render_map_core(
             continue
         is_neighbor = pano_id in current_neighbors
         is_goal = pano_id == goal_pano_id
+        pano_positions[pano_id] = (px, py, is_neighbor, is_goal)
         fill = (224, 242, 254, 255) if is_neighbor else (71, 85, 105, 200)
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
-        label = pano_compact_id(pano_id)
-        if is_neighbor:
-            draw.text((px + 8, py + 8), label, fill=(186, 230, 253))
-            if map_variant == "node_zoom":
-                draw.text(
-                    (px + 8, py + 22),
-                    pano_id.split("/")[-1],
-                    fill=(148, 163, 184),
-                )
-        if is_goal:
-            draw.text((px - 8, py - 22), "GOAL", fill=(250, 204, 21))
 
-    cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
     half_fov = 50
     points = [(cx, cy)]
     for offset in range(-half_fov, half_fov + 1, 10):
@@ -204,24 +289,57 @@ def _render_map_core(
         fill=(56, 189, 248, 255),
         outline=(255, 255, 255),
     )
-    draw.text((cx + you_radius + 4, cy - 10), "YOU", fill=(255, 255, 255))
+    draw.text((cx + you_radius + 4, cy - 10), "YOU", fill=(255, 255, 255), font=font)
 
-    try:
-        font = ImageFont.load_default()
-    except OSError:
-        font = None
+    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
+        if is_neighbor:
+            id_lines = _pano_id_display_lines(pano_id)
+            block_w, block_h = _text_block_size(
+                draw, id_lines, id_font, title="MOVE"
+            )
+            tx, ty = _neighbor_label_anchor(cx, cy, px, py, block_w, block_h)
+            tx = max(PADDING_PX, min(tx, MAP_SIZE - block_w - PADDING_PX))
+            ty = max(PADDING_PX, min(ty, MAP_SIZE - block_h - PADDING_PX))
+            _draw_text_block(
+                draw,
+                (tx, ty),
+                id_lines,
+                id_font,
+                title="MOVE",
+                fill=(30, 41, 59, 240),
+                text_fill=(224, 242, 254),
+            )
+            draw.line(
+                (px, py, tx + block_w // 2, ty + block_h // 2),
+                fill=(125, 211, 252, 180),
+                width=1,
+            )
+        elif is_goal:
+            goal_lines = _pano_id_display_lines(pano_id)
+            block_w, block_h = _text_block_size(draw, goal_lines, id_font, title="GOAL")
+            tx = max(PADDING_PX, min(px - block_w // 2, MAP_SIZE - block_w - PADDING_PX))
+            ty = max(PADDING_PX, py - block_h - 16)
+            _draw_text_block(
+                draw,
+                (tx, ty),
+                goal_lines,
+                id_font,
+                title="GOAL",
+                fill=(30, 41, 59, 240),
+                text_fill=(250, 204, 21),
+            )
 
     if map_variant == "node_zoom":
         legend = [
-            "NODE ZOOM: YOU + immediate neighbors (20 m moves)",
+            "NODE ZOOM: MOVE boxes show full pano id to copy for move",
             "Use with overview map for direction; alone when near target pole",
-            "move: copy exact target_pano_id from neighbor_moves JSON",
+            "JSON target_pano_id must match MOVE box text exactly",
         ]
     else:
         legend = [
-            "OVERVIEW MAP: target, nodes, connections across local area",
-            "Use with node zoom map to pick the next move",
-            "move: copy exact target_pano_id from neighbor_moves JSON",
+            "OVERVIEW: MOVE boxes on neighbors show full pano id",
+            "Use node zoom map for clearest MOVE labels",
+            "JSON target_pano_id must match MOVE box text exactly",
         ]
     y = 8
     for line in legend:

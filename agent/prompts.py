@@ -114,7 +114,8 @@ def build_map_navigation_prompt(
             "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
             "NODE ZOOM MAP: choose move along gray lines to light neighbor dots only.",
             "STREET VIEW: turn_left/turn_right to align with poles or pick the best local move.",
-            "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
+            "For move, copy target_pano_id EXACTLY from the MOVE box on the map "
+            "(must match neighbor_moves[].target_pano_id).",
             "Navigate along the graph toward goal_view_pano_id, not across empty map space.",
             "classify_or_stop is NOT allowed in this step.",
         ]
@@ -141,9 +142,10 @@ def build_map_navigation_prompt(
             "pole_in_clear_view is set by a prior VLM check (not your action).",
             "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
             "OVERVIEW MAP: pick direction toward orange target / GOAL pano along the graph.",
-            "NODE ZOOM MAP: read neighbor labels and copy exact target_pano_id for move.",
+            "NODE ZOOM MAP: each MOVE box shows the full pano id to use for move.",
             "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
-            "For move, copy target_pano_id EXACTLY from neighbor_moves[].target_pano_id (not the label).",
+            "For move, copy target_pano_id EXACTLY from the MOVE box on the map "
+            "(must match neighbor_moves[].target_pano_id).",
             "Use the maps and goal_view_pano_id to pick the best move along graph edges.",
             "Navigate toward goal_view_pano_id along the graph, not across empty map space.",
             "classify_or_stop is NOT allowed in this step.",
