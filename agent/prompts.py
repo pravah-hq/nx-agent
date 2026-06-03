@@ -26,12 +26,16 @@ DUAL_IMAGE_GUIDE = {
 }
 
 NAV_IMAGE_GUIDE_OVERVIEW_AND_ZOOM = {
-    "image_1": "OVERVIEW MAP — target pole, pano nodes, and graph connections across the area",
+    "image_1": (
+        "OVERVIEW MAP — simplified direction map: nearby panos merged into one dot "
+        "(×N = how many panos); thick lines = graph links between merged groups"
+    ),
     "image_2": "NODE ZOOM MAP — tight view of YOU and immediate neighbor moves (20 m edges)",
     "image_3": "STREET VIEW — panorama crop from your current position and facing",
     "use_all": (
-        "Use OVERVIEW MAP for global direction toward the orange target and GOAL pano. "
-        "Use NODE ZOOM MAP to read exact neighbor nodes and copy target_pano_id for move. "
+        "Use OVERVIEW MAP ONLY for general direction (toward orange target pole and GOAL cluster). "
+        "Do not pick move target_pano_id from the overview — merged dots are not single panos. "
+        "Use NODE ZOOM MAP to read exact neighbor MOVE boxes and copy target_pano_id for move. "
         "Use STREET VIEW to decide turn_left/turn_right before moving or when no move is best."
     ),
 }
@@ -123,15 +127,15 @@ def build_map_navigation_prompt(
         image_guide = NAV_IMAGE_GUIDE_OVERVIEW_AND_ZOOM
         payload["images"] = image_guide
         payload["map_legend"] = {
-            "overview_blue_dot": "you on the wide-area map",
+            "overview_you": "YOU cluster (may show ×N if merged with nearby panos)",
+            "overview_goal": "GOAL cluster — viewpoint near target pole",
+            "overview_xN": "merged pano group count (direction only, not a move id)",
+            "overview_thick_lines": "graph edges between merged groups",
             "overview_orange": "target pole to find",
-            "overview_goal": "GOAL pano — good viewpoint near the target pole",
-            "zoom_blue_dot": "you on the node zoom map",
-            "zoom_light_dots": "immediate neighbors for move (20 m edges)",
-            "zoom_gray_lines": "edges you may move along",
+            "zoom_move_boxes": "exact target_pano_id for move (image 2 only)",
             "green": "other unclassified poles",
             "gray": "classified poles",
-            "wedge": "viewing direction on both maps (should match street view)",
+            "wedge": "viewing direction (should match street view)",
         }
         image_intro = (
             "You receive THREE images: (1) OVERVIEW MAP (2) NODE ZOOM MAP (3) STREET VIEW.\n"
@@ -141,7 +145,8 @@ def build_map_navigation_prompt(
             image_guide["use_all"],
             "pole_in_clear_view is set by a prior VLM check (not your action).",
             "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-            "OVERVIEW MAP: pick direction toward orange target / GOAL pano along the graph.",
+            "OVERVIEW MAP: general direction only — head toward orange pole / GOAL cluster; "
+            "ignore ×N merged dots for choosing move ids.",
             "NODE ZOOM MAP: each MOVE box shows the full pano id to use for move.",
             "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
             "For move, copy target_pano_id EXACTLY from the MOVE box on the map "

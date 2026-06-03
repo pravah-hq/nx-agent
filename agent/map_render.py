@@ -2,11 +2,10 @@
 PNG local maps for VLM navigation (cached under .cache/agent_maps/).
 
 Two map views for navigation:
-  overview — target, nodes, connections across the local area
-  node_zoom — tight view centered on YOU and immediate neighbors
+  overview — clustered pano groups, thick edges (general direction only)
+  node_zoom — YOU, neighbors, full MOVE ids for exact moves
 
-Legend: YOU=blue+wedge, gray lines=20 m edges, GOAL=view pano near target,
-orange=target pole, green=other unclassified, gray=classified.
+Legend: overview merges nearby dots (×N); node zoom has MOVE boxes.
 """
 
 from __future__ import annotations
@@ -25,6 +24,10 @@ MAP_SIZE = 900
 PADDING_PX = 60
 OVERVIEW_PAD_DEG = 0.00008
 NODE_ZOOM_PAD_DEG = 0.000028
+# Overview: merge panos whose projected centers are within this many pixels.
+OVERVIEW_CLUSTER_PX = 34
+OVERVIEW_EDGE_WIDTH = 6
+OVERVIEW_EDGE_WIDTH_FROM_YOU = 8
 
 
 def _load_map_font(size: int = 13):
@@ -190,7 +193,98 @@ def _project(
     return x, y
 
 
-def _render_map_core(
+def _overview_visible_pano_ids(
+    world: World,
+    state: AgentState,
+    *,
+    goal_pano_id: str | None,
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+) -> set[str]:
+    """Panos in the overview frame: local bounds, path to goal, and 1-hop around path."""
+    from agent.targeting import path_to_pano
+
+    visible: set[str] = {state.pano_id}
+    visible.update(get_neighbors(world.neighbor_map, state.pano_id))
+    if goal_pano_id:
+        visible.add(goal_pano_id)
+
+    for pano in world.panos:
+        if min_lat <= pano.lat <= max_lat and min_lon <= pano.lon <= max_lon:
+            visible.add(pano.id)
+
+    if goal_pano_id:
+        path = path_to_pano(world, state.pano_id, goal_pano_id)
+        if path:
+            visible.update(path)
+            for pano_id in path:
+                visible.update(get_neighbors(world.neighbor_map, pano_id))
+
+    return visible
+
+
+def _cluster_panos_by_screen_px(
+    pano_ids: list[str],
+    positions: dict[str, tuple[int, int]],
+    *,
+    threshold_px: int,
+) -> dict[str, int]:
+    """Union-find: panos closer than threshold_px on the map share a cluster id."""
+    parent = {pid: pid for pid in pano_ids}
+
+    def find(pid: str) -> str:
+        while parent[pid] != pid:
+            parent[pid] = parent[parent[pid]]
+            pid = parent[pid]
+        return pid
+
+    def union(a: str, b: str) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    thresh_sq = threshold_px * threshold_px
+    for i, a in enumerate(pano_ids):
+        ax, ay = positions[a]
+        for b in pano_ids[i + 1 :]:
+            bx, by = positions[b]
+            if (ax - bx) ** 2 + (ay - by) ** 2 <= thresh_sq:
+                union(a, b)
+
+    root_to_id: dict[str, int] = {}
+    out: dict[str, int] = {}
+    next_id = 0
+    for pid in pano_ids:
+        root = find(pid)
+        if root not in root_to_id:
+            root_to_id[root] = next_id
+            next_id += 1
+        out[pid] = root_to_id[root]
+    return out
+
+
+def _build_cluster_graph(
+    world: World,
+    visible_panos: set[str],
+    pano_to_cluster: dict[str, int],
+) -> set[tuple[int, int]]:
+    """Undirected edges between clusters (from underlying 20 m pano graph)."""
+    edges: set[tuple[int, int]] = set()
+    for pano_id in visible_panos:
+        ca = pano_to_cluster[pano_id]
+        for nid in world.neighbor_map.get(pano_id, []):
+            if nid not in visible_panos:
+                continue
+            cb = pano_to_cluster[nid]
+            if ca == cb:
+                continue
+            edges.add((min(ca, cb), max(ca, cb)))
+    return edges
+
+
+def _render_overview_clustered(
     world: World,
     state: AgentState,
     *,
@@ -199,10 +293,153 @@ def _render_map_core(
     max_lat: float,
     max_lon: float,
     goal_pano_id: str | None,
-    map_variant: Literal["overview", "node_zoom"],
     out_path: Path,
 ) -> Path:
-    from PIL import Image, ImageDraw, ImageFont
+    """Overview map with nearby panos merged into clusters; thick inter-cluster edges."""
+    from PIL import Image, ImageDraw
+
+    neighbor_map = world.neighbor_map
+    pano = world.panos_by_id[state.pano_id]
+    view_yaw = bin_center_world_yaw(pano, state.direction_bin)
+    current_neighbors = set(get_neighbors(neighbor_map, state.pano_id))
+
+    visible_panos = _overview_visible_pano_ids(
+        world,
+        state,
+        goal_pano_id=goal_pano_id,
+        min_lat=min_lat,
+        min_lon=min_lon,
+        max_lat=max_lat,
+        max_lon=max_lon,
+    )
+
+    positions: dict[str, tuple[int, int]] = {}
+    for pano_id in visible_panos:
+        p = world.panos_by_id[pano_id]
+        positions[pano_id] = _project(
+            p.lat, p.lon, min_lat, min_lon, max_lat, max_lon
+        )
+
+    pano_list = sorted(visible_panos)
+    pano_to_cluster = _cluster_panos_by_screen_px(
+        pano_list, positions, threshold_px=OVERVIEW_CLUSTER_PX
+    )
+
+    clusters: dict[int, list[str]] = {}
+    for pid, cid in pano_to_cluster.items():
+        clusters.setdefault(cid, []).append(pid)
+
+    centroids: dict[int, tuple[int, int]] = {}
+    for cid, members in clusters.items():
+        xs = [positions[m][0] for m in members]
+        ys = [positions[m][1] for m in members]
+        centroids[cid] = (sum(xs) // len(xs), sum(ys) // len(ys))
+
+    you_cluster = pano_to_cluster[state.pano_id]
+    goal_cluster = (
+        pano_to_cluster[goal_pano_id] if goal_pano_id and goal_pano_id in pano_to_cluster else None
+    )
+
+    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
+    draw = ImageDraw.Draw(image, "RGBA")
+    font = _load_map_font(12)
+
+    cluster_edges = _build_cluster_graph(world, visible_panos, pano_to_cluster)
+    for ca, cb in cluster_edges:
+        ax, ay = centroids[ca]
+        bx, by = centroids[cb]
+        touches_you = you_cluster in {ca, cb}
+        width = OVERVIEW_EDGE_WIDTH_FROM_YOU if touches_you else OVERVIEW_EDGE_WIDTH
+        color = (148, 163, 184, 240) if touches_you else (100, 116, 139, 200)
+        draw.line((ax, ay, bx, by), fill=color, width=width)
+
+    target_track = state.pole_in_consideration
+    for pole in world.poles:
+        px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if px < PADDING_PX - 20 or py < PADDING_PX - 20:
+            continue
+        if px > MAP_SIZE or py > MAP_SIZE:
+            continue
+        if pole.track_id in state.classified:
+            color = (100, 116, 139, 255)
+            radius = 5
+        elif pole.track_id == target_track:
+            color = (249, 115, 22, 255)
+            radius = 10
+        else:
+            color = (34, 197, 94, 255)
+            radius = 6
+        draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
+        draw.text(
+            (px + 10, py - 8),
+            pole.pole_id.replace("POLE_", ""),
+            fill=(226, 232, 240),
+            font=font,
+        )
+
+    for cid, members in clusters.items():
+        cx, cy = centroids[cid]
+        count = len(members)
+        is_you = cid == you_cluster
+        is_goal = goal_cluster is not None and cid == goal_cluster
+        if is_you:
+            r = 14
+            fill = (56, 189, 248, 255)
+        elif is_goal:
+            r = 10
+            fill = (250, 204, 21, 255)
+        else:
+            r = 6 + min(8, count)
+            fill = (71, 85, 105, 220)
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=fill, outline=(255, 255, 255))
+        if is_you:
+            label = "YOU" if count == 1 else f"YOU ×{count}"
+        elif is_goal:
+            label = "GOAL" if count == 1 else f"GOAL ×{count}"
+        elif count > 1:
+            label = f"×{count}"
+        else:
+            continue
+        draw.text((cx + r + 4, cy - 6), label, fill=(255, 255, 255), font=font)
+
+    cx, cy = centroids[you_cluster]
+    wedge_len = 70
+    half_fov = 50
+    points = [(cx, cy)]
+    for offset in range(-half_fov, half_fov + 1, 10):
+        angle = math.radians(view_yaw + offset - 90)
+        wx = cx + int(math.cos(angle) * wedge_len)
+        wy = cy + int(math.sin(angle) * wedge_len)
+        points.append((wx, wy))
+    draw.polygon(points, fill=(56, 189, 248, 70))
+
+    legend = [
+        "OVERVIEW (direction): nearby panos merged into one dot (×N = count)",
+        "Thick gray lines = graph links between merged groups",
+        "Use NODE ZOOM map (image 2) for exact move target_pano_id",
+    ]
+    y = 8
+    for line in legend:
+        draw.text((8, y), line, fill=(226, 232, 240), font=font)
+        y += 14
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(out_path, format="PNG")
+    return out_path
+
+
+def _render_node_zoom_map(
+    world: World,
+    state: AgentState,
+    *,
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+    goal_pano_id: str | None,
+    out_path: Path,
+) -> Path:
+    from PIL import Image, ImageDraw
 
     neighbor_map = world.neighbor_map
     pano = world.panos_by_id[state.pano_id]
@@ -212,17 +449,12 @@ def _render_map_core(
     image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
     draw = ImageDraw.Draw(image, "RGBA")
 
-    if map_variant == "node_zoom":
-        visible_panos = {state.pano_id, *current_neighbors}
-    else:
-        visible_panos = {state.pano_id, *current_neighbors}
-        if goal_pano_id:
-            visible_panos.add(goal_pano_id)
+    visible_panos = {state.pano_id, *current_neighbors}
 
-    node_radius = 8 if map_variant == "node_zoom" else 5
-    you_radius = 14 if map_variant == "node_zoom" else 10
-    wedge_len = 110 if map_variant == "node_zoom" else 70
-    neighbor_edge_width = 4 if map_variant == "node_zoom" else 3
+    node_radius = 8
+    you_radius = 14
+    wedge_len = 110
+    neighbor_edge_width = 4
 
     for pano_id in visible_panos:
         a = world.panos_by_id.get(pano_id)
@@ -250,20 +482,20 @@ def _render_map_core(
             continue
         if pole.track_id in state.classified:
             color = (100, 116, 139, 255)
-            radius = 6 if map_variant == "node_zoom" else 5
+            radius = 6
         elif pole.track_id == target_track:
             color = (249, 115, 22, 255)
-            radius = 12 if map_variant == "node_zoom" else 9
+            radius = 12
         else:
             color = (34, 197, 94, 255)
-            radius = 8 if map_variant == "node_zoom" else 6
+            radius = 8
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
         label = pole.pole_id.replace("POLE_", "")
         draw.text((px + 10, py - 8), label, fill=(226, 232, 240))
 
     cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
-    font = _load_map_font(12 if map_variant == "overview" else 13)
-    id_font = _load_map_font(11 if map_variant == "overview" else 12)
+    font = _load_map_font(13)
+    id_font = _load_map_font(12)
 
     pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
     for pano_id in visible_panos:
@@ -331,18 +563,11 @@ def _render_map_core(
                 text_fill=(250, 204, 21),
             )
 
-    if map_variant == "node_zoom":
-        legend = [
-            "NODE ZOOM: MOVE boxes show full pano id to copy for move",
-            "Use with overview map for direction; alone when near target pole",
-            "JSON target_pano_id must match MOVE box text exactly",
-        ]
-    else:
-        legend = [
-            "OVERVIEW: MOVE boxes on neighbors show full pano id",
-            "Use node zoom map for clearest MOVE labels",
-            "JSON target_pano_id must match MOVE box text exactly",
-        ]
+    legend = [
+        "NODE ZOOM: MOVE boxes show full pano id to copy for move",
+        "Use overview map for general direction only",
+        "JSON target_pano_id must match MOVE box text exactly",
+    ]
     y = 8
     for line in legend:
         draw.text((8, y), line, fill=(226, 232, 240), font=font)
@@ -372,7 +597,7 @@ def render_map_overview_image(
     )
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    return _render_map_core(
+    return _render_overview_clustered(
         world,
         state,
         min_lat=min_lat,
@@ -380,7 +605,6 @@ def render_map_overview_image(
         max_lat=max_lat,
         max_lon=max_lon,
         goal_pano_id=goal_pano_id,
-        map_variant="overview",
         out_path=out_path,
     )
 
@@ -396,7 +620,7 @@ def render_map_node_zoom_image(
     min_lat, min_lon, max_lat, max_lon = _node_zoom_bounds(world, state)
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_zoom_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    return _render_map_core(
+    return _render_node_zoom_map(
         world,
         state,
         min_lat=min_lat,
@@ -404,7 +628,6 @@ def render_map_node_zoom_image(
         max_lat=max_lat,
         max_lon=max_lon,
         goal_pano_id=goal_pano_id,
-        map_variant="node_zoom",
         out_path=out_path,
     )
 
