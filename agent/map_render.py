@@ -57,19 +57,21 @@ def _text_block_size(
     lines: list[str],
     font,
     *,
+    title: str | None = None,
     pad_x: int = 6,
     pad_y: int = 4,
     line_gap: int = 2,
 ) -> tuple[int, int]:
+    display = ([title] if title else []) + lines
     line_heights: list[int] = []
     max_w = 0
-    for line in lines:
+    for line in display:
         box = draw.textbbox((0, 0), line, font=font)
         w = box[2] - box[0]
         h = box[3] - box[1]
         max_w = max(max_w, w)
         line_heights.append(h)
-    total_h = sum(line_heights) + line_gap * max(0, len(lines) - 1)
+    total_h = sum(line_heights) + line_gap * max(0, len(display) - 1)
     return max_w + 2 * pad_x, total_h + 2 * pad_y
 
 
@@ -88,7 +90,7 @@ def _draw_text_block(
 ) -> None:
     display = ([title] if title else []) + lines
     w, h = _text_block_size(
-        draw, display, font, pad_x=pad_x, pad_y=pad_y, line_gap=line_gap
+        draw, lines, font, title=title, pad_x=pad_x, pad_y=pad_y, line_gap=line_gap
     )
     x0, y0 = top_left
     draw.rectangle((x0, y0, x0 + w, y0 + h), fill=fill)
