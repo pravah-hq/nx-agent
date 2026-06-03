@@ -104,24 +104,152 @@ def _draw_text_block(
         y += box[3] - box[1] + line_gap
 
 
-def _neighbor_label_anchor(
+def _rect_from_xywh(x: int, y: int, w: int, h: int) -> tuple[int, int, int, int]:
+    return (x, y, x + w, y + h)
+
+
+def _rects_overlap(
+    a: tuple[int, int, int, int],
+    b: tuple[int, int, int, int],
+    *,
+    margin: int = 6,
+) -> bool:
+    ax0, ay0, ax1, ay1 = a
+    bx0, by0, bx1, by1 = b
+    return not (
+        ax1 + margin <= bx0
+        or bx1 + margin <= ax0
+        or ay1 + margin <= by0
+        or by1 + margin <= ay0
+    )
+
+
+def _circle_rect_overlap(
     cx: int,
     cy: int,
-    px: int,
-    py: int,
+    radius: int,
+    rect: tuple[int, int, int, int],
+    *,
+    margin: int = 4,
+) -> bool:
+    x0, y0, x1, y1 = rect
+    closest_x = min(max(cx, x0), x1)
+    closest_y = min(max(cy, y0), y1)
+    dx = cx - closest_x
+    dy = cy - closest_y
+    return dx * dx + dy * dy < (radius + margin) ** 2
+
+
+def _clamp_rect(
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    *,
+    pad: int = PADDING_PX,
+) -> tuple[int, int, int, int]:
+    x = max(pad, min(x, MAP_SIZE - w - pad))
+    y = max(pad, min(y, MAP_SIZE - h - pad))
+    return _rect_from_xywh(x, y, w, h)
+
+
+def _callout_candidate_positions(
+    node_x: int,
+    node_y: int,
     block_w: int,
     block_h: int,
-) -> tuple[int, int]:
-    """Place callout beside the neighbor, away from YOU."""
-    dx = px - cx
-    dy = py - cy
-    if abs(dx) >= abs(dy):
-        if dx >= 0:
-            return px + 14, py - block_h // 2
-        return px - block_w - 14, py - block_h // 2
-    if dy >= 0:
-        return px - block_w // 2, py + 14
-    return px - block_w // 2, py - block_h - 14
+    you_x: int,
+    you_y: int,
+) -> list[tuple[int, int]]:
+    """Candidate top-left positions; primary push is away from YOU."""
+    dx = node_x - you_x
+    dy = node_y - you_y
+    dist = math.hypot(dx, dy)
+    if dist < 1e-6:
+        ux, uy = 1.0, 0.0
+    else:
+        ux, uy = dx / dist, dy / dist
+    tangent_x, tangent_y = -uy, ux
+
+    candidates: list[tuple[int, int]] = []
+    seen: set[tuple[int, int]] = set()
+    for outward in (22, 32, 44, 56, 70, 86):
+        for tangential in (0, 1, -1, 2, -2, 3, -3):
+            shift = tangential * (block_h + 10)
+            cx = node_x + ux * outward + tangent_x * shift
+            cy = node_y + uy * outward + tangent_y * shift
+            x = int(cx - block_w / 2)
+            y = int(cy - block_h / 2)
+            key = (x // 4, y // 4)
+            if key in seen:
+                continue
+            seen.add(key)
+            candidates.append((x, y))
+    return candidates
+
+
+def _layout_callout_rect(
+    node_x: int,
+    node_y: int,
+    node_radius: int,
+    block_w: int,
+    block_h: int,
+    you_x: int,
+    you_y: int,
+    you_radius: int,
+    obstacles: list[tuple[str, tuple]],
+    placed: list[tuple[int, int, int, int]],
+) -> tuple[int, int, int, int] | None:
+    for x, y in _callout_candidate_positions(
+        node_x, node_y, block_w, block_h, you_x, you_y
+    ):
+        rect = _clamp_rect(x, y, block_w, block_h)
+        if _circle_rect_overlap(node_x, node_y, node_radius + 6, rect):
+            continue
+        if _circle_rect_overlap(you_x, you_y, you_radius + 12, rect):
+            continue
+        blocked = False
+        for kind, obs in obstacles:
+            if kind == "circle":
+                ox, oy, orad = obs
+                if _circle_rect_overlap(ox, oy, orad, rect):
+                    blocked = True
+                    break
+            elif kind == "rect":
+                if _rects_overlap(rect, obs):
+                    blocked = True
+                    break
+        if blocked:
+            continue
+        for other in placed:
+            if _rects_overlap(rect, other):
+                blocked = True
+                break
+        if not blocked:
+            placed.append(rect)
+            return rect
+    return None
+
+
+def _leader_line_to_box(
+    node_x: int,
+    node_y: int,
+    node_radius: int,
+    rect: tuple[int, int, int, int],
+) -> tuple[tuple[int, int], tuple[int, int]]:
+    x0, y0, x1, y1 = rect
+    bcx = (x0 + x1) // 2
+    bcy = (y0 + y1) // 2
+    angle = math.atan2(bcy - node_y, bcx - node_x)
+    sx = node_x + int(math.cos(angle) * (node_radius + 3))
+    sy = node_y + int(math.sin(angle) * (node_radius + 3))
+    ex = bcx
+    ey = bcy
+    if abs(math.cos(angle)) > abs(math.sin(angle)):
+        ex = x0 if bcx < node_x else x1
+    else:
+        ey = y0 if bcy < node_y else y1
+    return (sx, sy), (ex, ey)
 
 
 def _overview_bounds(
@@ -694,43 +822,95 @@ def _render_node_zoom_map(
     )
     draw.text((cx + you_radius + 4, cy - 10), "YOU", fill=(255, 255, 255), font=font)
 
-    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
-        if is_neighbor:
-            id_lines = _pano_id_display_lines(pano_id)
-            block_w, block_h = _text_block_size(
-                draw, id_lines, id_font, title="MOVE"
-            )
-            tx, ty = _neighbor_label_anchor(cx, cy, px, py, block_w, block_h)
-            tx = max(PADDING_PX, min(tx, MAP_SIZE - block_w - PADDING_PX))
-            ty = max(PADDING_PX, min(ty, MAP_SIZE - block_h - PADDING_PX))
-            _draw_text_block(
-                draw,
-                (tx, ty),
-                id_lines,
-                id_font,
-                title="MOVE",
-                fill=(30, 41, 59, 240),
-                text_fill=(224, 242, 254),
-            )
-            draw.line(
-                (px, py, tx + block_w // 2, ty + block_h // 2),
-                fill=(125, 211, 252, 180),
-                width=1,
-            )
-        elif is_goal:
-            goal_lines = _pano_id_display_lines(pano_id)
-            block_w, block_h = _text_block_size(draw, goal_lines, id_font, title="GOAL")
-            tx = max(PADDING_PX, min(px - block_w // 2, MAP_SIZE - block_w - PADDING_PX))
-            ty = max(PADDING_PX, py - block_h - 16)
-            _draw_text_block(
-                draw,
-                (tx, ty),
-                goal_lines,
-                id_font,
-                title="GOAL",
-                fill=(30, 41, 59, 240),
-                text_fill=(250, 204, 21),
-            )
+    obstacles: list[tuple[str, tuple]] = [
+        ("rect", _rect_from_xywh(4, 4, 520, 52)),
+        ("circle", (cx, cy, you_radius + wedge_len)),
+    ]
+    for pole in world.poles:
+        ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
+            pr = 14 if pole.track_id == target_track else 10
+            obstacles.append(("circle", (ppx, ppy, pr)))
+    for pano_id, (px, py, _is_neighbor, _is_goal) in pano_positions.items():
+        obstacles.append(("circle", (px, py, node_radius + 8)))
+
+    placed_boxes: list[tuple[int, int, int, int]] = []
+
+    move_items = [
+        (pano_id, px, py)
+        for pano_id, (px, py, is_neighbor, _is_goal) in pano_positions.items()
+        if is_neighbor
+    ]
+    move_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+
+    for pano_id, px, py in move_items:
+        id_lines = _pano_id_display_lines(pano_id)
+        block_w, block_h = _text_block_size(draw, id_lines, id_font, title="MOVE")
+        rect = _layout_callout_rect(
+            px,
+            py,
+            node_radius,
+            block_w,
+            block_h,
+            cx,
+            cy,
+            you_radius,
+            obstacles,
+            placed_boxes,
+        )
+        if rect is None:
+            rect = _clamp_rect(px + 20, py - block_h // 2, block_w, block_h)
+            placed_boxes.append(rect)
+        x0, y0, x1, y1 = rect
+        _draw_text_block(
+            draw,
+            (x0, y0),
+            id_lines,
+            id_font,
+            title="MOVE",
+            fill=(30, 41, 59, 240),
+            text_fill=(224, 242, 254),
+        )
+        start, end = _leader_line_to_box(px, py, node_radius, rect)
+        draw.line((*start, *end), fill=(125, 211, 252, 200), width=1)
+
+    goal_items = [
+        (pano_id, px, py)
+        for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items()
+        if is_goal and not is_neighbor
+    ]
+    goal_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+
+    for pano_id, px, py in goal_items:
+        goal_lines = _pano_id_display_lines(pano_id)
+        block_w, block_h = _text_block_size(draw, goal_lines, id_font, title="GOAL")
+        rect = _layout_callout_rect(
+            px,
+            py,
+            node_radius,
+            block_w,
+            block_h,
+            cx,
+            cy,
+            you_radius,
+            obstacles,
+            placed_boxes,
+        )
+        if rect is None:
+            rect = _clamp_rect(px - block_w // 2, py - block_h - 20, block_w, block_h)
+            placed_boxes.append(rect)
+        x0, y0, x1, y1 = rect
+        _draw_text_block(
+            draw,
+            (x0, y0),
+            goal_lines,
+            id_font,
+            title="GOAL",
+            fill=(30, 41, 59, 240),
+            text_fill=(250, 204, 21),
+        )
+        start, end = _leader_line_to_box(px, py, node_radius, rect)
+        draw.line((*start, *end), fill=(250, 204, 21, 200), width=1)
 
     legend = [
         "NODE ZOOM: MOVE boxes show full pano id to copy for move",
