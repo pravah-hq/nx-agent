@@ -2,10 +2,10 @@
 PNG local maps for VLM navigation (cached under .cache/agent_maps/).
 
 Two map views for navigation:
-  overview — clustered pano groups, thick edges (general direction only)
+  overview — road/path network from pano graph (direction only)
   node_zoom — YOU, neighbors, full MOVE ids for exact moves
 
-Legend: overview merges nearby dots (×N); node zoom has MOVE boxes.
+Legend: overview shows roads not nodes; node zoom has MOVE boxes.
 """
 
 from __future__ import annotations
@@ -24,10 +24,10 @@ MAP_SIZE = 900
 PADDING_PX = 60
 OVERVIEW_PAD_DEG = 0.00008
 NODE_ZOOM_PAD_DEG = 0.000028
-# Overview: merge panos whose projected centers are within this many pixels.
+# Node zoom: merge panos near GOAL for framing (same px rule as before).
 OVERVIEW_CLUSTER_PX = 34
-OVERVIEW_EDGE_WIDTH = 6
-OVERVIEW_EDGE_WIDTH_FROM_YOU = 8
+OVERVIEW_ROAD_WIDTH = 7
+OVERVIEW_ROUTE_WIDTH = 10
 
 
 def _load_map_font(size: int = 13):
@@ -334,6 +334,10 @@ def _overview_visible_pano_ids(
     return visible
 
 
+def _norm_pano_edge(a: str, b: str) -> tuple[str, str]:
+    return (a, b) if a < b else (b, a)
+
+
 def _cluster_panos_by_screen_px(
     pano_ids: list[str],
     positions: dict[str, tuple[int, int]],
@@ -374,26 +378,91 @@ def _cluster_panos_by_screen_px(
     return out
 
 
-def _build_cluster_graph(
-    world: World,
-    visible_panos: set[str],
-    pano_to_cluster: dict[str, int],
-) -> set[tuple[int, int]]:
-    """Undirected edges between clusters (from underlying 20 m pano graph)."""
-    edges: set[tuple[int, int]] = set()
+def _visible_graph_edges(world: World, visible_panos: set[str]) -> list[tuple[str, str]]:
+    edges: list[tuple[str, str]] = []
     for pano_id in visible_panos:
-        ca = pano_to_cluster[pano_id]
         for nid in world.neighbor_map.get(pano_id, []):
-            if nid not in visible_panos:
-                continue
-            cb = pano_to_cluster[nid]
-            if ca == cb:
-                continue
-            edges.add((min(ca, cb), max(ca, cb)))
+            if nid in visible_panos and pano_id < nid:
+                edges.append((pano_id, nid))
     return edges
 
 
-def _render_overview_clustered(
+def _path_edge_set(path: list[str] | None) -> set[tuple[str, str]]:
+    if not path or len(path) < 2:
+        return set()
+    return {_norm_pano_edge(path[i], path[i + 1]) for i in range(len(path) - 1)}
+
+
+def _extract_road_polylines(
+    world: World,
+    visible_panos: set[str],
+) -> list[list[str]]:
+    """
+    Chain 20 m graph edges into road polylines (merge straight runs through degree-2 nodes).
+    """
+    adj: dict[str, list[str]] = {p: [] for p in visible_panos}
+    for a in visible_panos:
+        for b in world.neighbor_map.get(a, []):
+            if b in visible_panos and b not in adj[a]:
+                adj[a].append(b)
+                adj[b].append(a)
+
+    used: set[tuple[str, str]] = set()
+    polylines: list[list[str]] = []
+
+    def extend_from_end(chain: list[str], *, backward: bool) -> None:
+        while len(adj[chain[0 if backward else -1]]) == 2:
+            tip = chain[0 if backward else -1]
+            other = chain[1 if backward else -2]
+            nxt = adj[tip][0] if adj[tip][1] == other else adj[tip][1]
+            e = _norm_pano_edge(tip, nxt)
+            if e in used:
+                break
+            used.add(e)
+            if backward:
+                chain.insert(0, nxt)
+            else:
+                chain.append(nxt)
+
+    for a, b in _visible_graph_edges(world, visible_panos):
+        e = _norm_pano_edge(a, b)
+        if e in used:
+            continue
+        used.add(e)
+        chain = [a, b]
+        extend_from_end(chain, backward=True)
+        extend_from_end(chain, backward=False)
+        if len(chain) >= 2:
+            polylines.append(chain)
+
+    return polylines
+
+
+def _draw_road_polyline(
+    draw,
+    chain: list[str],
+    positions: dict[str, tuple[int, int]],
+    *,
+    width: int,
+    fill: tuple[int, int, int, int],
+) -> None:
+    for i in range(len(chain) - 1):
+        ax, ay = positions[chain[i]]
+        bx, by = positions[chain[i + 1]]
+        draw.line((ax, ay, bx, by), fill=fill, width=width)
+
+
+def _polyline_uses_route(
+    chain: list[str],
+    route_edges: set[tuple[str, str]],
+) -> bool:
+    return any(
+        _norm_pano_edge(chain[i], chain[i + 1]) in route_edges
+        for i in range(len(chain) - 1)
+    )
+
+
+def _render_overview_roads(
     world: World,
     state: AgentState,
     *,
@@ -404,13 +473,13 @@ def _render_overview_clustered(
     goal_pano_id: str | None,
     out_path: Path,
 ) -> Path:
-    """Overview map with nearby panos merged into clusters; thick inter-cluster edges."""
+    """Overview: road network from pano graph; no pano nodes shown."""
     from PIL import Image, ImageDraw
 
-    neighbor_map = world.neighbor_map
+    from agent.targeting import path_to_pano
+
     pano = world.panos_by_id[state.pano_id]
     view_yaw = bin_center_world_yaw(pano, state.direction_bin)
-    current_neighbors = set(get_neighbors(neighbor_map, state.pano_id))
 
     visible_panos = _overview_visible_pano_ids(
         world,
@@ -429,38 +498,40 @@ def _render_overview_clustered(
             p.lat, p.lon, min_lat, min_lon, max_lat, max_lon
         )
 
-    pano_list = sorted(visible_panos)
-    pano_to_cluster = _cluster_panos_by_screen_px(
-        pano_list, positions, threshold_px=OVERVIEW_CLUSTER_PX
+    route_path = (
+        path_to_pano(world, state.pano_id, goal_pano_id) if goal_pano_id else None
     )
-
-    clusters: dict[int, list[str]] = {}
-    for pid, cid in pano_to_cluster.items():
-        clusters.setdefault(cid, []).append(pid)
-
-    centroids: dict[int, tuple[int, int]] = {}
-    for cid, members in clusters.items():
-        xs = [positions[m][0] for m in members]
-        ys = [positions[m][1] for m in members]
-        centroids[cid] = (sum(xs) // len(xs), sum(ys) // len(ys))
-
-    you_cluster = pano_to_cluster[state.pano_id]
-    goal_cluster = (
-        pano_to_cluster[goal_pano_id] if goal_pano_id and goal_pano_id in pano_to_cluster else None
-    )
+    route_edges = _path_edge_set(route_path)
+    polylines = _extract_road_polylines(world, visible_panos)
 
     image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
     draw = ImageDraw.Draw(image, "RGBA")
     font = _load_map_font(12)
 
-    cluster_edges = _build_cluster_graph(world, visible_panos, pano_to_cluster)
-    for ca, cb in cluster_edges:
-        ax, ay = centroids[ca]
-        bx, by = centroids[cb]
-        touches_you = you_cluster in {ca, cb}
-        width = OVERVIEW_EDGE_WIDTH_FROM_YOU if touches_you else OVERVIEW_EDGE_WIDTH
-        color = (148, 163, 184, 240) if touches_you else (100, 116, 139, 200)
-        draw.line((ax, ay, bx, by), fill=color, width=width)
+    road_color = (82, 96, 118, 230)
+    route_color = (250, 204, 21, 245)
+
+    for chain in polylines:
+        if _polyline_uses_route(chain, route_edges):
+            continue
+        _draw_road_polyline(
+            draw,
+            chain,
+            positions,
+            width=OVERVIEW_ROAD_WIDTH,
+            fill=road_color,
+        )
+
+    for chain in polylines:
+        if not _polyline_uses_route(chain, route_edges):
+            continue
+        _draw_road_polyline(
+            draw,
+            chain,
+            positions,
+            width=OVERVIEW_ROUTE_WIDTH,
+            fill=route_color,
+        )
 
     target_track = state.pole_in_consideration
     for pole in world.poles:
@@ -474,44 +545,21 @@ def _render_overview_clustered(
             radius = 5
         elif pole.track_id == target_track:
             color = (249, 115, 22, 255)
-            radius = 10
+            radius = 12
         else:
             color = (34, 197, 94, 255)
-            radius = 6
+            radius = 5
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
-        draw.text(
-            (px + 10, py - 8),
-            pole.pole_id.replace("POLE_", ""),
-            fill=(226, 232, 240),
-            font=font,
-        )
+        if pole.track_id == target_track:
+            draw.text(
+                (px + 12, py - 10),
+                pole.pole_id.replace("POLE_", ""),
+                fill=(255, 255, 255),
+                font=font,
+            )
 
-    for cid, members in clusters.items():
-        cx, cy = centroids[cid]
-        count = len(members)
-        is_you = cid == you_cluster
-        is_goal = goal_cluster is not None and cid == goal_cluster
-        if is_you:
-            r = 14
-            fill = (56, 189, 248, 255)
-        elif is_goal:
-            r = 10
-            fill = (250, 204, 21, 255)
-        else:
-            r = 6 + min(8, count)
-            fill = (71, 85, 105, 220)
-        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=fill, outline=(255, 255, 255))
-        if is_you:
-            label = "YOU" if count == 1 else f"YOU ×{count}"
-        elif is_goal:
-            label = "GOAL" if count == 1 else f"GOAL ×{count}"
-        elif count > 1:
-            label = f"×{count}"
-        else:
-            continue
-        draw.text((cx + r + 4, cy - 6), label, fill=(255, 255, 255), font=font)
-
-    cx, cy = centroids[you_cluster]
+    cx, cy = positions[state.pano_id]
+    you_radius = 12
     wedge_len = 70
     half_fov = 50
     points = [(cx, cy)]
@@ -521,11 +569,17 @@ def _render_overview_clustered(
         wy = cy + int(math.sin(angle) * wedge_len)
         points.append((wx, wy))
     draw.polygon(points, fill=(56, 189, 248, 70))
+    draw.ellipse(
+        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
+        fill=(56, 189, 248, 255),
+        outline=(255, 255, 255),
+    )
+    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
 
     legend = [
-        "OVERVIEW (direction): nearby panos merged into one dot (×N = count)",
-        "Thick gray lines = graph links between merged groups",
-        "Use NODE ZOOM map (image 2) for exact move target_pano_id",
+        "OVERVIEW (direction): gray roads = walkable paths along pano graph",
+        "Yellow road = suggested route toward orange target pole",
+        "No pano nodes here — pick exact move from NODE ZOOM (image 2)",
     ]
     y = 8
     for line in legend:
@@ -712,7 +766,7 @@ def render_map_overview_image(
     )
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    return _render_overview_clustered(
+    return _render_overview_roads(
         world,
         state,
         min_lat=min_lat,
