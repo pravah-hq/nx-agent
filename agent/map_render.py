@@ -154,27 +154,136 @@ def _overview_bounds(
     return min(lats) - pad, min(lons) - pad, max(lats) + pad, max(lons) + pad
 
 
+def _goal_cluster_pano_ids(
+    world: World,
+    state: AgentState,
+    goal_pano_id: str | None,
+) -> frozenset[str]:
+    """
+    Pano ids merged with GOAL on the overview map (same screen-pixel clustering).
+    """
+    if not goal_pano_id or goal_pano_id not in world.panos_by_id:
+        return frozenset()
+
+    pano = world.panos_by_id[state.pano_id]
+    goal = world.panos_by_id[goal_pano_id]
+    candidates: set[str] = {state.pano_id, goal_pano_id}
+    candidates.update(get_neighbors(world.neighbor_map, state.pano_id))
+    candidates.update(get_neighbors(world.neighbor_map, goal_pano_id))
+
+    lo_lat = min(pano.lat, goal.lat)
+    hi_lat = max(pano.lat, goal.lat)
+    lo_lon = min(pano.lon, goal.lon)
+    hi_lon = max(pano.lon, goal.lon)
+    margin = NODE_ZOOM_PAD_DEG * 4
+    for p in world.panos:
+        if lo_lat - margin <= p.lat <= hi_lat + margin and lo_lon - margin <= p.lon <= hi_lon + margin:
+            candidates.add(p.id)
+
+    pre_pad = NODE_ZOOM_PAD_DEG * 2
+    min_lat = min(world.panos_by_id[pid].lat for pid in candidates) - pre_pad
+    max_lat = max(world.panos_by_id[pid].lat for pid in candidates) + pre_pad
+    min_lon = min(world.panos_by_id[pid].lon for pid in candidates) - pre_pad
+    max_lon = max(world.panos_by_id[pid].lon for pid in candidates) + pre_pad
+
+    pano_list = sorted(candidates)
+    positions = {
+        pid: _project(
+            world.panos_by_id[pid].lat,
+            world.panos_by_id[pid].lon,
+            min_lat,
+            min_lon,
+            max_lat,
+            max_lon,
+        )
+        for pid in pano_list
+    }
+    pano_to_cluster = _cluster_panos_by_screen_px(
+        pano_list, positions, threshold_px=OVERVIEW_CLUSTER_PX
+    )
+    goal_cid = pano_to_cluster[goal_pano_id]
+    return frozenset(pid for pid in pano_list if pano_to_cluster[pid] == goal_cid)
+
+
+def _symmetric_bounds_between(
+    anchor_a_lat: float,
+    anchor_a_lon: float,
+    anchor_b_lat: float,
+    anchor_b_lon: float,
+    points: list[tuple[float, float]],
+    *,
+    pad_deg: float,
+    min_half_span_deg: float,
+) -> tuple[float, float, float, float]:
+    """Map bounds centered on the midpoint of two anchors, spanning all points."""
+    center_lat = (anchor_a_lat + anchor_b_lat) / 2
+    center_lon = (anchor_a_lon + anchor_b_lon) / 2
+    half = min_half_span_deg
+    for lat, lon in points:
+        half = max(half, abs(lat - center_lat), abs(lon - center_lon))
+    half += pad_deg
+    return (
+        center_lat - half,
+        center_lon - half,
+        center_lat + half,
+        center_lon + half,
+    )
+
+
 def _node_zoom_bounds(
     world: World,
     state: AgentState,
+    *,
+    goal_pano_id: str | None = None,
 ) -> tuple[float, float, float, float]:
-    """Tight bounds around the current pano and its graph neighbors."""
+    """Bounds centered between YOU and the overview GOAL cluster (includes neighbors)."""
     pano = world.panos_by_id[state.pano_id]
-    lats = [pano.lat]
-    lons = [pano.lon]
+    points: list[tuple[float, float]] = [(pano.lat, pano.lon)]
 
     for nid in get_neighbors(world.neighbor_map, state.pano_id):
         n = world.panos_by_id[nid]
-        lats.append(n.lat)
-        lons.append(n.lon)
+        points.append((n.lat, n.lon))
 
     track = state.pole_in_consideration
     if track and track in world.poles_by_track:
         pole = world.poles_by_track[track]
-        lats.append(pole.lat)
-        lons.append(pole.lon)
+        points.append((pole.lat, pole.lon))
+
+    goal_cluster = _goal_cluster_pano_ids(world, state, goal_pano_id)
+    if goal_cluster:
+        goal_lats = [world.panos_by_id[pid].lat for pid in goal_cluster]
+        goal_lons = [world.panos_by_id[pid].lon for pid in goal_cluster]
+        goal_centroid_lat = sum(goal_lats) / len(goal_lats)
+        goal_centroid_lon = sum(goal_lons) / len(goal_lons)
+        for pid in goal_cluster:
+            p = world.panos_by_id[pid]
+            points.append((p.lat, p.lon))
+        return _symmetric_bounds_between(
+            pano.lat,
+            pano.lon,
+            goal_centroid_lat,
+            goal_centroid_lon,
+            points,
+            pad_deg=NODE_ZOOM_PAD_DEG,
+            min_half_span_deg=NODE_ZOOM_PAD_DEG * 2,
+        )
+
+    if goal_pano_id and goal_pano_id in world.panos_by_id:
+        g = world.panos_by_id[goal_pano_id]
+        points.append((g.lat, g.lon))
+        return _symmetric_bounds_between(
+            pano.lat,
+            pano.lon,
+            g.lat,
+            g.lon,
+            points,
+            pad_deg=NODE_ZOOM_PAD_DEG,
+            min_half_span_deg=NODE_ZOOM_PAD_DEG * 2,
+        )
 
     pad = NODE_ZOOM_PAD_DEG
+    lats = [lat for lat, _ in points]
+    lons = [lon for _, lon in points]
     return min(lats) - pad, min(lons) - pad, max(lats) + pad, max(lons) + pad
 
 
@@ -445,11 +554,12 @@ def _render_node_zoom_map(
     pano = world.panos_by_id[state.pano_id]
     view_yaw = bin_center_world_yaw(pano, state.direction_bin)
     current_neighbors = set(get_neighbors(neighbor_map, state.pano_id))
+    goal_cluster = _goal_cluster_pano_ids(world, state, goal_pano_id)
 
     image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
     draw = ImageDraw.Draw(image, "RGBA")
 
-    visible_panos = {state.pano_id, *current_neighbors}
+    visible_panos = {state.pano_id, *current_neighbors, *goal_cluster}
 
     node_radius = 8
     you_radius = 14
@@ -504,9 +614,14 @@ def _render_node_zoom_map(
         if pano_id == state.pano_id:
             continue
         is_neighbor = pano_id in current_neighbors
-        is_goal = pano_id == goal_pano_id
+        is_goal = pano_id in goal_cluster or pano_id == goal_pano_id
         pano_positions[pano_id] = (px, py, is_neighbor, is_goal)
-        fill = (224, 242, 254, 255) if is_neighbor else (71, 85, 105, 200)
+        if is_neighbor:
+            fill = (224, 242, 254, 255)
+        elif is_goal:
+            fill = (250, 204, 21, 200)
+        else:
+            fill = (71, 85, 105, 200)
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
@@ -616,8 +731,10 @@ def render_map_node_zoom_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> Path:
-    """Tight map centered on the current pano and its immediate neighbors."""
-    min_lat, min_lon, max_lat, max_lon = _node_zoom_bounds(world, state)
+    """Map centered between YOU and the overview GOAL cluster; MOVE ids on neighbors."""
+    min_lat, min_lon, max_lat, max_lon = _node_zoom_bounds(
+        world, state, goal_pano_id=goal_pano_id
+    )
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_zoom_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
     return _render_node_zoom_map(
