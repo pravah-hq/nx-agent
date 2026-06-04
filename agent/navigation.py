@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from agent.environment import World
 from agent.geo import distance_m
-from agent.map_render import MAP_SIZE
 from agent.targeting import next_path_hop, plan_mission_to_pole
 from agent.types import AgentState
 
@@ -78,14 +77,3 @@ def pick_planned_neighbor(
 def build_neighbor_move_options(neighbor_ids: list[str]) -> list[dict]:
     """Structured neighbor list embedded in VLM navigation prompts."""
     return [{"target_pano_id": nid} for nid in neighbor_ids]
-
-
-def clamp_map_point(x: float | int, y: float | int) -> tuple[int, int] | None:
-    try:
-        xi = int(round(float(x)))
-        yi = int(round(float(y)))
-    except (TypeError, ValueError):
-        return None
-    xi = max(0, min(MAP_SIZE - 1, xi))
-    yi = max(0, min(MAP_SIZE - 1, yi))
-    return xi, yi

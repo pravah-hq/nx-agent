@@ -79,18 +79,18 @@ class VlmClient:
                     '"pole_type":"distribution_transformer",'
                     '"confidence":"low","reason":"dry run type pass"}'
                 )
-            if "road_point_x" in lower or "streets map" in lower or "yellow road" in lower:
+            if "three images" in lower or "overview map" in lower or "node zoom map" in lower:
                 return (
-                    '{"action":"turn_right","road_point_x":null,"road_point_y":null,'
-                    '"reason":"dry run streets navigation"}'
+                    '{"action":"turn_right","target_pano_id":null,'
+                    '"reason":"dry run dual-map navigation"}'
                 )
             if "two images" in lower or "image 1" in lower:
                 return (
-                    '{"action":"turn_right","road_point_x":null,"road_point_y":null,'
-                    '"reason":"dry run navigation"}'
+                    '{"action":"turn_right","target_pano_id":null,'
+                    '"reason":"dry run dual navigation"}'
                 )
             return (
-                '{"action":"turn_right","road_point_x":null,"road_point_y":null,'
+                '{"action":"turn_right","target_pano_id":null,'
                 '"reason":"dry run — no model loaded"}'
             )
 

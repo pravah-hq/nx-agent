@@ -1,8 +1,7 @@
 """
 PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation: OSM Streets basemap screenshot, poles + YOU, no pano nodes or routes.
-node_zoom — optional debug view with MOVE boxes (not sent to VLM for nav).
+Navigation: overview road network + node zoom (MOVE ids); clear-view uses overview map.
 """
 
 from __future__ import annotations
@@ -38,57 +37,16 @@ class OverviewMapBounds:
     max_lon: float
 
 
-def _meters_to_half_span_deg(lat: float, radius_m: float) -> tuple[float, float]:
-    dlat = radius_m / 111_320.0
-    dlon = radius_m / (111_320.0 * max(math.cos(math.radians(lat)), 1e-6))
-    return dlat, dlon
-
-
-def square_bounds_centered(lat: float, lon: float, radius_m: float) -> OverviewMapBounds:
-    dlat, dlon = _meters_to_half_span_deg(lat, radius_m)
-    return OverviewMapBounds(lat - dlat, lon - dlon, lat + dlat, lon + dlon)
-
-
-def streets_observation_bounds(world: World, state: AgentState) -> OverviewMapBounds:
-    """Wider streets map for clear-view / classification (poles visible, no nodes)."""
-    from agent.geo import distance_m
-
-    pano = world.panos_by_id[state.pano_id]
-    max_dist = 35.0
-    for pole in world.poles:
-        max_dist = max(
-            max_dist,
-            distance_m(pano.lat, pano.lon, pole.lat, pole.lon),
-        )
-    half_span_m = min(max(max_dist + 12.0, 50.0), 180.0)
-    return square_bounds_centered(pano.lat, pano.lon, half_span_m)
-
-
-def map_pixel_to_lat_lon(
-    x: int,
-    y: int,
-    bounds: OverviewMapBounds,
-) -> tuple[float, float]:
-    """Inverse projection for full-frame streets map (top-left origin, MAP_SIZE px)."""
-    lat_span = max(bounds.max_lat - bounds.min_lat, 1e-9)
-    lon_span = max(bounds.max_lon - bounds.min_lon, 1e-9)
-    denom = max(MAP_SIZE - 1, 1)
-    lon = bounds.min_lon + x / denom * lon_span
-    lat = bounds.max_lat - y / denom * lat_span
-    return lat, lon
-
-
-def lat_lon_to_map_pixel(
-    lat: float,
-    lon: float,
-    bounds: OverviewMapBounds,
-) -> tuple[int, int]:
-    lat_span = max(bounds.max_lat - bounds.min_lat, 1e-9)
-    lon_span = max(bounds.max_lon - bounds.min_lon, 1e-9)
-    denom = max(MAP_SIZE - 1, 1)
-    x = int(round((lon - bounds.min_lon) / lon_span * denom))
-    y = int(round((1.0 - (lat - bounds.min_lat) / lat_span) * denom))
-    return max(0, min(MAP_SIZE - 1, x)), max(0, min(MAP_SIZE - 1, y))
+def overview_bounds_for_state(
+    world: World,
+    state: AgentState,
+    *,
+    goal_pano_id: str | None = None,
+) -> OverviewMapBounds:
+    min_lat, min_lon, max_lat, max_lon = _overview_bounds(
+        world, state, goal_pano_id=goal_pano_id
+    )
+    return OverviewMapBounds(min_lat, min_lon, max_lat, max_lon)
 
 
 def _load_map_font(size: int = 13):
@@ -766,8 +724,9 @@ def _render_overview_roads(
     draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
 
     legend = [
-        "OVERVIEW: gray roads = walkable paths; yellow = route to orange pole",
-        f"For move, pick a point ON a road (pixels 0–{MAP_SIZE - 1}, top-left origin)",
+        "OVERVIEW (direction): gray roads = walkable paths along pano graph",
+        "Yellow road = suggested route toward orange target pole",
+        "No pano nodes here — pick exact move from NODE ZOOM (image 2)",
     ]
     y = 8
     for line in legend:
@@ -993,176 +952,28 @@ def _map_cache_dir(cache_dir: Path | None) -> Path:
     return cache
 
 
-def _draw_radius_circle(
-    draw,
-    center: tuple[int, int],
-    radius_px: int,
-    *,
-    fill: tuple[int, int, int, int],
-    outline: tuple[int, int, int, int],
-) -> None:
-    cx, cy = center
-    box = (cx - radius_px, cy - radius_px, cx + radius_px, cy + radius_px)
-    draw.ellipse(box, fill=fill)
-    draw.ellipse(box, outline=outline, width=2)
-
-
-def _draw_latlon_polyline(
-    draw,
-    chain: list[tuple[float, float]],
-    bounds: OverviewMapBounds,
-    *,
-    width: int,
-    fill: tuple[int, int, int, int],
-) -> None:
-    for i in range(len(chain) - 1):
-        ax, ay = lat_lon_to_map_pixel(chain[i][0], chain[i][1], bounds)
-        bx, by = lat_lon_to_map_pixel(chain[i + 1][0], chain[i + 1][1], bounds)
-        draw.line((ax, ay, bx, by), fill=fill, width=width)
-
-
-def _render_streets_vlm_map(
-    world: World,
-    state: AgentState,
-    *,
-    bounds: OverviewMapBounds,
-    out_path: Path,
-    show_nav_roads: bool,
-    road_chains_latlon: list[list[tuple[float, float]]] | None = None,
-) -> Path:
-    """OSM Streets basemap with poles, YOU, and optional pano-graph roads (no nodes/routes)."""
-    from PIL import ImageDraw
-
-    from agent.map_tiles import stitch_streets_basemap
-
-    pano = world.panos_by_id[state.pano_id]
-    view_yaw = bin_center_world_yaw(pano, state.direction_bin)
-
-    image = stitch_streets_basemap(
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-        out_size=MAP_SIZE,
-    )
-    draw = ImageDraw.Draw(image, "RGBA")
-    font = _load_map_font(12)
-
-    target_track = state.pole_in_consideration
-    for pole in world.poles:
-        px, py = lat_lon_to_map_pixel(pole.lat, pole.lon, bounds)
-        if pole.track_id in state.classified:
-            color = (100, 116, 139, 255)
-            radius = 5
-        elif pole.track_id == target_track:
-            color = (249, 115, 22, 255)
-            radius = 12
-        else:
-            color = (34, 197, 94, 255)
-            radius = 6
-        draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
-        if pole.track_id == target_track:
-            draw.text(
-                (px + 12, py - 10),
-                pole.pole_id.replace("POLE_", ""),
-                fill=(255, 255, 255),
-                font=font,
-            )
-
-    if show_nav_roads and road_chains_latlon:
-        for chain in road_chains_latlon:
-            _draw_latlon_polyline(
-                draw,
-                chain,
-                bounds,
-                width=9,
-                fill=(250, 204, 21, 230),
-            )
-
-    cx, cy = lat_lon_to_map_pixel(pano.lat, pano.lon, bounds)
-
-    wedge_len = 55 if show_nav_roads else 70
-    you_radius = 11
-    half_fov = 50
-    points = [(cx, cy)]
-    for offset in range(-half_fov, half_fov + 1, 10):
-        angle = math.radians(view_yaw + offset - 90)
-        wx = cx + int(math.cos(angle) * wedge_len)
-        wy = cy + int(math.sin(angle) * wedge_len)
-        points.append((wx, wy))
-    draw.polygon(points, fill=(56, 189, 248, 70))
-    draw.ellipse(
-        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
-        fill=(56, 189, 248, 255),
-        outline=(255, 255, 255),
-    )
-    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
-
-    legend = [
-        "STREETS MAP (OpenStreetMap) — no pano nodes",
-        "Orange = target pole; green = other poles; gray = classified",
-    ]
-    if show_nav_roads:
-        legend.append(
-            "Yellow lines = roads you are on (pano graph); pick move ON a yellow line"
-        )
-    y = 8
-    for line in legend:
-        draw.text((8, y), line, fill=(240, 248, 255), font=font)
-        y += 14
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(out_path, format="PNG")
-    return out_path
-
-
 def render_map_overview_image(
     world: World,
     state: AgentState,
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-    for_navigation: bool = False,
-) -> tuple[Path, OverviewMapBounds, list[tuple[tuple[float, float], tuple[float, float]]]]:
-    """
-    Streets basemap for VLM. for_navigation → local road overlay + road segment metadata.
-    goal_pano_id is ignored (no path overlay).
-    """
-    _ = goal_pano_id
-    road_segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
-    road_chains_latlon: list[list[tuple[float, float]]] | None = None
-    if for_navigation:
-        from agent.road_geometry import (
-            latlon_polylines_to_segments,
-            local_road_polylines_at_agent,
-            navigation_bounds_for_roads,
-            polylines_to_latlon,
-        )
-
-        chains = local_road_polylines_at_agent(world, state)
-        road_chains_latlon = polylines_to_latlon(world, chains)
-        road_segments = latlon_polylines_to_segments(road_chains_latlon)
-        bounds = navigation_bounds_for_roads(world, state, road_chains_latlon)
-        show_nav_roads = True
-    else:
-        bounds = streets_observation_bounds(world, state)
-        show_nav_roads = False
-
+) -> tuple[Path, OverviewMapBounds]:
+    """Overview: road network from pano graph; no pano nodes on map."""
+    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
     cache = _map_cache_dir(cache_dir)
-    tag = "nav" if for_navigation else "observe"
-    out_path = (
-        cache
-        / f"map_streets_{tag}_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    )
-    path = _render_streets_vlm_map(
+    out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+    path = _render_overview_roads(
         world,
         state,
-        bounds=bounds,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+        goal_pano_id=goal_pano_id,
         out_path=out_path,
-        show_nav_roads=show_nav_roads,
-        road_chains_latlon=road_chains_latlon,
     )
-    return path, bounds, road_segments
+    return path, bounds
 
 
 def render_map_node_zoom_image(
@@ -1198,7 +1009,7 @@ def render_map_image(
     goal_pano_id: str | None = None,
 ) -> Path:
     """Overview map (used by clear-view / classification prompts)."""
-    path, _, _ = render_map_overview_image(
+    path, _ = render_map_overview_image(
         world,
         state,
         cache_dir=cache_dir,

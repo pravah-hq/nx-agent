@@ -141,8 +141,7 @@ class Action:
     type: ActionType
     pole_type: PoleType | None = None  # required for classify_or_stop (VLM/stub)
     stop_after: bool = False  # end autonomous run after this classify
-    target_pano_id: str | None = None  # move destination (resolved from map point or VLM id)
-    map_point_px: tuple[int, int] | None = None  # VLM road_point on streets map (x, y), top-left
+    target_pano_id: str | None = None  # required for VLM move (full pano id string)
 
 
 @dataclass
