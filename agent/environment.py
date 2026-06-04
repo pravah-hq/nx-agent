@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from agent.directions import bin_center_world_yaw, clamp_bin
 from agent.geo import angle_diff_deg, bearing_deg, distance_m
 from agent.graph import build_neighbor_map, get_neighbors
+from agent.move_history import move_bearing_between_panos
 from agent.types import (
     DEFAULT_HFOV_DEG,
     DIRECTION_BIN_WIDTH_DEG,
@@ -125,13 +126,26 @@ class World:
             if action.target_pano_id:
                 if action.target_pano_id not in neighbor_ids:
                     return state, "Move rejected: target is not a neighbor within 20 m."
+                from_pano = self.panos_by_id[state.pano_id]
+                to_pano = self.panos_by_id[action.target_pano_id]
+
                 next_state.pano_id = action.target_pano_id
+                next_state.last_move_from_pano_id = state.pano_id
+                next_state.last_move_bearing_deg = move_bearing_between_panos(
+                    from_pano, to_pano
+                )
                 return next_state, f"Moved to {action.target_pano_id}."
             candidates = self.neighbor_panos_for_move(state)
             if not candidates:
                 return state, "Move rejected: no neighbor within view alignment."
             target = candidates[0]
+            from_pano = self.panos_by_id[state.pano_id]
+
             next_state.pano_id = target.id
+            next_state.last_move_from_pano_id = state.pano_id
+            next_state.last_move_bearing_deg = move_bearing_between_panos(
+                from_pano, target
+            )
             return next_state, f"Moved to {target.id}."
 
         if action.type == ActionType.CLASSIFY_OR_STOP:

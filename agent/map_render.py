@@ -1,7 +1,7 @@
 """
 PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation: overview road network + node zoom (MOVE ids); clear-view uses overview map.
+Navigation: pano graph map (nodes, edges, MOVE ids, last-move vector); clear-view uses graph without MOVE boxes.
 """
 
 from __future__ import annotations
@@ -522,6 +522,39 @@ def _draw_map_legend(draw, lines: list[str], *, font) -> None:
         y += 14
 
 
+def _draw_last_move_vector(
+    draw,
+    cx: int,
+    cy: int,
+    view_yaw_deg: float,
+    last_move_bearing_deg: float | None,
+    *,
+    font,
+    length: int = 88,
+) -> None:
+    """Magenta arrow from YOU along previous move bearing (heading-up map)."""
+    if last_move_bearing_deg is None:
+        return
+    delta = ((last_move_bearing_deg - view_yaw_deg + 540.0) % 360.0) - 180.0
+    rad = math.radians(delta)
+    ex = cx + int(math.sin(rad) * length)
+    ey = cy - int(math.cos(rad) * length)
+    color = (236, 72, 153, 255)
+    draw.line((cx, cy, ex, ey), fill=color, width=4)
+    head = 10
+    left = math.radians(delta - 150)
+    right = math.radians(delta + 150)
+    draw.polygon(
+        [
+            (ex, ey),
+            (ex + int(math.sin(left) * head), ey - int(math.cos(left) * head)),
+            (ex + int(math.sin(right) * head), ey - int(math.cos(right) * head)),
+        ],
+        fill=color,
+    )
+    draw.text((ex + 8, ey - 10), "last move", fill=color, font=font)
+
+
 def _project(
     lat: float,
     lon: float,
@@ -824,7 +857,7 @@ def _render_overview_roads(
     return out_path
 
 
-def _render_node_zoom_map(
+def _render_graph_map(
     world: World,
     state: AgentState,
     *,
@@ -834,7 +867,11 @@ def _render_node_zoom_map(
     max_lon: float,
     goal_pano_id: str | None,
     out_path: Path,
+    visible_panos: set[str] | None = None,
+    last_move_bearing_deg: float | None = None,
+    show_move_callouts: bool = True,
 ) -> Path:
+    """Local pano graph: nodes, edges, poles; optional MOVE callouts and last-move arrow."""
     from PIL import Image, ImageDraw
 
     neighbor_map = world.neighbor_map
@@ -846,7 +883,11 @@ def _render_node_zoom_map(
     image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
     draw = ImageDraw.Draw(image, "RGBA")
 
-    visible_panos = {state.pano_id, *current_neighbors, *goal_cluster}
+    if visible_panos is None:
+        visible_panos = {state.pano_id, *current_neighbors, *goal_cluster}
+    else:
+        visible_panos = set(visible_panos)
+        visible_panos.add(state.pano_id)
 
     node_radius = 8
     you_radius = 14
@@ -933,6 +974,9 @@ def _render_node_zoom_map(
         wedge_len=wedge_len,
         font=font,
     )
+    _draw_last_move_vector(
+        draw, cx, cy, view_yaw, last_move_bearing_deg, font=_load_map_font(11)
+    )
 
     obstacles: list[tuple[str, tuple]] = [
         ("rect", _rect_from_xywh(4, 4, 520, 52)),
@@ -949,12 +993,15 @@ def _render_node_zoom_map(
 
     placed_boxes: list[tuple[int, int, int, int]] = []
 
-    move_items = [
-        (pano_id, px, py)
-        for pano_id, (px, py, is_neighbor, _is_goal) in pano_positions.items()
-        if is_neighbor
-    ]
-    move_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+    if show_move_callouts:
+        move_items = [
+            (pano_id, px, py)
+            for pano_id, (px, py, is_neighbor, _is_goal) in pano_positions.items()
+            if is_neighbor
+        ]
+        move_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+    else:
+        move_items = []
 
     for pano_id, px, py in move_items:
         id_lines = _pano_id_display_lines(pano_id)
@@ -987,12 +1034,15 @@ def _render_node_zoom_map(
         start, end = _leader_line_to_box(px, py, node_radius, rect)
         draw.line((*start, *end), fill=(125, 211, 252, 200), width=1)
 
-    goal_items = [
-        (pano_id, px, py)
-        for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items()
-        if is_goal and not is_neighbor
-    ]
-    goal_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+    if show_move_callouts:
+        goal_items = [
+            (pano_id, px, py)
+            for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items()
+            if is_goal and not is_neighbor
+        ]
+        goal_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
+    else:
+        goal_items = []
 
     for pano_id, px, py in goal_items:
         goal_lines = _pano_id_display_lines(pano_id)
@@ -1025,20 +1075,44 @@ def _render_node_zoom_map(
         start, end = _leader_line_to_box(px, py, node_radius, rect)
         draw.line((*start, *end), fill=(250, 204, 21, 200), width=1)
 
-    _draw_map_legend(
-        draw,
-        [
-            "Map up = your facing (matches street view)",
-            "NODE ZOOM: MOVE boxes show full pano id to copy for move",
-            "Use overview map for general direction only",
-            "JSON target_pano_id must match MOVE box text exactly",
-        ],
-        font=font,
-    )
+    legend = [
+        "Map up = your facing (matches street view)",
+        "Gray lines = 20 m pano graph edges; light dots = neighbors",
+    ]
+    if last_move_bearing_deg is not None:
+        legend.append("Magenta arrow from YOU = direction you moved last step")
+    if show_move_callouts:
+        legend.append("MOVE boxes = copy target_pano_id for move")
+    _draw_map_legend(draw, legend, font=font)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
     return out_path
+
+
+def _render_node_zoom_map(
+    world: World,
+    state: AgentState,
+    *,
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+    goal_pano_id: str | None,
+    out_path: Path,
+) -> Path:
+    return _render_graph_map(
+        world,
+        state,
+        min_lat=min_lat,
+        min_lon=min_lon,
+        max_lat=max_lat,
+        max_lon=max_lon,
+        goal_pano_id=goal_pano_id,
+        out_path=out_path,
+        show_move_callouts=True,
+        last_move_bearing_deg=state.last_move_bearing_deg,
+    )
 
 
 def _map_cache_dir(cache_dir: Path | None) -> Path:
@@ -1096,6 +1170,44 @@ def render_map_node_zoom_image(
     )
 
 
+def render_map_navigation_image(
+    world: World,
+    state: AgentState,
+    *,
+    cache_dir: Path | None = None,
+    goal_pano_id: str | None = None,
+) -> Path:
+    """Navigation map: pano nodes, edges, MOVE callouts, last-move vector."""
+    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
+    visible = _overview_visible_pano_ids(
+        world,
+        state,
+        goal_pano_id=goal_pano_id,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+    )
+    cache = _map_cache_dir(cache_dir)
+    out_path = (
+        cache
+        / f"map_graph_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+    )
+    return _render_graph_map(
+        world,
+        state,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+        goal_pano_id=goal_pano_id,
+        out_path=out_path,
+        visible_panos=visible,
+        last_move_bearing_deg=state.last_move_bearing_deg,
+        show_move_callouts=True,
+    )
+
+
 def render_map_image(
     world: World,
     state: AgentState,
@@ -1103,11 +1215,32 @@ def render_map_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> Path:
-    """Overview map (used by clear-view / classification prompts)."""
-    path, _ = render_map_overview_image(
+    """Graph map for clear-view / classification (no MOVE callouts)."""
+    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
+    visible = _overview_visible_pano_ids(
         world,
         state,
-        cache_dir=cache_dir,
         goal_pano_id=goal_pano_id,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
     )
-    return path
+    cache = _map_cache_dir(cache_dir)
+    out_path = (
+        cache
+        / f"map_observe_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+    )
+    return _render_graph_map(
+        world,
+        state,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+        goal_pano_id=goal_pano_id,
+        out_path=out_path,
+        visible_panos=visible,
+        last_move_bearing_deg=state.last_move_bearing_deg,
+        show_move_callouts=False,
+    )

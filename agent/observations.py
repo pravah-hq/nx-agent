@@ -77,6 +77,8 @@ def state_to_json(
         "neighbor_ids": get_neighbors(world.neighbor_map, state.pano_id),
         "remaining_pole_ids": world.remaining_pole_ids(state),
         "task_complete": world.is_task_complete(state),
+        "last_move_bearing_deg": state.last_move_bearing_deg,
+        "last_move_from_pano_id": state.last_move_from_pano_id,
     }
 
 

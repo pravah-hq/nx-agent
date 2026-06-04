@@ -22,6 +22,8 @@ def _state_dict(state: AgentState) -> dict[str, Any]:
             "pole_type": state.pole_guess.pole_type,
             "note": state.pole_guess.note,
         },
+        "last_move_bearing_deg": state.last_move_bearing_deg,
+        "last_move_from_pano_id": state.last_move_from_pano_id,
     }
 
 
