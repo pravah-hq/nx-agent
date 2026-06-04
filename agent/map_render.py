@@ -25,6 +25,9 @@ NODE_ZOOM_PAD_DEG = 0.000028
 OVERVIEW_CLUSTER_PX = 34
 OVERVIEW_ROAD_WIDTH = 7
 OVERVIEW_ROUTE_WIDTH = 10
+# Pano graph dots (small so MOVE / pole labels do not cover them).
+PANO_NODE_RADIUS = 4
+PANO_NODE_CALLOUT_PAD = 10
 
 
 @dataclass(frozen=True)
@@ -889,7 +892,8 @@ def _render_graph_map(
         visible_panos = set(visible_panos)
         visible_panos.add(state.pano_id)
 
-    node_radius = 8
+    node_radius = PANO_NODE_RADIUS
+    node_callout_radius = node_radius + PANO_NODE_CALLOUT_PAD
     you_radius = 14
     wedge_len = 110
     neighbor_edge_width = 4
@@ -964,7 +968,23 @@ def _render_graph_map(
         if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
             rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
             label = pole.pole_id.replace("POLE_", "")
-            draw.text((rpx + 10, rpy - 8), label, fill=(226, 232, 240))
+            if pole.track_id in state.classified:
+                label_dx, label_dy = 12, -7
+            elif pole.track_id == target_track:
+                label_dx, label_dy = 16, -8
+            else:
+                label_dx, label_dy = 14, -7
+            draw.text((rpx + label_dx, rpy + label_dy), label, fill=(226, 232, 240))
+
+    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
+        if is_neighbor:
+            fill = (224, 242, 254, 255)
+        elif is_goal:
+            fill = (250, 204, 21, 200)
+        else:
+            fill = (71, 85, 105, 200)
+        r = node_radius
+        draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
     _draw_you_marker_facing_up(
         draw,
@@ -989,7 +1009,7 @@ def _render_graph_map(
             pr = 14 if pole.track_id == target_track else 10
             obstacles.append(("circle", (rpx, rpy, pr)))
     for pano_id, (px, py, _is_neighbor, _is_goal) in pano_positions.items():
-        obstacles.append(("circle", (px, py, node_radius + 8)))
+        obstacles.append(("circle", (px, py, node_callout_radius)))
 
     placed_boxes: list[tuple[int, int, int, int]] = []
 
@@ -1009,7 +1029,7 @@ def _render_graph_map(
         rect = _layout_callout_rect(
             px,
             py,
-            node_radius,
+            node_callout_radius,
             block_w,
             block_h,
             cx,
@@ -1050,7 +1070,7 @@ def _render_graph_map(
         rect = _layout_callout_rect(
             px,
             py,
-            node_radius,
+            node_callout_radius,
             block_w,
             block_h,
             cx,
