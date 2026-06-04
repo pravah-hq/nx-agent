@@ -106,7 +106,7 @@ def build_map_navigation_prompt(
             "orange": "target pole (nearby)",
             "green": "other unclassified poles",
             "gray": "classified poles",
-            "wedge": "viewing direction (should match street view)",
+            "wedge": "viewing direction; map up = your facing (same as street view)",
         }
         image_intro = (
             "You receive TWO images: (1) NODE ZOOM MAP (2) STREET VIEW.\n"
@@ -134,7 +134,7 @@ def build_map_navigation_prompt(
             "zoom_move_boxes": "exact target_pano_id for move (image 2 only)",
             "green": "other unclassified poles",
             "gray": "classified poles",
-            "wedge": "viewing direction (should match street view)",
+            "wedge": "viewing direction; map up = your facing (same as street view)",
         }
         image_intro = (
             "You receive THREE images: (1) OVERVIEW MAP (2) NODE ZOOM MAP (3) STREET VIEW.\n"
@@ -200,7 +200,7 @@ def build_pole_in_clear_view_prompt(
         "green": "unclassified poles (candidates you may identify)",
         "gray": "already classified — do NOT set pole_in_clear_view for these",
         "orange": "navigation hint only (where the agent is heading)",
-        "wedge": "your viewing direction (street view)",
+        "wedge": "your viewing direction; map up = your facing",
     }
     payload["already_classified_pole_ids"] = sorted(classified_pole_ids)
     payload["unclassified_poles"] = [

@@ -434,6 +434,81 @@ def _node_zoom_bounds(
     return min(lats) - pad, min(lons) - pad, max(lats) + pad, max(lons) + pad
 
 
+def _facing_up_rotation_deg(view_yaw_deg: float) -> float:
+    """
+    PIL rotate (CCW, degrees) so world view_yaw points to the top of the image.
+
+    North-up maps use the same wedge math as _draw_view_wedge (bearing from +x).
+    """
+    yaw_rad = math.radians(view_yaw_deg)
+    phi_deg = math.degrees(math.atan2(-math.cos(yaw_rad), math.sin(yaw_rad)))
+    return -90.0 - phi_deg
+
+
+def _rotate_image_heading_up(image, center: tuple[int, int], view_yaw_deg: float):
+    """Rotate map around agent position so facing is up."""
+    from PIL import Image
+
+    rot_deg = _facing_up_rotation_deg(view_yaw_deg)
+    if abs(rot_deg) < 0.05:
+        return image
+    return image.rotate(
+        rot_deg,
+        center=center,
+        resample=Image.Resampling.BICUBIC,
+        expand=False,
+    )
+
+
+def _draw_view_wedge(
+    draw,
+    cx: int,
+    cy: int,
+    view_yaw_deg: float,
+    *,
+    wedge_len: int,
+    half_fov: int = 50,
+    fill: tuple[int, int, int, int] = (56, 189, 248, 70),
+) -> None:
+    """Viewing wedge on a north-up map (before heading-up rotation)."""
+    points = [(cx, cy)]
+    for offset in range(-half_fov, half_fov + 1, 10):
+        angle = math.radians(view_yaw_deg + offset - 90)
+        wx = cx + int(math.cos(angle) * wedge_len)
+        wy = cy + int(math.sin(angle) * wedge_len)
+        points.append((wx, wy))
+    draw.polygon(points, fill=fill)
+
+
+def _draw_you_marker(
+    draw,
+    cx: int,
+    cy: int,
+    *,
+    view_yaw_deg: float,
+    you_radius: int,
+    wedge_len: int,
+    font,
+    half_fov: int = 50,
+) -> None:
+    _draw_view_wedge(
+        draw, cx, cy, view_yaw_deg, wedge_len=wedge_len, half_fov=half_fov
+    )
+    draw.ellipse(
+        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
+        fill=(56, 189, 248, 255),
+        outline=(255, 255, 255),
+    )
+    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
+
+
+def _draw_map_legend(draw, lines: list[str], *, font) -> None:
+    y = 8
+    for line in lines:
+        draw.text((8, y), line, fill=(226, 232, 240), font=font)
+        y += 14
+
+
 def _project(
     lat: float,
     lon: float,
@@ -706,32 +781,28 @@ def _render_overview_roads(
             )
 
     cx, cy = positions[state.pano_id]
-    you_radius = 12
-    wedge_len = 70
-    half_fov = 50
-    points = [(cx, cy)]
-    for offset in range(-half_fov, half_fov + 1, 10):
-        angle = math.radians(view_yaw + offset - 90)
-        wx = cx + int(math.cos(angle) * wedge_len)
-        wy = cy + int(math.sin(angle) * wedge_len)
-        points.append((wx, wy))
-    draw.polygon(points, fill=(56, 189, 248, 70))
-    draw.ellipse(
-        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
-        fill=(56, 189, 248, 255),
-        outline=(255, 255, 255),
+    _draw_you_marker(
+        draw,
+        cx,
+        cy,
+        view_yaw_deg=view_yaw,
+        you_radius=12,
+        wedge_len=70,
+        font=font,
     )
-    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
 
-    legend = [
-        "OVERVIEW (direction): gray roads = walkable paths along pano graph",
-        "Yellow road = suggested route toward orange target pole",
-        "No pano nodes here — pick exact move from NODE ZOOM (image 2)",
-    ]
-    y = 8
-    for line in legend:
-        draw.text((8, y), line, fill=(226, 232, 240), font=font)
-        y += 14
+    image = _rotate_image_heading_up(image, (cx, cy), view_yaw)
+    draw = ImageDraw.Draw(image, "RGBA")
+    _draw_map_legend(
+        draw,
+        [
+            "Map up = your facing (matches street view)",
+            "OVERVIEW: gray roads = walkable paths along pano graph",
+            "Yellow road = suggested route toward orange target pole",
+            "No pano nodes — pick exact move from NODE ZOOM (image 2)",
+        ],
+        font=font,
+    )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
@@ -826,20 +897,16 @@ def _render_node_zoom_map(
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
-    half_fov = 50
-    points = [(cx, cy)]
-    for offset in range(-half_fov, half_fov + 1, 10):
-        angle = math.radians(view_yaw + offset - 90)
-        wx = cx + int(math.cos(angle) * wedge_len)
-        wy = cy + int(math.sin(angle) * wedge_len)
-        points.append((wx, wy))
-    draw.polygon(points, fill=(56, 189, 248, 80))
-    draw.ellipse(
-        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
-        fill=(56, 189, 248, 255),
-        outline=(255, 255, 255),
+    _draw_you_marker(
+        draw,
+        cx,
+        cy,
+        view_yaw_deg=view_yaw,
+        you_radius=you_radius,
+        wedge_len=wedge_len,
+        font=font,
+        half_fov=50,
     )
-    draw.text((cx + you_radius + 4, cy - 10), "YOU", fill=(255, 255, 255), font=font)
 
     obstacles: list[tuple[str, tuple]] = [
         ("rect", _rect_from_xywh(4, 4, 520, 52)),
@@ -931,15 +998,18 @@ def _render_node_zoom_map(
         start, end = _leader_line_to_box(px, py, node_radius, rect)
         draw.line((*start, *end), fill=(250, 204, 21, 200), width=1)
 
-    legend = [
-        "NODE ZOOM: MOVE boxes show full pano id to copy for move",
-        "Use overview map for general direction only",
-        "JSON target_pano_id must match MOVE box text exactly",
-    ]
-    y = 8
-    for line in legend:
-        draw.text((8, y), line, fill=(226, 232, 240), font=font)
-        y += 14
+    image = _rotate_image_heading_up(image, (cx, cy), view_yaw)
+    draw = ImageDraw.Draw(image, "RGBA")
+    _draw_map_legend(
+        draw,
+        [
+            "Map up = your facing (matches street view)",
+            "NODE ZOOM: MOVE boxes show full pano id to copy for move",
+            "Use overview map for general direction only",
+            "JSON target_pano_id must match MOVE box text exactly",
+        ],
+        font=font,
+    )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
