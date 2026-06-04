@@ -72,8 +72,8 @@ def parse_navigation_response(
 
     map_point_px: tuple[int, int] | None = None
     if action_type == ActionType.MOVE:
-        raw_x = payload.get("map_point_x")
-        raw_y = payload.get("map_point_y")
+        raw_x = payload.get("road_point_x", payload.get("map_point_x"))
+        raw_y = payload.get("road_point_y", payload.get("map_point_y"))
         if raw_x is not None and raw_y is not None:
             map_point_px = clamp_map_point(raw_x, raw_y)
             if map_point_px is None:

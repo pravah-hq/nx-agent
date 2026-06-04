@@ -21,12 +21,8 @@ from agent.clear_view import evaluate_pole_in_clear_view
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
-from agent.map_render import (
-    NAV_STREETS_RADIUS_M,
-    OverviewMapBounds,
-    render_map_overview_image,
-)
-from agent.navigation import closest_neighbor_to_map_point
+from agent.map_render import OverviewMapBounds, render_map_overview_image
+from agent.road_geometry import closest_neighbor_to_road_pick
 from agent.targeting import plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
 from agent.prompts import (
@@ -69,6 +65,12 @@ class VlmPolicy(Policy):
         self._cached_map_overview_path: Path | None = None
         self._cached_street_path: Path | None = None
         self._cached_overview_bounds: OverviewMapBounds | None = None
+        self._cached_road_segments: list[
+            tuple[tuple[float, float], tuple[float, float]]
+        ] = []
+        self._last_road_segments: list[
+            tuple[tuple[float, float], tuple[float, float]]
+        ] = []
         self.vlm_step_calls: list[dict[str, str | int]] = []
 
     def begin_agent_step(self) -> None:
@@ -103,6 +105,8 @@ class VlmPolicy(Policy):
         self._cached_map_overview_path = None
         self._cached_street_path = None
         self._cached_overview_bounds = None
+        self._cached_road_segments = []
+        self._last_road_segments = []
         self.vlm_step_calls = []
 
     def record_step(self, before: AgentState, action: Action, after: AgentState) -> None:
@@ -176,6 +180,7 @@ class VlmPolicy(Policy):
         self._cached_map_overview_path = None
         self._cached_street_path = None
         self._cached_overview_bounds = None
+        self._cached_road_segments = []
 
     def _assess_crop_fov_deg(self) -> float:
         return float(os.environ.get("VLM_ASSESS_CROP_FOV", "100"))
@@ -196,7 +201,7 @@ class VlmPolicy(Policy):
             self.last_street_image = self._cached_street_path
             return self._cached_map_overview_path, self._cached_street_path
 
-        map_path, bounds = render_map_overview_image(world, state)
+        map_path, bounds, _ = render_map_overview_image(world, state)
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
             pano,
@@ -207,8 +212,10 @@ class VlmPolicy(Policy):
         self._cached_direction_bin = state.direction_bin
         self._cached_map_overview_path = map_path
         self._cached_overview_bounds = bounds
+        self._cached_road_segments = []
         self._cached_street_path = street_path
         self._last_overview_bounds = bounds
+        self._last_road_segments = []
         self.last_map_image = map_path
         self.last_street_image = street_path
         return map_path, street_path
@@ -222,19 +229,20 @@ class VlmPolicy(Policy):
         if (
             self._cached_map_overview_path
             and self._cached_street_path
-            and self._cached_overview_bounds
+            and             self._cached_overview_bounds
             and self._cached_pano_id == state.pano_id
             and self._cached_direction_bin == state.direction_bin
         ):
             self.last_map_image = self._cached_map_overview_path
             self.last_street_image = self._cached_street_path
             self._last_overview_bounds = self._cached_overview_bounds
+            self._last_road_segments = self._cached_road_segments
             return self._cached_map_overview_path, self._cached_street_path
 
-        overview_path, bounds = render_map_overview_image(
+        overview_path, bounds, segments = render_map_overview_image(
             world,
             state,
-            radius_m=NAV_STREETS_RADIUS_M,
+            for_navigation=True,
         )
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
@@ -246,10 +254,12 @@ class VlmPolicy(Policy):
         self._cached_direction_bin = state.direction_bin
         self._cached_map_overview_path = overview_path
         self._cached_overview_bounds = bounds
+        self._cached_road_segments = segments
         self._cached_street_path = street_path
         self.last_map_image = overview_path
         self.last_street_image = street_path
         self._last_overview_bounds = bounds
+        self._last_road_segments = segments
         return overview_path, street_path
 
     def _vlm_images(
@@ -293,6 +303,7 @@ class VlmPolicy(Policy):
             state,
             pole_in_clear_view=pole_in_clear_view,
             allowed_actions=legal,
+            map_bounds=self._last_overview_bounds,
         )
 
         image_paths = [overview_path, street_path]
@@ -304,8 +315,7 @@ class VlmPolicy(Policy):
                 extra = (
                     f"\n\nPrevious reply invalid ({last_error}). JSON only. "
                     f"Allowed: {', '.join(legal)}. "
-                    f"move needs map_point_x/y (0–899) on a street inside the "
-                    f"{NAV_STREETS_RADIUS_M} m blue circle."
+                    "move needs road_point_x/y (0–899) ON a yellow road line."
                 )
             self.last_prompt = prompt + extra
             raw = self._vlm_images(
@@ -325,7 +335,7 @@ class VlmPolicy(Policy):
                 )
                 if resolved is not None:
                     return resolved
-            last_error = "could not parse navigation JSON or resolve map point"
+            last_error = "could not parse navigation JSON or resolve road point"
 
         return None
 
@@ -342,16 +352,21 @@ class VlmPolicy(Policy):
             if neighbor_ids and action.target_pano_id not in neighbor_ids:
                 return None
             return action
-        if not action.map_point_px or not self._last_overview_bounds:
+        if (
+            not action.map_point_px
+            or not self._last_overview_bounds
+            or not self._last_road_segments
+        ):
             return None
         mx, my = action.map_point_px
-        target = closest_neighbor_to_map_point(
+        target = closest_neighbor_to_road_pick(
             world,
             state,
             neighbor_ids,
             mx,
             my,
             self._last_overview_bounds,
+            self._last_road_segments,
         )
         if not target:
             return None

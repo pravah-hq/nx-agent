@@ -10,7 +10,8 @@ from __future__ import annotations
 import json
 
 from agent.environment import World
-from agent.map_render import MAP_SIZE, NAV_STREETS_RADIUS_M
+from agent.map_render import MAP_SIZE
+from agent.road_geometry import road_neighbor_hints
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
@@ -27,15 +28,15 @@ DUAL_IMAGE_GUIDE = {
 
 NAV_IMAGE_GUIDE_STREETS_AND_STREET = {
     "image_1": (
-        f"STREETS MAP — {MAP_SIZE}x{MAP_SIZE} px OpenStreetMap (same style as UI 'Streets'); "
-        f"blue circle = {NAV_STREETS_RADIUS_M} m from YOU; orange = target pole"
+        f"STREETS MAP — {MAP_SIZE}x{MAP_SIZE} px OpenStreetMap; yellow lines = roads you are on; "
+        "orange = target pole; blue wedge = viewing direction"
     ),
     "image_2": "STREET VIEW — panorama crop from your current position and facing",
     "use_both": (
-        f"For move, pick map_point_x and map_point_y on image 1 on a visible street "
-        f"INSIDE the {NAV_STREETS_RADIUS_M} m blue circle (toward the orange pole). "
-        "The agent moves to the nearest panorama node to that point. "
-        "Use STREET VIEW for turn_left/turn_right before moving or when street context matters."
+        "turn_left / turn_right: change facing when the street view does not match where you want to go. "
+        "move: set road_point_x and road_point_y on image 1 ON a yellow road line (where along "
+        "that road to walk). The agent snaps to the road and moves to the nearest legal panorama node. "
+        "Use STREET VIEW together with the map for turns vs moves."
     ),
 }
 
@@ -66,6 +67,7 @@ def build_map_navigation_prompt(
     *,
     pole_in_clear_view: bool,
     allowed_actions: list[str],
+    map_bounds=None,
 ) -> str:
     payload = state_to_json(world, state, pole_in_clear_view=pole_in_clear_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
@@ -73,15 +75,18 @@ def build_map_navigation_prompt(
     payload["neighbor_count"] = len(neighbors)
     payload["allowed_actions"] = allowed_actions
     payload["map_image_size_px"] = MAP_SIZE
-    payload["move_pick_max_radius_m"] = NAV_STREETS_RADIUS_M
     payload["pole_types"] = list(POLE_TYPES)
+    if map_bounds is not None:
+        payload["road_neighbor_hints"] = road_neighbor_hints(
+            world, state, neighbors, map_bounds
+        )
 
     image_guide = NAV_IMAGE_GUIDE_STREETS_AND_STREET
     payload["images"] = image_guide
     payload["map_legend"] = {
-        "streets_basemap": "OpenStreetMap tiles (UI 'Streets' style); no routes or pano nodes drawn",
+        "streets_basemap": "OpenStreetMap (UI 'Streets'); no route overlay or pano nodes",
+        "yellow_lines": "roads you are on (20 m panorama graph edges)",
         "you": "blue dot and wedge — current position and viewing direction",
-        "blue_circle": f"{NAV_STREETS_RADIUS_M} m radius — move picks must be inside on a street",
         "orange": "target pole to find",
         "green": "other unclassified poles",
         "gray": "classified poles",
@@ -94,10 +99,10 @@ def build_map_navigation_prompt(
         image_guide["use_both"],
         "pole_in_clear_view is set by a prior VLM check (not your action).",
         "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-        "STREETS MAP: for move, set map_point_x and map_point_y (integers, 0–899, top-left origin) "
-        f"on a street inside the {NAV_STREETS_RADIUS_M} m blue circle, generally toward the orange pole.",
-        "No suggested path is shown — use street geometry and pole positions only.",
-        "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
+        "turn_left / turn_right: rotate facing (use when street view and intended road direction disagree).",
+        "move: set road_point_x and road_point_y (integers, 0–899, top-left) ON a yellow road line — "
+        "the point along that road where you want to walk (usually toward the orange pole).",
+        "Do not pick move points on OSM background away from yellow lines.",
         "classify_or_stop is NOT allowed in this step.",
     ]
 
@@ -108,11 +113,11 @@ def build_map_navigation_prompt(
         "Choose exactly one action as JSON.\n\n"
         "Schema:\n"
         '{"action":"turn_left|turn_right|move",'
-        f'"map_point_x":0-{MAP_SIZE - 1} or null,'
-        f'"map_point_y":0-{MAP_SIZE - 1} or null,'
+        f'"road_point_x":0-{MAP_SIZE - 1} or null,'
+        f'"road_point_y":0-{MAP_SIZE - 1} or null,'
         '"reason":"short"}\n\n'
-        "For turn_left/turn_right, set map_point_x and map_point_y to null.\n"
-        "For move, both map_point_x and map_point_y are required.\n\n"
+        "For turn_left/turn_right, set road_point_x and road_point_y to null.\n"
+        "For move, both road_point_x and road_point_y are required (on a yellow road).\n\n"
         f"State:\n{json.dumps(payload, indent=2)}"
     )
 

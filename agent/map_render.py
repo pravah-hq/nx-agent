@@ -20,8 +20,6 @@ from agent.types import AgentState
 
 MAP_SIZE = 900
 PADDING_PX = 60
-# VLM move picks must fall within this distance of the current pano (matches graph step).
-NAV_STREETS_RADIUS_M = 20
 OVERVIEW_PAD_DEG = 0.00008
 NODE_ZOOM_PAD_DEG = 0.000028
 # Node zoom: merge panos near GOAL for framing (same px rule as before).
@@ -49,12 +47,6 @@ def _meters_to_half_span_deg(lat: float, radius_m: float) -> tuple[float, float]
 def square_bounds_centered(lat: float, lon: float, radius_m: float) -> OverviewMapBounds:
     dlat, dlon = _meters_to_half_span_deg(lat, radius_m)
     return OverviewMapBounds(lat - dlat, lon - dlon, lat + dlat, lon + dlon)
-
-
-def streets_navigation_bounds(world: World, state: AgentState) -> OverviewMapBounds:
-    """Square map frame: agent at center, edges ~20 m from agent."""
-    pano = world.panos_by_id[state.pano_id]
-    return square_bounds_centered(pano.lat, pano.lon, NAV_STREETS_RADIUS_M)
 
 
 def streets_observation_bounds(world: World, state: AgentState) -> OverviewMapBounds:
@@ -1015,18 +1007,32 @@ def _draw_radius_circle(
     draw.ellipse(box, outline=outline, width=2)
 
 
+def _draw_latlon_polyline(
+    draw,
+    chain: list[tuple[float, float]],
+    bounds: OverviewMapBounds,
+    *,
+    width: int,
+    fill: tuple[int, int, int, int],
+) -> None:
+    for i in range(len(chain) - 1):
+        ax, ay = lat_lon_to_map_pixel(chain[i][0], chain[i][1], bounds)
+        bx, by = lat_lon_to_map_pixel(chain[i + 1][0], chain[i + 1][1], bounds)
+        draw.line((ax, ay, bx, by), fill=fill, width=width)
+
+
 def _render_streets_vlm_map(
     world: World,
     state: AgentState,
     *,
     bounds: OverviewMapBounds,
     out_path: Path,
-    show_move_radius: bool,
+    show_nav_roads: bool,
+    road_chains_latlon: list[list[tuple[float, float]]] | None = None,
 ) -> Path:
-    """OSM Streets basemap with poles and YOU; no pano nodes or path overlays."""
+    """OSM Streets basemap with poles, YOU, and optional pano-graph roads (no nodes/routes)."""
     from PIL import ImageDraw
 
-    from agent.geo import distance_m
     from agent.map_tiles import stitch_streets_basemap
 
     pano = world.panos_by_id[state.pano_id]
@@ -1063,24 +1069,19 @@ def _render_streets_vlm_map(
                 font=font,
             )
 
+    if show_nav_roads and road_chains_latlon:
+        for chain in road_chains_latlon:
+            _draw_latlon_polyline(
+                draw,
+                chain,
+                bounds,
+                width=9,
+                fill=(250, 204, 21, 230),
+            )
+
     cx, cy = lat_lon_to_map_pixel(pano.lat, pano.lon, bounds)
 
-    if show_move_radius:
-        edge_m = max(
-            distance_m(pano.lat, pano.lon, bounds.min_lat, pano.lon),
-            distance_m(pano.lat, pano.lon, pano.lat, bounds.min_lon),
-            1.0,
-        )
-        radius_px = int(NAV_STREETS_RADIUS_M / edge_m * (MAP_SIZE / 2))
-        _draw_radius_circle(
-            draw,
-            (cx, cy),
-            max(8, radius_px),
-            fill=(56, 189, 248, 28),
-            outline=(56, 189, 248, 180),
-        )
-
-    wedge_len = 55 if show_move_radius else 70
+    wedge_len = 55 if show_nav_roads else 70
     you_radius = 11
     half_fov = 50
     points = [(cx, cy)]
@@ -1101,9 +1102,9 @@ def _render_streets_vlm_map(
         "STREETS MAP (OpenStreetMap) — no pano nodes",
         "Orange = target pole; green = other poles; gray = classified",
     ]
-    if show_move_radius:
+    if show_nav_roads:
         legend.append(
-            f"Blue circle = {NAV_STREETS_RADIUS_M} m — pick move point inside on a street"
+            "Yellow lines = roads you are on (pano graph); pick move ON a yellow line"
         )
     y = 8
     for line in legend:
@@ -1121,23 +1122,34 @@ def render_map_overview_image(
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-    radius_m: float | None = None,
-) -> tuple[Path, OverviewMapBounds]:
+    for_navigation: bool = False,
+) -> tuple[Path, OverviewMapBounds, list[tuple[tuple[float, float], tuple[float, float]]]]:
     """
-    Streets basemap for VLM. radius_m set → navigation frame (~20 m); else observation frame.
+    Streets basemap for VLM. for_navigation → local road overlay + road segment metadata.
     goal_pano_id is ignored (no path overlay).
     """
     _ = goal_pano_id
-    if radius_m is not None:
-        pano = world.panos_by_id[state.pano_id]
-        bounds = square_bounds_centered(pano.lat, pano.lon, radius_m)
-        show_move_radius = radius_m <= NAV_STREETS_RADIUS_M + 1
+    road_segments: list[tuple[tuple[float, float], tuple[float, float]]] = []
+    road_chains_latlon: list[list[tuple[float, float]]] | None = None
+    if for_navigation:
+        from agent.road_geometry import (
+            latlon_polylines_to_segments,
+            local_road_polylines_at_agent,
+            navigation_bounds_for_roads,
+            polylines_to_latlon,
+        )
+
+        chains = local_road_polylines_at_agent(world, state)
+        road_chains_latlon = polylines_to_latlon(world, chains)
+        road_segments = latlon_polylines_to_segments(road_chains_latlon)
+        bounds = navigation_bounds_for_roads(world, state, road_chains_latlon)
+        show_nav_roads = True
     else:
         bounds = streets_observation_bounds(world, state)
-        show_move_radius = False
+        show_nav_roads = False
 
     cache = _map_cache_dir(cache_dir)
-    tag = "nav" if radius_m is not None else "observe"
+    tag = "nav" if for_navigation else "observe"
     out_path = (
         cache
         / f"map_streets_{tag}_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
@@ -1147,9 +1159,10 @@ def render_map_overview_image(
         state,
         bounds=bounds,
         out_path=out_path,
-        show_move_radius=show_move_radius,
+        show_nav_roads=show_nav_roads,
+        road_chains_latlon=road_chains_latlon,
     )
-    return path, bounds
+    return path, bounds, road_segments
 
 
 def render_map_node_zoom_image(
@@ -1185,7 +1198,7 @@ def render_map_image(
     goal_pano_id: str | None = None,
 ) -> Path:
     """Overview map (used by clear-view / classification prompts)."""
-    path, _ = render_map_overview_image(
+    path, _, _ = render_map_overview_image(
         world,
         state,
         cache_dir=cache_dir,
