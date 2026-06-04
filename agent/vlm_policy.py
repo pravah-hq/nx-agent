@@ -321,7 +321,7 @@ class VlmPolicy(Policy):
             )
             if action is not None:
                 resolved = self._resolve_navigation_move(
-                    world, action, neighbors
+                    world, state, action, neighbors
                 )
                 if resolved is not None:
                     return resolved
@@ -332,6 +332,7 @@ class VlmPolicy(Policy):
     def _resolve_navigation_move(
         self,
         world: World,
+        state: AgentState,
         action: Action,
         neighbor_ids: list[str],
     ) -> Action | None:
