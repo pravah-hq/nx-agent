@@ -1,16 +1,14 @@
 """
 PNG local maps for VLM navigation (cached under .cache/agent_maps/).
 
-Two map views for navigation:
-  overview — road/path network from pano graph (direction only)
-  node_zoom — YOU, neighbors, full MOVE ids for exact moves
-
-Legend: overview shows roads not nodes; node zoom has MOVE boxes.
+Navigation uses overview only (road network + map-point moves).
+node_zoom — optional debug view with MOVE boxes (not sent to VLM for nav).
 """
 
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -28,6 +26,42 @@ NODE_ZOOM_PAD_DEG = 0.000028
 OVERVIEW_CLUSTER_PX = 34
 OVERVIEW_ROAD_WIDTH = 7
 OVERVIEW_ROUTE_WIDTH = 10
+
+
+@dataclass(frozen=True)
+class OverviewMapBounds:
+    """Lat/lon extents used to project the overview map image (MAP_SIZE px)."""
+
+    min_lat: float
+    min_lon: float
+    max_lat: float
+    max_lon: float
+
+
+def overview_bounds_for_state(
+    world: World,
+    state: AgentState,
+    *,
+    goal_pano_id: str | None = None,
+) -> OverviewMapBounds:
+    min_lat, min_lon, max_lat, max_lon = _overview_bounds(
+        world, state, goal_pano_id=goal_pano_id
+    )
+    return OverviewMapBounds(min_lat, min_lon, max_lat, max_lon)
+
+
+def map_pixel_to_lat_lon(
+    x: int,
+    y: int,
+    bounds: OverviewMapBounds,
+) -> tuple[float, float]:
+    """Inverse of _project for overview map pixels (top-left origin)."""
+    lat_span = max(bounds.max_lat - bounds.min_lat, 1e-9)
+    lon_span = max(bounds.max_lon - bounds.min_lon, 1e-9)
+    inner = MAP_SIZE - 2 * PADDING_PX
+    lon = bounds.min_lon + (x - PADDING_PX) / inner * lon_span
+    lat = bounds.max_lat - (y - PADDING_PX) / inner * lat_span
+    return lat, lon
 
 
 def _load_map_font(size: int = 13):
@@ -705,9 +739,8 @@ def _render_overview_roads(
     draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
 
     legend = [
-        "OVERVIEW (direction): gray roads = walkable paths along pano graph",
-        "Yellow road = suggested route toward orange target pole",
-        "No pano nodes here — pick exact move from NODE ZOOM (image 2)",
+        "OVERVIEW: gray roads = walkable paths; yellow = route to orange pole",
+        f"For move, pick a point ON a road (pixels 0–{MAP_SIZE - 1}, top-left origin)",
     ]
     y = 8
     for line in legend:
@@ -939,23 +972,22 @@ def render_map_overview_image(
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
-) -> Path:
-    """Wide local map: target pole, graph nodes, and connections."""
-    min_lat, min_lon, max_lat, max_lon = _overview_bounds(
-        world, state, goal_pano_id=goal_pano_id
-    )
+) -> tuple[Path, OverviewMapBounds]:
+    """Wide local map: road network, target pole, YOU — returns path and projection bounds."""
+    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
     cache = _map_cache_dir(cache_dir)
     out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    return _render_overview_roads(
+    path = _render_overview_roads(
         world,
         state,
-        min_lat=min_lat,
-        min_lon=min_lon,
-        max_lat=max_lat,
-        max_lon=max_lon,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
         goal_pano_id=goal_pano_id,
         out_path=out_path,
     )
+    return path, bounds
 
 
 def render_map_node_zoom_image(
@@ -991,9 +1023,10 @@ def render_map_image(
     goal_pano_id: str | None = None,
 ) -> Path:
     """Overview map (used by clear-view / classification prompts)."""
-    return render_map_overview_image(
+    path, _ = render_map_overview_image(
         world,
         state,
         cache_dir=cache_dir,
         goal_pano_id=goal_pano_id,
     )
+    return path

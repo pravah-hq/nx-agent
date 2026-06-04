@@ -9,9 +9,8 @@ from __future__ import annotations
 
 import json
 
-from typing import Literal
-
 from agent.environment import World
+from agent.map_render import MAP_SIZE
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
@@ -25,27 +24,16 @@ DUAL_IMAGE_GUIDE = {
     ),
 }
 
-NAV_IMAGE_GUIDE_OVERVIEW_AND_ZOOM = {
+NAV_IMAGE_GUIDE_OVERVIEW_AND_STREET = {
     "image_1": (
-        "OVERVIEW MAP — road network extracted from street panoramas (gray paths); "
-        "yellow path = graph route toward the orange target pole"
+        f"OVERVIEW MAP — {MAP_SIZE}x{MAP_SIZE} px; gray roads = walkable pano graph; "
+        "yellow road = suggested route toward the orange target pole"
     ),
-    "image_2": "NODE ZOOM MAP — tight view of YOU and immediate neighbor moves (20 m edges)",
-    "image_3": "STREET VIEW — panorama crop from your current position and facing",
-    "use_all": (
-        "Use OVERVIEW MAP ONLY for general direction — follow roads toward the orange target pole "
-        "(use the yellow route when visible). Overview shows no pano nodes. "
-        "Use NODE ZOOM MAP to read exact neighbor MOVE boxes and copy target_pano_id for move. "
-        "Use STREET VIEW to decide turn_left/turn_right before moving or when no move is best."
-    ),
-}
-
-NAV_IMAGE_GUIDE_ZOOM_ONLY = {
-    "image_1": "NODE ZOOM MAP — YOU and immediate neighbor moves (you are close to the target pole)",
     "image_2": "STREET VIEW — panorama crop from your current position and facing",
     "use_both": (
-        "You are close to the target pole — only the node zoom map is provided (no overview). "
-        "Use NODE ZOOM MAP for move targets; use STREET VIEW for turns and fine positioning."
+        "For move, pick map_point_x and map_point_y on image 1 along a gray or yellow road "
+        "(toward the orange pole). The agent moves to the graph node nearest that point. "
+        "Use STREET VIEW for turn_left/turn_right before moving or when street context matters."
     ),
 }
 
@@ -76,19 +64,14 @@ def build_map_navigation_prompt(
     *,
     pole_in_clear_view: bool,
     allowed_actions: list[str],
-    neighbor_moves: list[dict] | None = None,
     goal_pano_id: str | None = None,
-    map_image_mode: Literal["overview_and_zoom", "zoom_only"] = "overview_and_zoom",
-    close_to_target_pole: bool = False,
 ) -> str:
     payload = state_to_json(world, state, pole_in_clear_view=pole_in_clear_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
     payload["neighbor_pano_ids"] = neighbors
+    payload["neighbor_count"] = len(neighbors)
     payload["allowed_actions"] = allowed_actions
-    payload["close_to_target_pole"] = close_to_target_pole
-    payload["map_image_mode"] = map_image_mode
-    if neighbor_moves is not None:
-        payload["neighbor_moves"] = neighbor_moves
+    payload["map_image_size_px"] = MAP_SIZE
     if goal_pano_id:
         from agent.targeting import pano_compact_id
 
@@ -96,64 +79,32 @@ def build_map_navigation_prompt(
         payload["goal_view_pano_label"] = pano_compact_id(goal_pano_id)
     payload["pole_types"] = list(POLE_TYPES)
 
-    if map_image_mode == "zoom_only":
-        image_guide = NAV_IMAGE_GUIDE_ZOOM_ONLY
-        payload["images"] = image_guide
-        payload["map_legend"] = {
-            "blue_dot": "you (current pano)",
-            "light_dots": "neighbors reachable by move (20 m edges)",
-            "gray_lines": "pano graph edges (move only along edges to light dots)",
-            "orange": "target pole (nearby)",
-            "green": "other unclassified poles",
-            "gray": "classified poles",
-            "wedge": "viewing direction (should match street view)",
-        }
-        image_intro = (
-            "You receive TWO images: (1) NODE ZOOM MAP (2) STREET VIEW.\n"
-            "You are close to the target pole — no overview map is provided.\n"
-        )
-        rules = [
-            image_guide["use_both"],
-            "pole_in_clear_view is set by a prior VLM check (not your action).",
-            "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-            "NODE ZOOM MAP: choose move along gray lines to light neighbor dots only.",
-            "STREET VIEW: turn_left/turn_right to align with poles or pick the best local move.",
-            "For move, copy target_pano_id EXACTLY from the MOVE box on the map "
-            "(must match neighbor_moves[].target_pano_id).",
-            "Navigate along the graph toward goal_view_pano_id, not across empty map space.",
-            "classify_or_stop is NOT allowed in this step.",
-        ]
-    else:
-        image_guide = NAV_IMAGE_GUIDE_OVERVIEW_AND_ZOOM
-        payload["images"] = image_guide
-        payload["map_legend"] = {
-            "overview_you": "your position and viewing wedge (blue)",
-            "overview_gray_roads": "walkable paths along the 20 m pano graph",
-            "overview_yellow_road": "suggested graph route toward target pole",
-            "overview_orange": "target pole to find",
-            "zoom_move_boxes": "exact target_pano_id for move (image 2 only)",
-            "green": "other unclassified poles",
-            "gray": "classified poles",
-            "wedge": "viewing direction (should match street view)",
-        }
-        image_intro = (
-            "You receive THREE images: (1) OVERVIEW MAP (2) NODE ZOOM MAP (3) STREET VIEW.\n"
-            "Use ALL THREE to decide where to go next (only when pole_in_clear_view is false).\n"
-        )
-        rules = [
-            image_guide["use_all"],
-            "pole_in_clear_view is set by a prior VLM check (not your action).",
-            "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-            "OVERVIEW MAP: general direction only — follow roads toward the orange target pole; "
-            "do not choose target_pano_id from the overview (no nodes shown).",
-            "NODE ZOOM MAP: each MOVE box shows the full pano id to use for move.",
-            "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
-            "For move, copy target_pano_id EXACTLY from the MOVE box on the map "
-            "(must match neighbor_moves[].target_pano_id).",
-            "Use the maps and goal_view_pano_id to pick the best move along graph edges.",
-            "Navigate toward goal_view_pano_id along the graph, not across empty map space.",
-            "classify_or_stop is NOT allowed in this step.",
-        ]
+    image_guide = NAV_IMAGE_GUIDE_OVERVIEW_AND_STREET
+    payload["images"] = image_guide
+    payload["map_legend"] = {
+        "overview_you": "your position and viewing wedge (blue)",
+        "overview_gray_roads": "walkable paths along the 20 m pano graph",
+        "overview_yellow_road": "suggested graph route toward target pole",
+        "overview_orange": "target pole to find",
+        "green": "other unclassified poles",
+        "gray": "classified poles",
+        "wedge": "viewing direction (should match street view)",
+    }
+    image_intro = (
+        "You receive TWO images: (1) OVERVIEW MAP (2) STREET VIEW.\n"
+        "Decide where to go next (only when pole_in_clear_view is false).\n"
+    )
+    rules = [
+        image_guide["use_both"],
+        "pole_in_clear_view is set by a prior VLM check (not your action).",
+        "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
+        "OVERVIEW MAP: for move, set map_point_x and map_point_y (integers, 0–899, top-left origin) "
+        "on a gray or yellow road segment toward the orange target pole.",
+        "Pick a point ahead along the road network, not on empty background.",
+        "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
+        "Navigate toward goal_view_pano_id along roads, not across empty map space.",
+        "classify_or_stop is NOT allowed in this step.",
+    ]
 
     payload["rules"] = rules
     return (
@@ -162,8 +113,11 @@ def build_map_navigation_prompt(
         "Choose exactly one action as JSON.\n\n"
         "Schema:\n"
         '{"action":"turn_left|turn_right|move",'
-        '"target_pano_id":"neighbor id or null",'
+        f'"map_point_x":0-{MAP_SIZE - 1} or null,'
+        f'"map_point_y":0-{MAP_SIZE - 1} or null,'
         '"reason":"short"}\n\n'
+        "For turn_left/turn_right, set map_point_x and map_point_y to null.\n"
+        "For move, both map_point_x and map_point_y are required.\n\n"
         f"State:\n{json.dumps(payload, indent=2)}"
     )
 

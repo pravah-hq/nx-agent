@@ -12,6 +12,7 @@ import json
 import re
 from typing import Any
 
+from agent.navigation import clamp_map_point
 from agent.types import POLE_TYPES, Action, ActionType, PoleType
 
 
@@ -69,15 +70,27 @@ def parse_navigation_response(
     else:
         target_pano_id = str(target_pano_id) if target_pano_id else None
 
+    map_point_px: tuple[int, int] | None = None
     if action_type == ActionType.MOVE:
-        if not target_pano_id:
+        raw_x = payload.get("map_point_x")
+        raw_y = payload.get("map_point_y")
+        if raw_x is not None and raw_y is not None:
+            map_point_px = clamp_map_point(raw_x, raw_y)
+            if map_point_px is None:
+                return None
+        elif not target_pano_id:
             return None
-        if neighbor_ids is not None and target_pano_id not in neighbor_ids:
-            return None
-        if blocked_move_targets and target_pano_id in blocked_move_targets:
-            return None
+        if target_pano_id:
+            if neighbor_ids is not None and target_pano_id not in neighbor_ids:
+                return None
+            if blocked_move_targets and target_pano_id in blocked_move_targets:
+                return None
 
-    return Action(type=action_type, target_pano_id=target_pano_id)
+    return Action(
+        type=action_type,
+        target_pano_id=target_pano_id,
+        map_point_px=map_point_px,
+    )
 
 
 def _truthy(value) -> bool:
