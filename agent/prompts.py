@@ -10,29 +10,31 @@ from __future__ import annotations
 import json
 
 from agent.environment import World
-from agent.map_render import MAP_SIZE
+from agent.map_render import MAP_SIZE, NAV_STREETS_RADIUS_M
 from agent.graph import get_neighbors
 from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
 
 DUAL_IMAGE_GUIDE = {
-    "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, GOAL pano)",
+    "image_1": (
+        f"STREETS MAP — {MAP_SIZE}x{MAP_SIZE} px OpenStreetMap; poles marked; no pano nodes"
+    ),
     "image_2": "STREET VIEW — panorama crop from your current position and facing",
     "use_both": (
-        "Use the MAP for where to move along gray edges; use STREET VIEW for "
-        "what is ahead and whether to turn before moving or assessing."
+        "Use the STREETS MAP for context; use STREET VIEW for whether a pole is visible."
     ),
 }
 
-NAV_IMAGE_GUIDE_OVERVIEW_AND_STREET = {
+NAV_IMAGE_GUIDE_STREETS_AND_STREET = {
     "image_1": (
-        f"OVERVIEW MAP — {MAP_SIZE}x{MAP_SIZE} px; gray roads = walkable pano graph; "
-        "yellow road = suggested route toward the orange target pole"
+        f"STREETS MAP — {MAP_SIZE}x{MAP_SIZE} px OpenStreetMap (same style as UI 'Streets'); "
+        f"blue circle = {NAV_STREETS_RADIUS_M} m from YOU; orange = target pole"
     ),
     "image_2": "STREET VIEW — panorama crop from your current position and facing",
     "use_both": (
-        "For move, pick map_point_x and map_point_y on image 1 along a gray or yellow road "
-        "(toward the orange pole). The agent moves to the graph node nearest that point. "
+        f"For move, pick map_point_x and map_point_y on image 1 on a visible street "
+        f"INSIDE the {NAV_STREETS_RADIUS_M} m blue circle (toward the orange pole). "
+        "The agent moves to the nearest panorama node to that point. "
         "Use STREET VIEW for turn_left/turn_right before moving or when street context matters."
     ),
 }
@@ -64,7 +66,6 @@ def build_map_navigation_prompt(
     *,
     pole_in_clear_view: bool,
     allowed_actions: list[str],
-    goal_pano_id: str | None = None,
 ) -> str:
     payload = state_to_json(world, state, pole_in_clear_view=pole_in_clear_view)
     neighbors = get_neighbors(world.neighbor_map, state.pano_id)
@@ -72,37 +73,31 @@ def build_map_navigation_prompt(
     payload["neighbor_count"] = len(neighbors)
     payload["allowed_actions"] = allowed_actions
     payload["map_image_size_px"] = MAP_SIZE
-    if goal_pano_id:
-        from agent.targeting import pano_compact_id
-
-        payload["goal_view_pano_id"] = goal_pano_id
-        payload["goal_view_pano_label"] = pano_compact_id(goal_pano_id)
+    payload["move_pick_max_radius_m"] = NAV_STREETS_RADIUS_M
     payload["pole_types"] = list(POLE_TYPES)
 
-    image_guide = NAV_IMAGE_GUIDE_OVERVIEW_AND_STREET
+    image_guide = NAV_IMAGE_GUIDE_STREETS_AND_STREET
     payload["images"] = image_guide
     payload["map_legend"] = {
-        "overview_you": "your position and viewing wedge (blue)",
-        "overview_gray_roads": "walkable paths along the 20 m pano graph",
-        "overview_yellow_road": "suggested graph route toward target pole",
-        "overview_orange": "target pole to find",
+        "streets_basemap": "OpenStreetMap tiles (UI 'Streets' style); no routes or pano nodes drawn",
+        "you": "blue dot and wedge — current position and viewing direction",
+        "blue_circle": f"{NAV_STREETS_RADIUS_M} m radius — move picks must be inside on a street",
+        "orange": "target pole to find",
         "green": "other unclassified poles",
         "gray": "classified poles",
-        "wedge": "viewing direction (should match street view)",
     }
     image_intro = (
-        "You receive TWO images: (1) OVERVIEW MAP (2) STREET VIEW.\n"
+        "You receive TWO images: (1) STREETS MAP (2) STREET VIEW.\n"
         "Decide where to go next (only when pole_in_clear_view is false).\n"
     )
     rules = [
         image_guide["use_both"],
         "pole_in_clear_view is set by a prior VLM check (not your action).",
         "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-        "OVERVIEW MAP: for move, set map_point_x and map_point_y (integers, 0–899, top-left origin) "
-        "on a gray or yellow road segment toward the orange target pole.",
-        "Pick a point ahead along the road network, not on empty background.",
+        "STREETS MAP: for move, set map_point_x and map_point_y (integers, 0–899, top-left origin) "
+        f"on a street inside the {NAV_STREETS_RADIUS_M} m blue circle, generally toward the orange pole.",
+        "No suggested path is shown — use street geometry and pole positions only.",
         "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
-        "Navigate toward goal_view_pano_id along roads, not across empty map space.",
         "classify_or_stop is NOT allowed in this step.",
     ]
 

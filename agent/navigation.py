@@ -8,7 +8,12 @@ from __future__ import annotations
 
 from agent.environment import World
 from agent.geo import distance_m
-from agent.map_render import MAP_SIZE, OverviewMapBounds, map_pixel_to_lat_lon
+from agent.map_render import (
+    MAP_SIZE,
+    NAV_STREETS_RADIUS_M,
+    OverviewMapBounds,
+    map_pixel_to_lat_lon,
+)
 from agent.targeting import next_path_hop, plan_mission_to_pole
 from agent.types import AgentState
 
@@ -82,17 +87,22 @@ def build_neighbor_move_options(neighbor_ids: list[str]) -> list[dict]:
 
 def closest_neighbor_to_map_point(
     world: World,
+    state: AgentState,
     neighbor_ids: list[str],
     map_x: int,
     map_y: int,
     bounds: OverviewMapBounds,
 ) -> str | None:
     """
-    Map VLM overview pick to the nearest legal neighbor pano (20 m graph step).
+    Map VLM streets pick → nearest graph neighbor pano.
+    Pick must lie within NAV_STREETS_RADIUS_M of the current pano.
     """
     if not neighbor_ids:
         return None
     lat, lon = map_pixel_to_lat_lon(map_x, map_y, bounds)
+    pano = world.panos_by_id[state.pano_id]
+    if distance_m(pano.lat, pano.lon, lat, lon) > NAV_STREETS_RADIUS_M + 0.5:
+        return None
     best_id: str | None = None
     best_dist = float("inf")
     for nid in neighbor_ids:

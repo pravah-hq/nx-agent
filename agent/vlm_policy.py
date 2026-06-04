@@ -1,5 +1,5 @@
 """
-VLM policy: overview map (road-point moves) + street images for navigation.
+VLM policy: OSM Streets map (map-point moves) + street images for navigation.
 
 Tinker here:
   observe()     — VLM clear-view gate only (after apply_consideration in loop)
@@ -21,7 +21,11 @@ from agent.clear_view import evaluate_pole_in_clear_view
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
-from agent.map_render import OverviewMapBounds, render_map_overview_image
+from agent.map_render import (
+    NAV_STREETS_RADIUS_M,
+    OverviewMapBounds,
+    render_map_overview_image,
+)
 from agent.navigation import closest_neighbor_to_map_point
 from agent.targeting import plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
@@ -192,11 +196,7 @@ class VlmPolicy(Policy):
             self.last_street_image = self._cached_street_path
             return self._cached_map_overview_path, self._cached_street_path
 
-        map_path, bounds = render_map_overview_image(
-            world,
-            state,
-            goal_pano_id=self._goal_pano_id,
-        )
+        map_path, bounds = render_map_overview_image(world, state)
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
             pano,
@@ -234,7 +234,7 @@ class VlmPolicy(Policy):
         overview_path, bounds = render_map_overview_image(
             world,
             state,
-            goal_pano_id=self._goal_pano_id,
+            radius_m=NAV_STREETS_RADIUS_M,
         )
         pano = world.panos_by_id[state.pano_id]
         street_path = render_direction_crop(
@@ -284,7 +284,7 @@ class VlmPolicy(Policy):
         pole_in_clear_view: bool,
     ) -> Action | None:
         overview_path, street_path = self._render_navigation_images(world, state)
-        self.last_phase = "overview_navigation"
+        self.last_phase = "streets_navigation"
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
         legal = navigation_allowed_actions(world, state)
@@ -293,7 +293,6 @@ class VlmPolicy(Policy):
             state,
             pole_in_clear_view=pole_in_clear_view,
             allowed_actions=legal,
-            goal_pano_id=self._goal_pano_id,
         )
 
         image_paths = [overview_path, street_path]
@@ -305,7 +304,8 @@ class VlmPolicy(Policy):
                 extra = (
                     f"\n\nPrevious reply invalid ({last_error}). JSON only. "
                     f"Allowed: {', '.join(legal)}. "
-                    f"move needs map_point_x and map_point_y (0–899) on a road in image 1."
+                    f"move needs map_point_x/y (0–899) on a street inside the "
+                    f"{NAV_STREETS_RADIUS_M} m blue circle."
                 )
             self.last_prompt = prompt + extra
             raw = self._vlm_images(
@@ -346,6 +346,7 @@ class VlmPolicy(Policy):
         mx, my = action.map_point_px
         target = closest_neighbor_to_map_point(
             world,
+            state,
             neighbor_ids,
             mx,
             my,
@@ -406,7 +407,7 @@ class VlmPolicy(Policy):
         if self.last_response:
             (root / f"{stem}.response.txt").write_text(self.last_response, encoding="utf-8")
         for label, image in (
-            ("map_overview", self.last_map_image),
+            ("map_streets", self.last_map_image),
             ("street", self.last_street_image),
         ):
             if image and image.is_file():

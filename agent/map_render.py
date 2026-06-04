@@ -1,7 +1,7 @@
 """
-PNG local maps for VLM navigation (cached under .cache/agent_maps/).
+PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation uses overview only (road network + map-point moves).
+Navigation: OSM Streets basemap screenshot, poles + YOU, no pano nodes or routes.
 node_zoom — optional debug view with MOVE boxes (not sent to VLM for nav).
 """
 
@@ -20,6 +20,8 @@ from agent.types import AgentState
 
 MAP_SIZE = 900
 PADDING_PX = 60
+# VLM move picks must fall within this distance of the current pano (matches graph step).
+NAV_STREETS_RADIUS_M = 20
 OVERVIEW_PAD_DEG = 0.00008
 NODE_ZOOM_PAD_DEG = 0.000028
 # Node zoom: merge panos near GOAL for framing (same px rule as before).
@@ -38,16 +40,36 @@ class OverviewMapBounds:
     max_lon: float
 
 
-def overview_bounds_for_state(
-    world: World,
-    state: AgentState,
-    *,
-    goal_pano_id: str | None = None,
-) -> OverviewMapBounds:
-    min_lat, min_lon, max_lat, max_lon = _overview_bounds(
-        world, state, goal_pano_id=goal_pano_id
-    )
-    return OverviewMapBounds(min_lat, min_lon, max_lat, max_lon)
+def _meters_to_half_span_deg(lat: float, radius_m: float) -> tuple[float, float]:
+    dlat = radius_m / 111_320.0
+    dlon = radius_m / (111_320.0 * max(math.cos(math.radians(lat)), 1e-6))
+    return dlat, dlon
+
+
+def square_bounds_centered(lat: float, lon: float, radius_m: float) -> OverviewMapBounds:
+    dlat, dlon = _meters_to_half_span_deg(lat, radius_m)
+    return OverviewMapBounds(lat - dlat, lon - dlon, lat + dlat, lon + dlon)
+
+
+def streets_navigation_bounds(world: World, state: AgentState) -> OverviewMapBounds:
+    """Square map frame: agent at center, edges ~20 m from agent."""
+    pano = world.panos_by_id[state.pano_id]
+    return square_bounds_centered(pano.lat, pano.lon, NAV_STREETS_RADIUS_M)
+
+
+def streets_observation_bounds(world: World, state: AgentState) -> OverviewMapBounds:
+    """Wider streets map for clear-view / classification (poles visible, no nodes)."""
+    from agent.geo import distance_m
+
+    pano = world.panos_by_id[state.pano_id]
+    max_dist = 35.0
+    for pole in world.poles:
+        max_dist = max(
+            max_dist,
+            distance_m(pano.lat, pano.lon, pole.lat, pole.lon),
+        )
+    half_span_m = min(max(max_dist + 12.0, 50.0), 180.0)
+    return square_bounds_centered(pano.lat, pano.lon, half_span_m)
 
 
 def map_pixel_to_lat_lon(
@@ -55,13 +77,26 @@ def map_pixel_to_lat_lon(
     y: int,
     bounds: OverviewMapBounds,
 ) -> tuple[float, float]:
-    """Inverse of _project for overview map pixels (top-left origin)."""
+    """Inverse projection for full-frame streets map (top-left origin, MAP_SIZE px)."""
     lat_span = max(bounds.max_lat - bounds.min_lat, 1e-9)
     lon_span = max(bounds.max_lon - bounds.min_lon, 1e-9)
-    inner = MAP_SIZE - 2 * PADDING_PX
-    lon = bounds.min_lon + (x - PADDING_PX) / inner * lon_span
-    lat = bounds.max_lat - (y - PADDING_PX) / inner * lat_span
+    denom = max(MAP_SIZE - 1, 1)
+    lon = bounds.min_lon + x / denom * lon_span
+    lat = bounds.max_lat - y / denom * lat_span
     return lat, lon
+
+
+def lat_lon_to_map_pixel(
+    lat: float,
+    lon: float,
+    bounds: OverviewMapBounds,
+) -> tuple[int, int]:
+    lat_span = max(bounds.max_lat - bounds.min_lat, 1e-9)
+    lon_span = max(bounds.max_lon - bounds.min_lon, 1e-9)
+    denom = max(MAP_SIZE - 1, 1)
+    x = int(round((lon - bounds.min_lon) / lon_span * denom))
+    y = int(round((1.0 - (lat - bounds.min_lat) / lat_span) * denom))
+    return max(0, min(MAP_SIZE - 1, x)), max(0, min(MAP_SIZE - 1, y))
 
 
 def _load_map_font(size: int = 13):
@@ -966,26 +1001,153 @@ def _map_cache_dir(cache_dir: Path | None) -> Path:
     return cache
 
 
+def _draw_radius_circle(
+    draw,
+    center: tuple[int, int],
+    radius_px: int,
+    *,
+    fill: tuple[int, int, int, int],
+    outline: tuple[int, int, int, int],
+) -> None:
+    cx, cy = center
+    box = (cx - radius_px, cy - radius_px, cx + radius_px, cy + radius_px)
+    draw.ellipse(box, fill=fill)
+    draw.ellipse(box, outline=outline, width=2)
+
+
+def _render_streets_vlm_map(
+    world: World,
+    state: AgentState,
+    *,
+    bounds: OverviewMapBounds,
+    out_path: Path,
+    show_move_radius: bool,
+) -> Path:
+    """OSM Streets basemap with poles and YOU; no pano nodes or path overlays."""
+    from PIL import ImageDraw
+
+    from agent.geo import distance_m
+    from agent.map_tiles import stitch_streets_basemap
+
+    pano = world.panos_by_id[state.pano_id]
+    view_yaw = bin_center_world_yaw(pano, state.direction_bin)
+
+    image = stitch_streets_basemap(
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+        out_size=MAP_SIZE,
+    )
+    draw = ImageDraw.Draw(image, "RGBA")
+    font = _load_map_font(12)
+
+    target_track = state.pole_in_consideration
+    for pole in world.poles:
+        px, py = lat_lon_to_map_pixel(pole.lat, pole.lon, bounds)
+        if pole.track_id in state.classified:
+            color = (100, 116, 139, 255)
+            radius = 5
+        elif pole.track_id == target_track:
+            color = (249, 115, 22, 255)
+            radius = 12
+        else:
+            color = (34, 197, 94, 255)
+            radius = 6
+        draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
+        if pole.track_id == target_track:
+            draw.text(
+                (px + 12, py - 10),
+                pole.pole_id.replace("POLE_", ""),
+                fill=(255, 255, 255),
+                font=font,
+            )
+
+    cx, cy = lat_lon_to_map_pixel(pano.lat, pano.lon, bounds)
+
+    if show_move_radius:
+        edge_m = max(
+            distance_m(pano.lat, pano.lon, bounds.min_lat, pano.lon),
+            distance_m(pano.lat, pano.lon, pano.lat, bounds.min_lon),
+            1.0,
+        )
+        radius_px = int(NAV_STREETS_RADIUS_M / edge_m * (MAP_SIZE / 2))
+        _draw_radius_circle(
+            draw,
+            (cx, cy),
+            max(8, radius_px),
+            fill=(56, 189, 248, 28),
+            outline=(56, 189, 248, 180),
+        )
+
+    wedge_len = 55 if show_move_radius else 70
+    you_radius = 11
+    half_fov = 50
+    points = [(cx, cy)]
+    for offset in range(-half_fov, half_fov + 1, 10):
+        angle = math.radians(view_yaw + offset - 90)
+        wx = cx + int(math.cos(angle) * wedge_len)
+        wy = cy + int(math.sin(angle) * wedge_len)
+        points.append((wx, wy))
+    draw.polygon(points, fill=(56, 189, 248, 70))
+    draw.ellipse(
+        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
+        fill=(56, 189, 248, 255),
+        outline=(255, 255, 255),
+    )
+    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
+
+    legend = [
+        "STREETS MAP (OpenStreetMap) — no pano nodes",
+        "Orange = target pole; green = other poles; gray = classified",
+    ]
+    if show_move_radius:
+        legend.append(
+            f"Blue circle = {NAV_STREETS_RADIUS_M} m — pick move point inside on a street"
+        )
+    y = 8
+    for line in legend:
+        draw.text((8, y), line, fill=(240, 248, 255), font=font)
+        y += 14
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    image.save(out_path, format="PNG")
+    return out_path
+
+
 def render_map_overview_image(
     world: World,
     state: AgentState,
     *,
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
+    radius_m: float | None = None,
 ) -> tuple[Path, OverviewMapBounds]:
-    """Wide local map: road network, target pole, YOU — returns path and projection bounds."""
-    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
+    """
+    Streets basemap for VLM. radius_m set → navigation frame (~20 m); else observation frame.
+    goal_pano_id is ignored (no path overlay).
+    """
+    _ = goal_pano_id
+    if radius_m is not None:
+        pano = world.panos_by_id[state.pano_id]
+        bounds = square_bounds_centered(pano.lat, pano.lon, radius_m)
+        show_move_radius = radius_m <= NAV_STREETS_RADIUS_M + 1
+    else:
+        bounds = streets_observation_bounds(world, state)
+        show_move_radius = False
+
     cache = _map_cache_dir(cache_dir)
-    out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    path = _render_overview_roads(
+    tag = "nav" if radius_m is not None else "observe"
+    out_path = (
+        cache
+        / f"map_streets_{tag}_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+    )
+    path = _render_streets_vlm_map(
         world,
         state,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-        goal_pano_id=goal_pano_id,
+        bounds=bounds,
         out_path=out_path,
+        show_move_radius=show_move_radius,
     )
     return path, bounds
 

@@ -79,10 +79,10 @@ class VlmClient:
                     '"pole_type":"distribution_transformer",'
                     '"confidence":"low","reason":"dry run type pass"}'
                 )
-            if "map_point_x" in lower or "overview map" in lower:
+            if "map_point_x" in lower or "streets map" in lower:
                 return (
                     '{"action":"turn_right","map_point_x":null,"map_point_y":null,'
-                    '"reason":"dry run overview navigation"}'
+                    '"reason":"dry run streets navigation"}'
                 )
             if "two images" in lower or "image 1" in lower:
                 return (
