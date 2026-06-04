@@ -445,55 +445,68 @@ def _facing_up_rotation_deg(view_yaw_deg: float) -> float:
     return -90.0 - phi_deg
 
 
-def _rotate_image_heading_up(image, center: tuple[int, int], view_yaw_deg: float):
-    """Rotate map around agent position so facing is up."""
+def _rotate_point_around(
+    px: int,
+    py: int,
+    center: tuple[int, int],
+    rot_deg: float,
+) -> tuple[int, int]:
+    """Map a pre-rotation pixel to its position after PIL CCW rotate by rot_deg."""
+    if abs(rot_deg) < 0.05:
+        return px, py
+    cx, cy = center
+    rad = math.radians(rot_deg)
+    cos_t = math.cos(rad)
+    sin_t = math.sin(rad)
+    dx = px - cx
+    dy = py - cy
+    return (
+        int(round(cx + cos_t * dx - sin_t * dy)),
+        int(round(cy + sin_t * dx + cos_t * dy)),
+    )
+
+
+def _rotate_image_heading_up(
+    image,
+    center: tuple[int, int],
+    view_yaw_deg: float,
+) -> tuple[object, float]:
+    """Rotate map around agent position so facing is up; returns (image, rot_deg)."""
     from PIL import Image
 
     rot_deg = _facing_up_rotation_deg(view_yaw_deg)
     if abs(rot_deg) < 0.05:
-        return image
-    return image.rotate(
+        return image, rot_deg
+    return (
+        image.rotate(
+            rot_deg,
+            center=center,
+            resample=Image.Resampling.BICUBIC,
+            expand=False,
+        ),
         rot_deg,
-        center=center,
-        resample=Image.Resampling.BICUBIC,
-        expand=False,
     )
 
 
-def _draw_view_wedge(
-    draw,
-    cx: int,
-    cy: int,
-    view_yaw_deg: float,
-    *,
-    wedge_len: int,
-    half_fov: int = 50,
-    fill: tuple[int, int, int, int] = (56, 189, 248, 70),
-) -> None:
-    """Viewing wedge on a north-up map (before heading-up rotation)."""
-    points = [(cx, cy)]
-    for offset in range(-half_fov, half_fov + 1, 10):
-        angle = math.radians(view_yaw_deg + offset - 90)
-        wx = cx + int(math.cos(angle) * wedge_len)
-        wy = cy + int(math.sin(angle) * wedge_len)
-        points.append((wx, wy))
-    draw.polygon(points, fill=fill)
-
-
-def _draw_you_marker(
+def _draw_you_marker_facing_up(
     draw,
     cx: int,
     cy: int,
     *,
-    view_yaw_deg: float,
     you_radius: int,
     wedge_len: int,
     font,
     half_fov: int = 50,
+    wedge_fill: tuple[int, int, int, int] = (56, 189, 248, 80),
 ) -> None:
-    _draw_view_wedge(
-        draw, cx, cy, view_yaw_deg, wedge_len=wedge_len, half_fov=half_fov
-    )
+    """YOU + view wedge with facing toward the top of the image (post-rotation)."""
+    points = [(cx, cy)]
+    for offset in range(-half_fov, half_fov + 1, 10):
+        ang = math.radians(offset)
+        wx = cx + int(math.sin(ang) * wedge_len)
+        wy = cy - int(math.cos(ang) * wedge_len)
+        points.append((wx, wy))
+    draw.polygon(points, fill=wedge_fill)
     draw.ellipse(
         (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
         fill=(56, 189, 248, 255),
@@ -772,27 +785,29 @@ def _render_overview_roads(
             color = (34, 197, 94, 255)
             radius = 5
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
+
+    cx, cy = positions[state.pano_id]
+    image, rot_deg = _rotate_image_heading_up(image, (cx, cy), view_yaw)
+    draw = ImageDraw.Draw(image, "RGBA")
+
+    for pole in world.poles:
+        px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if px < PADDING_PX - 20 or py < PADDING_PX - 20:
+            continue
+        if px > MAP_SIZE or py > MAP_SIZE:
+            continue
         if pole.track_id == target_track:
+            rpx, rpy = _rotate_point_around(px, py, (cx, cy), rot_deg)
             draw.text(
-                (px + 12, py - 10),
+                (rpx + 12, rpy - 10),
                 pole.pole_id.replace("POLE_", ""),
                 fill=(255, 255, 255),
                 font=font,
             )
 
-    cx, cy = positions[state.pano_id]
-    _draw_you_marker(
-        draw,
-        cx,
-        cy,
-        view_yaw_deg=view_yaw,
-        you_radius=12,
-        wedge_len=70,
-        font=font,
+    _draw_you_marker_facing_up(
+        draw, cx, cy, you_radius=12, wedge_len=70, font=font, wedge_fill=(56, 189, 248, 70)
     )
-
-    image = _rotate_image_heading_up(image, (cx, cy), view_yaw)
-    draw = ImageDraw.Draw(image, "RGBA")
     _draw_map_legend(
         draw,
         [
@@ -872,14 +887,12 @@ def _render_node_zoom_map(
             color = (34, 197, 94, 255)
             radius = 8
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
-        label = pole.pole_id.replace("POLE_", "")
-        draw.text((px + 10, py - 8), label, fill=(226, 232, 240))
 
     cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
     font = _load_map_font(13)
     id_font = _load_map_font(12)
 
-    pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
+    pano_positions_raw: dict[str, tuple[int, int, bool, bool]] = {}
     for pano_id in visible_panos:
         p = world.panos_by_id[pano_id]
         px, py = _project(p.lat, p.lon, min_lat, min_lon, max_lat, max_lon)
@@ -887,7 +900,7 @@ def _render_node_zoom_map(
             continue
         is_neighbor = pano_id in current_neighbors
         is_goal = pano_id in goal_cluster or pano_id == goal_pano_id
-        pano_positions[pano_id] = (px, py, is_neighbor, is_goal)
+        pano_positions_raw[pano_id] = (px, py, is_neighbor, is_goal)
         if is_neighbor:
             fill = (224, 242, 254, 255)
         elif is_goal:
@@ -897,15 +910,28 @@ def _render_node_zoom_map(
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
-    _draw_you_marker(
+    image, rot_deg = _rotate_image_heading_up(image, (cx, cy), view_yaw)
+    draw = ImageDraw.Draw(image, "RGBA")
+
+    pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
+    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions_raw.items():
+        rpx, rpy = _rotate_point_around(px, py, (cx, cy), rot_deg)
+        pano_positions[pano_id] = (rpx, rpy, is_neighbor, is_goal)
+
+    for pole in world.poles:
+        ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
+            rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
+            label = pole.pole_id.replace("POLE_", "")
+            draw.text((rpx + 10, rpy - 8), label, fill=(226, 232, 240))
+
+    _draw_you_marker_facing_up(
         draw,
         cx,
         cy,
-        view_yaw_deg=view_yaw,
         you_radius=you_radius,
         wedge_len=wedge_len,
         font=font,
-        half_fov=50,
     )
 
     obstacles: list[tuple[str, tuple]] = [
@@ -915,8 +941,9 @@ def _render_node_zoom_map(
     for pole in world.poles:
         ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
         if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
+            rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
             pr = 14 if pole.track_id == target_track else 10
-            obstacles.append(("circle", (ppx, ppy, pr)))
+            obstacles.append(("circle", (rpx, rpy, pr)))
     for pano_id, (px, py, _is_neighbor, _is_goal) in pano_positions.items():
         obstacles.append(("circle", (px, py, node_radius + 8)))
 
@@ -998,8 +1025,6 @@ def _render_node_zoom_map(
         start, end = _leader_line_to_box(px, py, node_radius, rect)
         draw.line((*start, *end), fill=(250, 204, 21, 200), width=1)
 
-    image = _rotate_image_heading_up(image, (cx, cy), view_yaw)
-    draw = ImageDraw.Draw(image, "RGBA")
     _draw_map_legend(
         draw,
         [
