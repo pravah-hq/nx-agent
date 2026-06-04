@@ -4,15 +4,14 @@ Track and describe the agent's previous move for map overlays and VLM prompts.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from agent.directions import bin_center_world_yaw
-from agent.environment import World
-from agent.geo import bearing_deg, normalize_deg
-from agent.types import AgentState, Pano
+from agent.geo import move_bearing_between_panos
+from agent.types import AgentState
 
-
-def move_bearing_between_panos(from_pano: Pano, to_pano: Pano) -> float:
-    """Compass bearing (degrees) of the step from from_pano to to_pano."""
-    return bearing_deg(from_pano, to_pano.lat, to_pano.lon)
+if TYPE_CHECKING:
+    from agent.environment import World
 
 
 def signed_bearing_delta(from_deg: float, to_deg: float) -> float:
@@ -20,7 +19,7 @@ def signed_bearing_delta(from_deg: float, to_deg: float) -> float:
     return ((to_deg - from_deg + 540.0) % 360.0) - 180.0
 
 
-def last_move_relative_to_view_deg(world: World, state: AgentState) -> float | None:
+def last_move_relative_to_view_deg(world: "World", state: AgentState) -> float | None:
     """How the last move bearing relates to current view (0 = straight ahead)."""
     if state.last_move_bearing_deg is None:
         return None
@@ -29,7 +28,7 @@ def last_move_relative_to_view_deg(world: World, state: AgentState) -> float | N
     return signed_bearing_delta(view_yaw, state.last_move_bearing_deg)
 
 
-def last_move_context(world: World, state: AgentState) -> dict:
+def last_move_context(world: "World", state: AgentState) -> dict:
     """JSON-friendly summary for navigation prompts."""
     rel = last_move_relative_to_view_deg(world, state)
     return {

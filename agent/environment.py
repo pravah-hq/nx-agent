@@ -10,9 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from agent.directions import bin_center_world_yaw, clamp_bin
-from agent.geo import angle_diff_deg, bearing_deg, distance_m
+from agent.geo import angle_diff_deg, bearing_deg, distance_m, move_bearing_between_panos
 from agent.graph import build_neighbor_map, get_neighbors
-from agent.move_history import move_bearing_between_panos
 from agent.types import (
     DEFAULT_HFOV_DEG,
     DIRECTION_BIN_WIDTH_DEG,

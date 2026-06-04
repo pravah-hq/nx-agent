@@ -44,3 +44,8 @@ def distance_m(a_lat: float, a_lon: float, b_lat: float, b_lon: float) -> float:
 
 def distance_between_panos(a: Pano, b: Pano) -> float:
     return distance_m(a.lat, a.lon, b.lat, b.lon)
+
+
+def move_bearing_between_panos(from_pano: Pano, to_pano: Pano) -> float:
+    """Compass bearing (degrees) of the step from from_pano to to_pano."""
+    return bearing_deg(from_pano, to_pano.lat, to_pano.lon)
