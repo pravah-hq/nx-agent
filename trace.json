@@ -44,12 +44,12 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The view shows a wide road with buildings and trees, but no pole is clearly visible, unobstructed, or large enough to judge. Therefore, it does not match any green labeled pole on the map for classification.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows no utility pole clearly visible. The view is of a wide road with buildings and trees, and no pole is unobstructed or large enough to judge. The map indicates POLE_000057 is a candidate, but the street view does not show it. Therefore, no pole meets the criteria for pole_in_clear_view.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001453.jpg\",\n  \"reason\": \"The goal is at SN_UNKNOWN/01446-1655275625/0000001469.jpg, and SN_UNKNOWN/01446-1655275625/0000001453.jpg is the nearest neighbor along the graph edge, directly aligned with the street view's forward direction.\"\n}"
+          "response": "{\n    \"action\": \"move\",\n    \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001453.jpg\",\n    \"reason\": \"The goal is at SN_UNKNOWN/01446-1655275625/0000001469.jpg, and the nearest neighbor along the graph is SN_UNKNOWN/01446-1655275625/0000001453.jpg, which is directly reachable and aligned with the graph path.\"\n}"
         }
       ]
     },
@@ -94,12 +94,12 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles, buildings, and trees, but no pole is unobstructed or large enough to judge. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000057, POLE_000086), but none are visible in the street view to match.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles, buildings, and trees, but no pole is unobstructed or large enough to judge. The map indicates a green pole (POLE_000057) is nearby, but it is not visible in the street view, so it cannot be matched.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001457.jpg\",\"reason\":\"The graph map shows a direct 20m edge to SN_UNKNOWN/01446-1655275625/0000001457.jpg, which is the closest neighbor to the goal pano_id and aligns with the forward direction of travel from the street view.\"}"
+          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001457.jpg\",\n  \"reason\": \"The graph map shows a direct 20m edge to the neighbor pano_id SN_UNKNOWN/01446-1655275625/0000001457.jpg, which is the closest path toward the goal view pano_id (0000001469.jpg). The last move was from the left (147.965\u00b0 relative to view), so moving forward along this edge avoids backtracking.\"\n}"
         }
       ]
     },
@@ -144,12 +144,12 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map indicates potential poles (POLE_000057, etc.), but none are visible in the street view to match.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles, buildings, and a billboard, but no pole is unobstructed or large enough to judge. The target pole ID POLE_000057 is not visible in the street view, and no green pole label matches a visible pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001462.jpg\",\"reason\":\"The magenta arrow indicates the last move was to the right (1.8\u00b0 relative to view), so moving straight ahead to the neighbor on the right (1462.jpg) avoids backtracking and follows the graph toward the goal.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001462.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was to the right (1.8\u00b0 relative to view), so moving straight ahead to the neighbor pano_id 0000001462.jpg (to the right of the last move direction) aligns with forward navigation and avoids immediate backtracking.\"}"
         }
       ]
     },
@@ -191,7 +191,7 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": true,\n  \"visible_pole_id\": \"POLE_000057\",\n  \"identifiable_pole_type\": \"billboard_pole\",\n  \"reason\": \"The street view shows a green overhead banner mounted on a pole, which matches the map's green labeled pole POLE_000057. The banner is a large flat sign board, consistent with a billboard_pole. The pole is clearly visible and unobstructed, and POLE_000057 is not in already_classified_pole_ids.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": true,\n  \"visible_pole_id\": \"POLE_000057\",\n  \"identifiable_pole_type\": \"billboard_pole\",\n  \"reason\": \"The street view shows a large green banner mounted on a pole, which matches the green labeled pole POLE_000057 on the map. The pole supports a rectangular advertising billboard, fitting the definition of a billboard_pole. It is clearly visible and unobstructed, and POLE_000057 is not in already_classified_pole_ids.\"\n}"
         }
       ]
     },
@@ -240,12 +240,12 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view image. The view is of a road with vehicles and buildings, and no pole is unobstructed or large enough to judge. The map shows unclassified poles (green), but none match the visual context in the street view.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. Additionally, the map indicates POLE_000057 is already classified, and the current pole in consideration (tr_b6cc83336b8a70f6) is not visible in the street view, so no new unclassified pole can be matched.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows the agent facing a road intersection with traffic moving ahead. Turning right aligns with the direction of traffic flow and avoids backtracking along the last move direction (196.93\u00b0).\"}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a road intersection with traffic moving ahead; turning right aligns with the direction of traffic flow and avoids backtracking along the last move direction.\"}"
         }
       ]
     },
@@ -294,23 +294,23 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map shows unclassified poles (green), but none are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n    \"action\": \"move\",\n    \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\n    \"reason\": \"The goal is at 0000001491, and 0000000227 is the closest neighbor along the graph edge from current position, avoiding backtracking along the last move direction.\"\n}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The MOVE box for this neighbor is directly ahead in the graph, and the last move was from the left (negative relative bearing), so moving forward aligns with the navigation path toward the goal.\"}"
         }
       ]
     },
     {
       "step": 7,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
+      "action": "turn_right",
+      "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001460.jpg.",
+      "message": "Turned right.",
       "state_before": {
         "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
         "direction_bin": 1,
@@ -328,8 +328,8 @@
         "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-        "direction_bin": 1,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 2,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -340,34 +340,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+        "last_move_bearing_deg": 88.90587470639751,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The view shows a road intersection with vehicles and buildings, but no pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide road with vehicles and buildings, but no utility pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green), but none of them are visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be set as visible_pole_id.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001460.jpg\",\"reason\":\"The street view shows a crossroad with vehicles and buildings, suggesting a forward movement is appropriate. The MOVE box for this neighbor is aligned with the forward direction, and avoiding immediate backtracking from the last move is prioritized.\"}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with traffic moving in multiple directions; turning right aligns with the flow of traffic and the graph map's next logical move toward the goal.\"}"
         }
       ]
     },
     {
       "step": 8,
       "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000213.jpg.",
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001465.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-        "direction_bin": 1,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 2,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -378,12 +378,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+        "last_move_bearing_deg": 88.90587470639751,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
-        "direction_bin": 1,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 2,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -394,20 +394,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy intersection with vehicles and buildings, but no utility pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green), but none of them are visible in the street view. Also, POLE_000057 is already classified, so it cannot be matched.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows buildings, vehicles, and trees, with no pole large or unobstructed enough to classify. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000213.jpg\",\"reason\":\"The graph map shows a direct MOVE box to this neighbor pano_id, and the street view confirms we are at a crossroads with traffic ahead, suggesting a forward move is appropriate.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001465.jpg\",\"reason\":\"The graph map shows a direct MOVE box to this neighbor pano_id, and the street view confirms the current facing aligns with the direction toward the next node in the path.\"}"
         }
       ]
     },
@@ -420,23 +420,7 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
-        "direction_bin": 1,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 2,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -448,20 +432,36 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 3,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a road with vehicles and trees, but no pole is unobstructed or large enough to judge. The only pole in the image is a street lamp on the left, but it is not visible in the map's green pole list (POLE_000002, POLE_000048, POLE_000052, POLE_000086), and the map's green poles are not visible in the street view.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the view is of a road intersection with buildings and vehicles, and no pole is unobstructed or large enough to classify. The map shows unclassified poles (green), but none match the street view criteria for clear visibility.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"turn_right\",\"reason\": \"The street view shows the agent facing a wide road with traffic on the right, suggesting a right turn is appropriate to navigate the intersection safely and align with the graph map's directional flow.\"}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a crossroad with a green sign indicating directions to 'Bhavnagar' and 'Mumbai', suggesting a right turn is appropriate to follow the road towards these destinations. The magenta arrow on the map indicates the last move was to the left, so turning right aligns with the street context and avoids backtracking.\"}"
         }
       ]
     },
@@ -474,23 +474,7 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 3,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -502,34 +486,50 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 4,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by trees, vehicles, and buildings, with no pole large or unobstructed enough to classify. The map shows unclassified poles (green), but none are visible in the street view to match.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is of a street with buildings, vehicles, and trees, but no pole is unobstructed or large enough to judge. The only pole visible is already classified (gray) and not a new candidate. The map shows unclassified poles, but none are visible in the street view.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"turn_right\", \"target_pano_id\": null, \"reason\": \"The last move was from the left (last_move_relative_to_view_deg: 147.5\u00b0, meaning left of view), so turning right aligns with forward motion. The street view shows a motorcycle and vehicles to the right, suggesting a right turn is appropriate for navigation.\"}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The last move was from the left (last_move_relative_to_view_deg: -70.1667\u00b0), so turning right aligns with forward motion toward the goal and avoids backtracking along the magenta arrow.\"}"
         }
       ]
     },
     {
       "step": 11,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+      "action": "turn_right",
+      "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
+      "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 4,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -540,12 +540,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 44.79952146422753,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 5,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -556,34 +556,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows trees, vehicles, and a motorcycle, with no pole unobstructed and large enough to judge. The map shows unclassified poles, but none are visible in the current street view.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy intersection with vehicles and buildings, but no utility pole is clearly visible or unobstructed. The map indicates POLE_000052 is a candidate, but the street view does not show a pole matching its label. Also, POLE_000057 is already classified, so it cannot be set as visible_pole_id.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"move\", \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000000227.jpg\", \"reason\": \"The MOVE box and neighbor_move target point to this pano_id, and it's the closest available neighbor along the graph edge from current position, avoiding immediate backtrack along the last move direction.\"}"
+          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The last move was from 217.79\u00b0 (left), and turning right (positive relative) aligns with the street view's right-side traffic flow and avoids immediate backtracking. The goal is to approach the target pano_id (0000001491) via the graph, and turning right opens the path to the neighbor pano_ids on the right side of the map.\"\n}"
         }
       ]
     },
     {
       "step": 12,
-      "action": "turn_left",
+      "action": "turn_right",
       "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned left.",
+      "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 5,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -594,12 +594,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -610,34 +610,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a street scene with buildings, trees, and a vehicle, but no pole is unobstructed or large enough to judge. The only pole in the map that might be relevant (POLE_000052) is not visible in this street view, and it is already classified (gray) in the context, so it cannot be set as a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy road with vehicles and trees, but no utility pole is clearly visible, unobstructed, or large enough to judge. The map indicates POLE_000052 is a candidate, but it is not visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"target_pano_id\":null,\"reason\":\"The last move was from 193.47\u00b0 (left), and turning left (\u2248 285.8\u00b0) aligns with the current facing to avoid immediate backtracking and to prepare for a forward move toward the goal.\"}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The magenta arrow indicates the last move was to the left (negative relative angle), so turning right aligns with forward motion toward the goal while avoiding immediate backtracking.\"}"
         }
       ]
     },
     {
       "step": 13,
-      "action": "turn_right",
-      "target_pano_id": null,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned right.",
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -648,12 +648,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -664,34 +664,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 196.2683898697515,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a general street scene with buildings, vehicles, and trees, but no utility pole is clearly visible or unobstructed. The map indicates unclassified poles (green), but none of them are visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The only pole-like structure is a billboard on a building, which is not a pole supporting a billboard (it's mounted on a wall).\"}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"turn_right\", \"target_pano_id\": null, \"reason\": \"The last move was from 193.47\u00b0 (left), and turning right aligns with the graph's next logical step toward the goal, avoiding immediate backtracking.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\"reason\":\"The graph map shows a direct move to this neighbor pano_id along a 20m edge, and the street view confirms the direction is forward along the road, aligning with the last move's bearing and avoiding immediate backtracking.\"}"
         }
       ]
     },
     {
       "step": 14,
-      "action": "turn_left",
-      "target_pano_id": null,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned left.",
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001395.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -702,12 +702,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 196.2683898697515,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -718,88 +718,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
+        "last_move_bearing_deg": 145.74003247087168,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a general street scene with buildings, trees, and a vehicle, but no utility pole is clearly visible or identifiable. The map shows unclassified poles (green), but none match the visual evidence in the street view. Additionally, POLE_000057 is already classified, so it cannot be selected.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide road with vehicles and buildings, but no utility pole is clearly visible or identifiable. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none of them are visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be matched.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"target_pano_id\":null,\"reason\":\"The last move was from 193.47\u00b0 (leftward), and turning left (to face ~275\u00b0) aligns with the map's directional flow toward neighbors, avoiding immediate backtracking and preparing for a forward move.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001395.jpg\",\"reason\":\"The magenta arrow indicates the last move was to the left (negative relative bearing), so moving straight ahead to SN_UNKNOWN/01446-1655028309/0000001395.jpg aligns with forward progress toward the goal while avoiding immediate backtracking.\"}"
         }
       ]
     },
     {
       "step": 15,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001460.jpg.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 193.46846674307247,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000213.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a street scene with buildings, vehicles, and trees, but no pole is unobstructed or large enough to judge. The only pole visible in the map is POLE_000057, which is already classified (gray), so it cannot be set as a new unclassified pole.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001460.jpg\",\"reason\":\"The street view shows a crossroad with a white car and motorcycle, indicating a forward-facing direction. The graph map shows a direct neighbor move to pano_id 'SN_UNKNOWN/01446-1655275625/0000001460.jpg' (a MOVE box) which aligns with progressing forward along the street, avoiding backtracking from the last move.\"}"
-        }
-      ]
-    },
-    {
-      "step": 16,
       "action": "turn_right",
-      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+      "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -810,12 +756,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+        "last_move_bearing_deg": 145.74003247087168,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "direction_bin": 7,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -826,25 +772,349 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+        "last_move_bearing_deg": 145.74003247087168,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by traffic, buildings, and trees, with no pole large or unobstructed enough to classify. The map shows unclassified poles (green), but none are visible in the street view to match.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamppost on the right side of the road, but it is not clearly visible enough to match a green map label (POLE_000052 or others) because it is partially occluded by a building and the view is not unobstructed. Also, POLE_000052 is already classified, so it cannot be matched as a new unclassified pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"turn_right\",\"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001462.jpg\",\"reason\": \"The magenta arrow indicates the last move was to the right (83.3\u00b0 relative to view), so turning right aligns with the last move direction and avoids backtracking. The target pano_id is from the MOVE box on the graph map.\"}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a road intersection with a yellow auto-rickshaw and buildings on the right, suggesting a right turn is appropriate to proceed along the road. The magenta arrow from 'YOU' on the map indicates the last move was to the left, so turning right is a safe forward move.\"}"
+        }
+      ]
+    },
+    {
+      "step": 16,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000229.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "direction_bin": 7,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 145.74003247087168,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 7,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 18.418699897877314,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a utility pole with a sign and a lamppost, but it does not match any green map label (visible_pole_id) that is not already classified. The pole is not clearly visible enough to classify, and the map shows no unclassified pole with matching label. Additionally, the pole is not visible in the clear view as per the criteria.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000229.jpg\",\"reason\":\"The graph map shows a direct 20m edge to this neighbor pano_id, and it's the closest available option to the goal (1491.jpg) while avoiding immediate backtracking along the last move direction.\"}"
         }
       ]
     },
     {
       "step": 17,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 7,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 18.418699897877314,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 8,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 18.418699897877314,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large building with a billboard on a pole, but the pole itself is not clearly visible or identifiable in the image. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none of them are visible in the street view. The pole associated with the billboard is not clearly visible enough to classify, and it is not one of the unclassified poles (green) that are marked on the map as candidates for classification. Additionally, POLE_000057 is already classified, so it is not considered.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a building with a 'VanHeusen' sign on the right, and the current facing direction (49.97\u00b0) suggests we are aligned with the road. Turning right would align us with the street flow toward the goal area, which is on the right side of the road based on the graph map's layout and the goal pano ID's proximity to the right-side neighbors.\"}"
+        }
+      ]
+    },
+    {
+      "step": 18,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001465.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 8,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 18.418699897877314,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 8,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is obstructed by the car's hood and the VanHeusen building's facade, and no pole matches any green map label that is unclassified.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001465.jpg\",\"reason\":\"The goal is at SN_UNKNOWN/01446-1655028309/0000001491.jpg, and the neighbor SN_UNKNOWN/01446-1655275625/0000001465.jpg is directly connected by a gray line and is the closest path toward the goal, avoiding immediate backtracking from the last move.\"}"
+        }
+      ]
+    },
+    {
+      "step": 19,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 8,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 9,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a scooter and a building with a billboard, but no pole is clearly visible or unobstructed for classification.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The magenta arrow indicates the last move was from the left (161\u00b0 relative to view), so turning right aligns with forward motion toward the goal while avoiding immediate backtracking.\"}"
+        }
+      ]
+    },
+    {
+      "step": 20,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 9,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is visible in the street view image. The image shows a building, a motorcycle, and overhead wires, but no distinct pole with a clear fixture or transformer between two poles can be identified. The pole in consideration (tr_b6cc83336b8a70f6) is not visible in the street view, and no green map label matches a visible pole.\"}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The last move was from 239\u00b0 (southwest) and the current facing is 107.96\u00b0 (northeast). Turning right aligns with the graph's edge toward the goal and avoids backtracking along the last move direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 21,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000229.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 239.00935972914735,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 59.009331453120325,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a utility pole with a signboard and wires, but it does not match any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) as the pole's label is not visible in the image. Also, POLE_000057 is already classified, so it cannot be matched. The pole is not clearly identifiable as a lamp_post, billboard_pole, or distribution_transformer due to lack of clear labeling or context in the image.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000229.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was from pano ID 'SN_UNKNOWN/01446-1655028309/0000000229.jpg'. To avoid immediate backtracking, we must turn first. The neighbor pano ID 'SN_UNKNOWN/01446-1655028309/0000000229.jpg' is directly connected via a gray line and is a valid move target. The street view shows a building and road, confirming we are on a street and can move forward.\"}"
+        }
+      ]
+    },
+    {
+      "step": 22,
       "action": "move",
       "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
       "pole_type": null,
@@ -852,7 +1122,568 @@
       "pole_in_clear_view": false,
       "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 59.009331453120325,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows buildings, a road, and a distant signpost, but no pole is unobstructed or large enough to judge. Additionally, the map shows unclassified poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none of them are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The graph map shows a direct MOVE box to this neighbor pano_id, and it is the closest available option to the goal pano_id (0000001491.jpg) while avoiding immediate backtracking along the last move direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 23,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 10,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 11,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large building with a billboard, but no utility pole is clearly visible in the frame. The map indicates unclassified poles (green), but none are visible in the street view, so no match can be made to a green pole label. Additionally, the pole labeled POLE_000057 is already classified, so it cannot be selected.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a Van Heusen store on the left, and the magenta arrow from 'YOU' indicates the last move was to the right (positive bearing). Turning right aligns with the last move direction and prepares for a forward move toward the goal.\"}"
+        }
+      ]
+    },
+    {
+      "step": 24,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001462.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 11,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 11,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001462.jpg\",\"reason\":\"The graph map shows a direct neighbor move to SN_UNKNOWN/01446-1655275625/0000001462.jpg, which is aligned with the goal direction and avoids backtracking from the last move.\"}"
+        }
+      ]
+    },
+    {
+      "step": 25,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 11,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles, buildings, and overhead signage, but no pole is unobstructed or large enough to judge. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The magenta arrow from YOU indicates the last move was to the right (100.5\u00b0 relative to view), so turning right aligns with the direction of the last move and avoids immediate backtracking. The street view shows a clear right turn opportunity toward the road ahead, consistent with the graph map's direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 26,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 0,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The only pole visible in the map context (POLE_000057) is already classified (gray) and not visible in the street view. Therefore, no new unclassified pole can be identified.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows the vehicle facing a road intersection with traffic signs overhead; turning right aligns with the direction of the road ahead and avoids immediate backtracking from the last move.\"}"
+        }
+      ]
+    },
+    {
+      "step": 27,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000229.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The only pole in the image is a small, distant structure that is not clearly identifiable as a utility pole, and it does not match any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) because none are visible in the street view.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\n    \"action\": \"move\",\n    \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000000229.jpg\",\n    \"reason\": \"The MOVE box for this neighbor is directly adjacent and aligned with the current facing direction, and the last move was from the left (40.5\u00b0 relative), so moving to this neighbor continues forward without backtracking.\"\n}"
+        }
+      ]
+    },
+    {
+      "step": 28,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a road intersection with vehicles and buildings, but no pole is clearly visible or unobstructed to classify. The map shows unclassified poles, but none match the street view.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\n    \"action\": \"move\",\n    \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\n    \"reason\": \"The MOVE box for this neighbor is directly reachable and aligns with the graph edge from current position, avoiding immediate backtracking from last move.\"\n}"
+        }
+      ]
+    },
+    {
+      "step": 29,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001462.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide intersection with vehicles and buildings, but no utility pole is clearly visible or unobstructed. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none of them are visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be matched.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001462.jpg\",\n  \"reason\": \"The graph map shows a direct MOVE box to this neighbor, and the street view confirms a clear path forward toward the intersection, aligning with the goal direction.\"\n}"
+        }
+      ]
+    },
+    {
+      "step": 30,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000229.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 268.90589594288497,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map indicates unclassified poles (green), but none are visible in the street view to match.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001491.jpg\",\"reason\":\"The goal is at SN_UNKNOWN/01446-1655028309/0000001491.jpg, and the current pano is connected to it via a MOVE box on the graph map. The last move was from a different pano, so moving directly toward the goal is allowed without turning first.\"}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 2,
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000229.jpg\",\"reason\":\"The graph map shows a direct MOVE box to this neighbor pano_id, and it is the most immediate step toward the goal while avoiding backtracking along the last move direction.\"}"
+        }
+      ]
+    },
+    {
+      "step": 31,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 1,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 2,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a road intersection with vehicles and buildings, but no pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green), but none are visible in the street view, so no match can be made.\"\n}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\n    \"action\": \"turn_right\",\n    \"target_pano_id\": null,\n    \"reason\": \"The magenta arrow indicates the last move was to the left (negative relative angle), so turning right aligns with forward progress toward the goal and avoids backtracking. The street view shows a clear intersection with traffic, supporting a right turn.\"\n}"
+        }
+      ]
+    },
+    {
+      "step": 32,
+      "action": "turn_right",
+      "target_pano_id": null,
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Turned right.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 2,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
         "direction_bin": 3,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -864,8 +1695,46 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 342.7134134499344,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
+      },
+      "visible_pole_id": "POLE_000052",
+      "vlm_calls": [
+        {
+          "phase": "pole_in_clear_view",
+          "attempt": 1,
+          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows a road intersection with buildings, a cyclist, and vehicles, but no pole is unobstructed or large enough to judge. Additionally, the only pole visible in the map context (POLE_000057) is already classified (gray) and thus excluded by the rule.\"}"
+        },
+        {
+          "phase": "graph_navigation",
+          "attempt": 1,
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a wide road with buildings and a cyclist, suggesting a right turn is appropriate to navigate toward the goal area. The magenta arrow indicates the last move was to the left, so turning right aligns with forward progress and avoids backtracking.\"}"
+        }
+      ]
+    },
+    {
+      "step": 33,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+      "pole_type": null,
+      "stop_after": false,
+      "pole_in_clear_view": false,
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
+      "state_before": {
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg",
+        "direction_bin": 3,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 160.25593327189952,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001462.jpg"
       },
       "state_after": {
         "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
@@ -880,25 +1749,25 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 162.71340343060425,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy street with vehicles and trees, but no utility pole is clearly visible or unobstructed. The map indicates unclassified poles (green), but none of them are visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be matched as a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a commercial street with buildings and trees, but no utility pole is clearly visible or unobstructed to classify. The map indicates unclassified poles (green) such as POLE_000052, but the street view does not show any pole matching those labels. Additionally, POLE_000057 is already classified, so it cannot be matched again.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The MOVE box and neighbor_move target points to this pano_id, and it's the most direct neighbor along the graph edge from current position, avoiding immediate backtracking along the last move direction.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was from the previous pano, and moving to SN_UNKNOWN/01446-1655028309/0000000227.jpg (a neighbor connected by a gray line) is the next logical step along the path toward the goal, avoiding immediate backtracking.\"}"
         }
       ]
     },
     {
-      "step": 18,
+      "step": 34,
       "action": "turn_right",
       "target_pano_id": null,
       "pole_type": null,
@@ -918,8 +1787,8 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 162.71340343060425,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
       },
       "state_after": {
         "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
@@ -934,25 +1803,25 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 162.71340343060425,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by a large tree, buildings, and a vehicle, with no pole unobstructed or large enough to judge. The map shows unclassified poles (green), but none are visible in the street view to match.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide street with buildings and trees, but no utility pole is clearly visible or unobstructed. The map indicates unclassified poles (green), but none of them are visible in the street view. The pole at POLE_000057 is already classified (gray) and not visible in the street view, so it cannot be matched. No pole meets the criteria for 'pole_in_clear_view' as defined.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The last move was from 162.7\u00b0 (left), so turning right aligns with forward motion toward the goal. The street view shows a clear road ahead with no immediate obstacles, making a right turn optimal.\"}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a wide road with buildings and trees to the right, suggesting a right turn would align with the natural flow of the street and avoid backtracking along the last move direction.\"}"
         }
       ]
     },
     {
-      "step": 19,
+      "step": 35,
       "action": "move",
       "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
       "pole_type": null,
@@ -972,8 +1841,8 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 162.71340343060425,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
+        "last_move_bearing_deg": 17.002067492474538,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000229.jpg"
       },
       "state_after": {
         "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
@@ -996,890 +1865,26 @@
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide street with trees, parked vehicles, and a building, but no utility pole is clearly visible, unobstructed, or large enough to judge. The map indicates unclassified poles (green), but none are visible in the street view. Additionally, POLE_000052 is not visible in the street view, and the pole_in_clear_view condition requires a clear view of a pole matching a green label, which is not satisfied.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a wide street with trees, parked vehicles, and a building, but no utility pole is clearly visible or unobstructed. The map indicates POLE_000052 is a candidate, but it is not visible in the street view. Also, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\": \"move\", \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001465.jpg\", \"reason\": \"The magenta arrow from 'YOU' indicates the last move was toward the right (positive relative bearing). To avoid immediate backtracking, move to the neighbor on the right (target_pano_id: SN_UNKNOWN/01446-1655275625/0000001465.jpg) which is aligned with the forward direction from the last move.\"}"
-        }
-      ]
-    },
-    {
-      "step": 20,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 4,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The view is of a road with vehicles and buildings, but no pole is clearly visible or unobstructed to classify. The map shows unclassified poles (green), but the street view does not show any matching pole.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows the agent facing a road intersection with a scooter and vehicles; turning left aligns with the direction of traffic flow and avoids immediate backtracking from the last move direction (217.79\u00b0).\"}"
-        }
-      ]
-    },
-    {
-      "step": 21,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by buildings, a road, and vehicles with no pole in clear, unobstructed view that matches any green map label.\"}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows a crossroad with buildings and traffic; turning left aligns with the street context and avoids immediate backtracking along the last move direction.\"}"
-        }
-      ]
-    },
-    {
-      "step": 22,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with buildings and vehicles, but no pole is unobstructed or large enough to judge. The only pole visible is a gray classified pole (POLE_000057) which is already classified and not a new candidate. The map shows green unclassified poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none are visible in the street view to match.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a crossroads with traffic and a green sign; turning right aligns with the road direction and avoids backtracking from the last move (which was 217.79\u00b0, or roughly west).\"}"
-        }
-      ]
-    },
-    {
-      "step": 23,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a general street scene with buildings, vehicles, and trees, but no utility pole is clearly visible or unobstructed enough to classify. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none are visible in the street view to match a green label. Also, POLE_000057 is already classified (gray), so it cannot be selected.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows a wide road with buildings on the left and a scooter on the right, indicating a left turn is appropriate to navigate the intersection. The magenta arrow from the last move points to the right, so turning left avoids backtracking.\"}"
-        }
-      ]
-    },
-    {
-      "step": 24,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a road intersection with buildings, vehicles, and a green highway sign, but no pole is clearly visible or unobstructed to classify. The only pole in the map that is unclassified (POLE_000052) is not visible in the street view, and the map's green pole labels are not matched to any visible pole in the image.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a crossroad with traffic and a green sign; turning right aligns with the street context and avoids immediate backtracking from the last move direction.\"}"
-        }
-      ]
-    },
-    {
-      "step": 25,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a street with buildings, vehicles, and trees, but no pole is unobstructed or large enough to judge. The only pole in the image is a small, indistinct structure on the right edge, which is too far away and occluded to classify, and it does not match any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) as it is not visible or identifiable.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows a wide road with buildings and traffic, and the magenta arrow from the map indicates the last move was to the left. Turning left aligns with the map's directional hint and prepares for the next move along the graph edge.\"}"
-        }
-      ]
-    },
-    {
-      "step": 26,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with buildings and vehicles, but no pole is unobstructed or large enough to judge. The only pole visible in the map (POLE_000057) is already classified (gray) and thus not a new unclassified pole.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"Street view shows a crossroad with a green signpost to the left, indicating a right turn is needed to proceed toward the goal direction.\"}"
-        }
-      ]
-    },
-    {
-      "step": 27,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 4,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by buildings, a road, and vehicles with no distinct pole structure discernible.\"}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The last move was to the left (last_move_relative_to_view_deg: -70.1667), so turning right aligns with forward motion toward the goal and avoids immediate backtracking along the magenta arrow.\"}"
-        }
-      ]
-    },
-    {
-      "step": 28,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 4,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road, vehicles, and buildings, but no pole is unobstructed or large enough to classify. The pole labeled '000052' on the map is not visible in the street view, and the only classified pole ('POLE_000057') is already marked as done.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\n  \"action\": \"turn_left\",\n  \"target_pano_id\": null,\n  \"reason\": \"The magenta last move arrow points to the left (relative -100.1667\u00b0), so turning left aligns with the natural direction to avoid backtracking and proceed toward the goal.\"\n}"
-        }
-      ]
-    },
-    {
-      "step": 29,
-      "action": "turn_left",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned left.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows buildings, a road, and vehicles, but no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none are visible in the street view to match.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows the agent facing a crossroad with buildings on the left and right; turning left aligns with the direction of the visible road and the graph map's implied path toward the goal.\"}"
-        }
-      ]
-    },
-    {
-      "step": 30,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 2,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with buildings, vehicles, and a green highway sign, but no pole is unobstructed or large enough to judge. The only pole in the map's unclassified list (POLE_000052) is not visible in the street view, and the map's 'last move' arrow indicates movement toward a different location. Additionally, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a road intersection with traffic and buildings, and the current facing (257.96\u00b0) suggests we are approaching a corner. Turning right aligns with the natural flow of traffic and the street layout, avoiding backtracking along the last move direction (217.79\u00b0) and preparing for a forward move toward the goal.\"}"
-        }
-      ]
-    },
-    {
-      "step": 31,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 3,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 4,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view. The view shows buildings, a road, and a motorcycle, but no pole is unobstructed or large enough to classify. The map shows unclassified poles, but none are visible in the street view.\"}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a road intersection with buildings and traffic, and the magenta arrow on the map indicates the last move was to the left (negative relative angle). To avoid backtracking and align with the current street context, turning right is the appropriate action to proceed forward.\"}"
-        }
-      ]
-    },
-    {
-      "step": 32,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 4,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 5,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy intersection with vehicles and buildings, but no utility pole is clearly visible, unobstructed, or large enough to judge. The map indicates POLE_000052 is a candidate, but it is not visible in the street view. Also, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with vehicles and buildings, and the current facing (317.96\u00b0) suggests we are aligned with the road. Turning right aligns with the natural flow of traffic and the direction of the goal (which is to the left in the graph map).\"}"
-        }
-      ]
-    },
-    {
-      "step": 33,
-      "action": "turn_right",
-      "target_pano_id": null,
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Turned right.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 5,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 6,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view is dominated by vehicles, trees, and buildings, with no pole large enough or unobstructed to classify. The map shows unclassified poles (green), but none match the visual criteria for clear identification in the street view.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The magenta arrow (last move) points left relative to your facing (347.96\u00b0), so turning right aligns you with the next logical move toward the goal while avoiding immediate backtracking.\"}"
-        }
-      ]
-    },
-    {
-      "step": 34,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
-        "direction_bin": 6,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 217.790926827456,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
-        "direction_bin": 6,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 196.2683898697515,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a commercial building with a large billboard on its facade, but no utility pole is visible in the clear view ahead. The billboard is mounted on a structure, not a pole, and no pole matching any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) is visible. Also, POLE_000057 is already classified, so it cannot be matched.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\"reason\":\"The magenta last move arrow points left (relative -160\u00b0), so moving straight ahead to the neighbor on the right (1467.jpg) avoids backtracking and follows the graph edge toward the goal.\"}"
-        }
-      ]
-    },
-    {
-      "step": 35,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
-      "pole_type": null,
-      "stop_after": false,
-      "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001393.jpg.",
-      "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
-        "direction_bin": 6,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 196.2683898697515,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
-        "direction_bin": 6,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 62.65456709597154,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
-      },
-      "visible_pole_id": "POLE_000052",
-      "vlm_calls": [
-        {
-          "phase": "pole_in_clear_view",
-          "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view image. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The only pole in the map's unclassified list (POLE_000052) is not visible in the street view, and POLE_000057 is already classified, so it cannot be matched.\"\n}"
-        },
-        {
-          "phase": "graph_navigation",
-          "attempt": 1,
-          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000001393.jpg\",\n  \"reason\": \"The magenta arrow from YOU indicates the last move was to the left (last_move_relative_to_view_deg: -179.3\u00b0), so moving forward to neighbor_pano_id 'SN_UNKNOWN/01446-1655028309/0000001393.jpg' (which is to the right of the last move direction) avoids backtracking. The goal is 0000001491, and this neighbor is on the path toward it.\"\n}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001465.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was to the right (61.196\u00b0 relative to view), so moving to SN_UNKNOWN/01446-1655275625/0000001465.jpg (right neighbor) aligns with continuing forward along the graph path toward the goal.\"}"
         }
       ]
     },
     {
       "step": 36,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+      "action": "turn_right",
+      "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001395.jpg.",
+      "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg",
-        "direction_bin": 6,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 4,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -1890,12 +1895,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 62.65456709597154,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 6,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 5,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -1906,20 +1911,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to classify. The only pole visible in the image is a billboard pole (tr_f1c552641a611bac) which is already classified and not a new unclassified pole (POLE_000057 is already classified).\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy intersection with vehicles and buildings, but no utility pole is clearly visible or unobstructed. The map indicates POLE_000052 is a candidate, but the street view does not show it. Additionally, POLE_000057 is already classified, so it cannot be set as visible_pole_id.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000001395.jpg\",\n  \"reason\": \"The goal is at pano_id 'SN_UNKNOWN/01446-1655028309/0000001491.jpg', and 'SN_UNKNOWN/01446-1655028309/0000001395.jpg' is a direct neighbor along the graph edge. The last move was from pano_id 'SN_UNKNOWN/01446-1655275625/0000001467.jpg' (magenta arrow), so moving to 'SN_UNKNOWN/01446-1655028309/0000001395.jpg' is forward along the graph, avoiding immediate backtracking.\"\n}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with traffic moving in front, and the magenta arrow from the map indicates the last move was to the left. To align with the forward traffic and avoid backtracking, turning right is the safest and most logical choice before proceeding.\"}"
         }
       ]
     },
@@ -1932,7 +1937,23 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 5,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 6,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -1944,36 +1965,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 7,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The only pole visible is the gray classified pole (POLE_000057) which is already classified and thus not a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy road with vehicles and trees, but no utility pole is clearly visible or unobstructed. The map indicates POLE_000052 is a candidate, but it is not visible in the street view. Additionally, POLE_000057 is already classified, so it cannot be set as visible_pole_id.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows the agent facing a road with a yellow auto-rickshaw and buildings on the right, suggesting a right turn is appropriate to proceed along the road. The magenta arrow from 'YOU' indicates the last move was to the left, so turning right aligns with moving forward and avoids backtracking.\"}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The magenta last move arrow points left (last_move_relative_to_view_deg: -130.1667\u00b0), so turning right aligns with forward motion toward the goal and avoids immediate backtracking.\"}"
         }
       ]
     },
@@ -1986,7 +1991,23 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 6,
+        "pole_in_consideration": "tr_b6cc83336b8a70f6",
+        "classified": {
+          "tr_f1c552641a611bac": "billboard_pole"
+        },
+        "pole_guess": {
+          "track_id": "tr_b6cc83336b8a70f6",
+          "pole_id": "POLE_000052",
+          "pole_type": null,
+          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
+        },
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
+      },
+      "state_after": {
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 7,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -1998,50 +2019,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
-      },
-      "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 8,
-        "pole_in_consideration": "tr_b6cc83336b8a70f6",
-        "classified": {
-          "tr_f1c552641a611bac": "billboard_pole"
-        },
-        "pole_guess": {
-          "track_id": "tr_b6cc83336b8a70f6",
-          "pole_id": "POLE_000052",
-          "pole_type": null,
-          "note": "graph navigation hint (classify uses VLM visible_pole_id)"
-        },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a utility pole with a signboard and a lamp post, but no green map label matches the pole's position or type. The pole is not clearly visible enough to classify, and the map shows only gray classified poles (POLE_000057 is already classified), so no unclassified green pole can be matched.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a commercial building with a large billboard on the right, but no utility pole is clearly visible in the frame. The billboard is supported by a pole, but it is not clearly identifiable or unobstructed for classification. Also, POLE_000052 is already classified (gray) and not a new unclassified pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The last move was from 192.3\u00b0 (straight behind), so turning right (positive relative) aligns with forward motion. The street view shows a building on the right, suggesting a right turn is appropriate for navigation.\"\n}"
+          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The magenta arrow from YOU indicates the last move was to your left (negative relative angle), so turning right aligns with forward motion toward the goal. The street view confirms a right turn is feasible and leads toward the goal direction.\"\n}"
         }
       ]
     },
     {
       "step": 39,
-      "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+      "action": "turn_right",
+      "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001467.jpg.",
+      "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 8,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
+        "direction_bin": 7,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2052,11 +2057,11 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 192.31353390349645,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001393.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2068,33 +2073,33 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 325.74004674950146,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamp post with a fixture aimed toward the street, but it does not match any green labeled pole on the map (POLE_000002, POLE_000048, POLE_000052, POLE_000086) as per the map's unclassified pole list. Additionally, POLE_000057 is already classified, so it cannot be matched to a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large building with a billboard and a scooter rider, but no utility pole is clearly visible, unobstructed, or large enough to judge. The only pole visible is the one supporting the billboard, but it is not labeled as a green pole in the map context, and it is not in the list of unclassified poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086). Additionally, POLE_000057 is already classified, so it cannot be matched. Therefore, no new unclassified pole is visible in clear view.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001467.jpg\",\n  \"reason\": \"The graph map shows a direct MOVE box to this neighbor pano_id, and the street view shows a clear path forward toward the building with the 'V' sign, aligning with the graph's edge direction.\"\n}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The magenta arrow indicates the last move was to the left (negative relative bearing), so turning right aligns with the map's forward direction to avoid backtracking. The street view shows a building and road ahead, supporting a right turn to continue forward.\"}"
         }
       ]
     },
     {
       "step": 40,
       "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001395.jpg.",
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000227.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg",
         "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2106,11 +2111,11 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 325.74004674950146,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+        "last_move_bearing_deg": 217.790926827456,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
         "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2122,20 +2127,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a utility pole with multiple wires, but it does not match any unclassified green pole label on the map (POLE_000002, POLE_000048, POLE_000052, POLE_000086) because the pole's ID is not listed in the map's green pole labels. Additionally, POLE_000057 is already classified, so it cannot be matched.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The only pole-like structure is a billboard on a building, which is not a pole in the utility sense (it's mounted on a wall or building facade, not a standalone pole). Also, POLE_000052 (target_pole_id) is not visible in the street view, and the map shows it as a green unclassified pole, but we cannot confirm its presence or type from the image.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001395.jpg\",\"reason\":\"The magenta arrow indicates the last move was from the left (negative relative bearing), so moving to the neighbor on the right (SN_UNKNOWN/01446-1655028309/0000001395.jpg) avoids backtracking and follows the graph edge toward the goal.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000000227.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was from the previous pano, and the graph map shows a direct 20m edge to this neighbor pano. Moving here follows the graph path toward the goal and avoids backtracking.\"}"
         }
       ]
     },
@@ -2148,7 +2153,7 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
         "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2160,11 +2165,11 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
         "direction_bin": 9,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2176,33 +2181,33 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamppost with a fixture aimed toward the street, but it does not match any green labeled pole on the map (visible_pole_id is not in remaining_pole_ids). The pole is not classified as a new unclassified pole because the map's green pole labels do not correspond to the visible pole in the street view.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamp post with a fixture aimed toward the street, but it does not match any green pole label on the map (visible_pole_id is not found in remaining_pole_ids or already_classified_pole_ids). The pole is not classified as a new unclassified pole because it does not correspond to a green label on the map.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The magenta last-move arrow indicates a prior move to the right (last_move_relative_to_view_deg = 76.16\u00b0), so turning right now avoids backtracking. The street view shows a building on the right with a clear path forward, aligning with turning right to proceed along the road.\"\n}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a Van Heusen store entrance to the right, and the magenta last move arrow points left. Turning right aligns with the storefront and avoids backtracking along the last move direction.\"}"
         }
       ]
     },
     {
       "step": 42,
-      "action": "turn_right",
+      "action": "turn_left",
       "target_pano_id": null,
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned right.",
+      "message": "Turned left.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
         "direction_bin": 9,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
@@ -2214,12 +2219,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 10,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2230,20 +2235,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a green pole with a billboard sign, but it is not a new unclassified pole because the pole_id 'POLE_000057' is already classified (gray) and the map shows no green pole matching the street view pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No pole is visible in the street view that matches any unclassified green pole on the map. The only pole visible is a lamp post with a sign, but it is not labeled as a green pole in the map's unclassified list and is already classified as a billboard_pole. The pole in the street view does not match any green pole ID (POLE_000002, POLE_000048, POLE_000052, POLE_000086) and is not unclassified.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The magenta arrow indicates the last move was to the right (46.16\u00b0 relative to view), so turning right aligns with the direction of the last move to avoid backtracking. The street view shows a road intersection with a signpost to the right, supporting a right turn.\"\n}"
+          "response": "{\"action\":\"turn_left\",\"reason\":\"The street view shows a motorcycle moving leftward, indicating a left turn is appropriate to align with the flow of traffic and avoid obstruction.\"}"
         }
       ]
     },
@@ -2256,8 +2261,8 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 10,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 8,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2268,12 +2273,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 11,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 9,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2284,20 +2289,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large green overhead sign structure supported by a metal pole, but it is not clearly identifiable as a utility pole matching any green map label (POLE_000002, POLE_000048, POLE_000052, POLE_000086) because the pole is partially obscured and not clearly visible enough to classify. Also, POLE_000057 is already classified, so it cannot be selected.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamp post with a fixture aimed toward the street, but it is not labeled as a green pole on the map (the map's green poles are unclassified, and this pole is not among the remaining unclassified pole IDs). Additionally, the pole is not visible in the map's green pole list, so it cannot be matched to a green label.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a road intersection with a green sign indicating directions to Gurudham Temple (0.2K.M.) and Tulsidas Manas Temple (1.0K.M.). The magenta arrow from YOU on the map points to the right, aligning with the direction of the road ahead. Turning right will follow the street flow toward the goal area.\"}"
+          "response": "{\"action\":\"turn_right\",\"target_pano_id\":null,\"reason\":\"The street view shows a building with 'Van Heusen' and 'Louboutin' signs, and a motorcycle passing by. The magenta last move arrow points left (negative relative bearing), so turning right aligns with the current street context and avoids immediate backtracking. No specific neighbor move is required at this moment; turning right prepares for a forward move toward the goal.\"}"
         }
       ]
     },
@@ -2310,8 +2315,8 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 11,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 9,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2322,12 +2327,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 0,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 10,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2338,20 +2343,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a road intersection with a green overhead sign, a building, and a motorcycle, but no pole is clearly visible or unobstructed to classify. The map shows unclassified poles (green), but the street view does not contain any pole that matches a green label in the map's context.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view; the only pole-like structure is a lamp post with a sign, but it is not classified as a 'lamp_post' because it is not clearly identifiable as such (no visible light fixture or distinct pole structure), and it is not a green pole label on the map that matches the street view.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"Street view shows a road intersection with a green sign indicating a right turn toward Sankat Mochan and Ravidas Park. The magenta arrow from YOU on the map points left (last_move_relative_to_view_deg: -13.8\u00b0), so turning right aligns with the street context and avoids backtracking.\"\n}"
+          "response": "{\n    \"action\": \"turn_right\",\n    \"target_pano_id\": null,\n    \"reason\": \"The last move was from the left (last_move_relative_to_view_deg: -68.0\u00b0), so turning right aligns with forward motion toward the goal. The street view shows a building and a motorcycle, suggesting a right turn is appropriate to proceed along the road.\"\n}"
         }
       ]
     },
@@ -2364,8 +2369,8 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 0,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 10,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2376,12 +2381,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 1,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 11,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2392,20 +2397,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view image. The view is of a road intersection with vehicles and signage, but no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none match the visual evidence in the street view.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is visible in the street view image. The image shows a Van Heusen store with a red fence and vehicles, but no pole is clearly visible, unobstructed, or large enough to classify. The only pole in the map context (POLE_000057) is already classified (gray), and none of the remaining unclassified poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086) are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with a green overhead sign indicating directions to Sankat Mochan Temple and Ravidas Park. The magenta arrow on the map indicates the last move was to the left (negative relative bearing). To proceed forward and align with the goal direction, turning right is necessary to navigate the intersection and avoid backtracking.\"}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a Van Heusen store to the left, and the graph map indicates the goal is to the right. Turning right aligns with the direction toward the goal while avoiding backtracking along the last move direction.\"}"
         }
       ]
     },
@@ -2418,8 +2423,8 @@
       "pole_in_clear_view": false,
       "message": "Turned right.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 1,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 11,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2430,12 +2435,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2446,34 +2451,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large overhead gantry with a green sign (SANKAT MOCHAN T. RAVIDAS PARK) spanning the intersection, but no utility pole is visible in clear view. The map shows unclassified poles (green), but none of them are visible or match the street view. The pole in consideration (tr_b6cc83336b8a70f6) is not a pole but part of the sign structure, and no pole matches the green map labels (POLE_000002, POLE_000048, POLE_000052, POLE_000086) in the street view.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"turn_right\",\n  \"target_pano_id\": null,\n  \"reason\": \"The street view shows a crossroad with traffic moving forward; turning right aligns with the flow of traffic and the graph map's neighbor nodes to the right (e.g., SN_UNKNOWN/01446-1655275625/0000001467.jpg) which is the direction of the last move.\"\n}"
+          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows the agent facing a road intersection with a motorcycle ahead, and the graph map indicates the last move was to the left (negative relative bearing). Turning right aligns with the right-side neighbor pano_id (SN_UNKNOWN/01446-1655028309/0000000229.jpg) which is a valid move option and avoids immediate backtracking.\"}"
         }
       ]
     },
     {
       "step": 47,
-      "action": "turn_right",
-      "target_pano_id": null,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned right.",
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001460.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 2,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2484,12 +2489,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 37.790888719665965,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001465.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2500,34 +2505,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 342.7134134499344,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a busy intersection with cars and buildings, but no utility pole is clearly visible or unobstructed. The map indicates potential poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none are visible in the street view to match. Additionally, POLE_000057 is already classified, so it cannot be considered as a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to judge. The map shows unclassified poles, but none are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with vehicles and a pedestrian crossing, suggesting a right turn is appropriate to proceed forward. The magenta arrow from 'YOU' on the map indicates the last move was to the left, so turning right aligns with navigating toward the goal while avoiding immediate backtracking.\"}"
+          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655275625/0000001460.jpg\",\"reason\":\"The magenta arrow from YOU indicates the last move was to the right (positive bearing), and the goal is to the upper right. Moving to SN_UNKNOWN/01446-1655275625/0000001460.jpg aligns with the graph's edge direction toward the goal while avoiding immediate backtracking.\"}"
         }
       ]
     },
     {
       "step": 48,
       "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg",
+      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000000211.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001398.jpg.",
+      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000000211.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2538,12 +2543,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 145.74003247087168,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001467.jpg"
+        "last_move_bearing_deg": 342.7134134499344,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000227.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000211.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2554,34 +2559,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 187.9024821491025,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+        "last_move_bearing_deg": 29.87035606109476,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a large overhead structure with wires, but no single utility pole is clearly visible, unobstructed, and large enough to judge. The map shows green poles (POLE_000002, POLE_000048, POLE_000052, POLE_000086), but none of them are visible in the street view. Also, POLE_000057 is already classified (gray) and not a candidate. Therefore, no unclassified pole is visible in clear view.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"The street view shows a lamp post with a fixture aimed toward the street, but it does not match any green labeled pole on the map (visible_pole_id is not in remaining_pole_ids or already_classified_pole_ids). The pole is not clearly visible enough to classify as a new unclassified pole.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"move\",\"target_pano_id\":\"SN_UNKNOWN/01446-1655028309/0000001398.jpg\",\"reason\":\"The graph map shows a direct MOVE box to this neighbor pano_id, and the street view confirms the current position is at an intersection with a clear path forward to the right, aligning with the goal direction.\"}"
+          "response": "{\"action\": \"move\", \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000000211.jpg\", \"reason\": \"The goal is to navigate toward the target pano_id, and the MOVE box for this neighbor is the closest to the goal direction.\"}"
         }
       ]
     },
     {
       "step": 49,
       "action": "move",
-      "target_pano_id": "SN_UNKNOWN/01446-1655028309/0000001400.jpg",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001457.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Moved to SN_UNKNOWN/01446-1655028309/0000001400.jpg.",
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001457.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655028309/0000000211.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2592,12 +2597,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 187.9024821491025,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001395.jpg"
+        "last_move_bearing_deg": 29.87035606109476,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001400.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001457.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2608,34 +2613,34 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 182.73845040963275,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg"
+        "last_move_bearing_deg": 243.46951103021223,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000211.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\"pole_in_clear_view\":false,\"visible_pole_id\":null,\"identifiable_pole_type\":null,\"reason\":\"No utility pole is clearly visible in the street view; the view is dominated by a wide road, vehicles, and buildings with no distinct pole structure in the foreground or midground that meets the criteria for classification.\"}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The only pole-like structure is a signpost with a 'VAN HENSEN' billboard, but it is not a utility pole and is already classified as a billboard_pole (POLE_000057). No unclassified green pole matches the criteria for clear visibility.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655028309/0000001400.jpg\",\n  \"reason\": \"The goal is at SN_UNKNOWN/01446-1655028309/0000001491.jpg, and the neighbor SN_UNKNOWN/01446-1655028309/0000001400.jpg is directly connected via a gray line on the graph map, indicating a 20m move. The last move was from 187.9\u00b0, and moving to 1400.jpg (which is 1400\u00b0 relative) is forward along the path toward the goal, avoiding backtracking.\"\n}"
+          "response": "{\"action\": \"move\", \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001457.jpg\", \"reason\": \"The graph map shows a direct MOVE box to this pano_id, and the street view confirms the road ahead is clear for forward movement.\"}"
         }
       ]
     },
     {
       "step": 50,
-      "action": "turn_right",
-      "target_pano_id": null,
+      "action": "move",
+      "target_pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
       "pole_type": null,
       "stop_after": false,
       "pole_in_clear_view": false,
-      "message": "Turned right.",
+      "message": "Moved to SN_UNKNOWN/01446-1655275625/0000001460.jpg.",
       "state_before": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001400.jpg",
-        "direction_bin": 3,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001457.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2646,12 +2651,12 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 182.73845040963275,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg"
+        "last_move_bearing_deg": 243.46951103021223,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000000211.jpg"
       },
       "state_after": {
-        "pano_id": "SN_UNKNOWN/01446-1655028309/0000001400.jpg",
-        "direction_bin": 4,
+        "pano_id": "SN_UNKNOWN/01446-1655275625/0000001460.jpg",
+        "direction_bin": 0,
         "pole_in_consideration": "tr_b6cc83336b8a70f6",
         "classified": {
           "tr_f1c552641a611bac": "billboard_pole"
@@ -2662,20 +2667,20 @@
           "pole_type": null,
           "note": "graph navigation hint (classify uses VLM visible_pole_id)"
         },
-        "last_move_bearing_deg": 182.73845040963275,
-        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655028309/0000001398.jpg"
+        "last_move_bearing_deg": 195.48702498724342,
+        "last_move_from_pano_id": "SN_UNKNOWN/01446-1655275625/0000001457.jpg"
       },
       "visible_pole_id": "POLE_000052",
       "vlm_calls": [
         {
           "phase": "pole_in_clear_view",
           "attempt": 1,
-          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The view shows a road intersection with vehicles and buildings, but no pole is unobstructed or large enough to classify. The only pole in the image is a billboard pole (tr_f1c552641a611bac) which is already classified, so it does not qualify as a new unclassified pole.\"\n}"
+          "response": "{\n  \"pole_in_clear_view\": false,\n  \"visible_pole_id\": null,\n  \"identifiable_pole_type\": null,\n  \"reason\": \"No utility pole is clearly visible in the street view. The only pole-like structure visible is a signpost for 'V HUSEN' which is not a utility pole and is not matched to any green map label. The map shows unclassified poles, but none are visible in the street view to match.\"\n}"
         },
         {
           "phase": "graph_navigation",
           "attempt": 1,
-          "response": "{\"action\":\"turn_right\",\"reason\":\"The street view shows a crossroad with vehicles and buildings, and the magenta arrow from the last move indicates a direction that is not aligned with the current facing. Turning right aligns with the natural flow of traffic and the graph map's directional hints.\"}"
+          "response": "{\n  \"action\": \"move\",\n  \"target_pano_id\": \"SN_UNKNOWN/01446-1655275625/0000001460.jpg\",\n  \"reason\": \"The magenta arrow from YOU indicates the last move was to the right (49.01 degrees relative to view), so moving to the neighbor on the right (1460.jpg) continues forward along the graph without backtracking.\"\n}"
         }
       ]
     }

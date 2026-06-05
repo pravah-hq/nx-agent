@@ -537,6 +537,36 @@ def _draw_you_marker_facing_up(
     )
 
 
+def _draw_pano_graph_edges(
+    draw,
+    *,
+    cx: int,
+    cy: int,
+    current_pano_id: str,
+    pano_positions: dict[str, tuple[int, int, bool, bool]],
+    neighbor_map: dict[str, list[str]],
+    visible_panos: set[str],
+    neighbor_edge_width: int,
+) -> None:
+    """Draw pano graph edges on top of labels (post-rotation coordinates)."""
+    for pano_id in visible_panos:
+        for nid in neighbor_map.get(pano_id, []):
+            if nid not in visible_panos or pano_id > nid:
+                continue
+            is_from_current = pano_id == current_pano_id or nid == current_pano_id
+            width = neighbor_edge_width if is_from_current else 1
+            color = (148, 163, 184, 220) if is_from_current else (100, 116, 139, 140)
+            if pano_id == current_pano_id:
+                ax, ay = cx, cy
+            else:
+                ax, ay = pano_positions[pano_id][0], pano_positions[pano_id][1]
+            if nid == current_pano_id:
+                bx, by = cx, cy
+            else:
+                bx, by = pano_positions[nid][0], pano_positions[nid][1]
+            draw.line((ax, ay, bx, by), fill=color, width=width)
+
+
 def _draw_pano_node_dots(
     draw,
     pano_positions: dict[str, tuple[int, int, bool, bool]],
@@ -949,23 +979,6 @@ def _render_graph_map(
     wedge_len = 110
     neighbor_edge_width = 4
 
-    for pano_id in visible_panos:
-        a = world.panos_by_id.get(pano_id)
-        if not a:
-            continue
-        ax, ay = _project(a.lat, a.lon, min_lat, min_lon, max_lat, max_lon)
-        for nid in neighbor_map.get(pano_id, []):
-            if nid not in visible_panos:
-                continue
-            b = world.panos_by_id.get(nid)
-            if not b or pano_id > nid:
-                continue
-            bx, by = _project(b.lat, b.lon, min_lat, min_lon, max_lat, max_lon)
-            is_from_current = pano_id == state.pano_id or nid == state.pano_id
-            width = neighbor_edge_width if is_from_current else 1
-            color = (148, 163, 184, 220) if is_from_current else (100, 116, 139, 140)
-            draw.line((ax, ay, bx, by), fill=color, width=width)
-
     target_track = state.pole_in_consideration
     for pole in world.poles:
         px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
@@ -1138,6 +1151,16 @@ def _render_graph_map(
         legend.append("MOVE boxes = copy target_pano_id for move")
     _draw_map_legend(draw, legend, font=font)
 
+    _draw_pano_graph_edges(
+        draw,
+        cx=cx,
+        cy=cy,
+        current_pano_id=state.pano_id,
+        pano_positions=pano_positions,
+        neighbor_map=neighbor_map,
+        visible_panos=visible_panos,
+        neighbor_edge_width=neighbor_edge_width,
+    )
     _draw_pano_node_dots(draw, pano_positions, node_radius=node_radius)
     _draw_last_move_vector(
         draw, cx, cy, view_yaw, last_move_bearing_deg, font=_load_map_font(11)
