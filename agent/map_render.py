@@ -106,8 +106,11 @@ def _draw_text_block(
     lines: list[str],
     font,
     *,
-    fill: tuple[int, int, int, int] = (15, 23, 42, 230),
+    background: bool = False,
+    fill: tuple[int, int, int, int] = (15, 23, 42, 96),
     text_fill: tuple[int, int, int] = (226, 232, 240),
+    stroke_width: int = 0,
+    stroke_fill: tuple[int, int, int] = (15, 23, 42),
     title: str | None = None,
     pad_x: int = 6,
     pad_y: int = 4,
@@ -118,10 +121,19 @@ def _draw_text_block(
         draw, lines, font, title=title, pad_x=pad_x, pad_y=pad_y, line_gap=line_gap
     )
     x0, y0 = top_left
-    draw.rectangle((x0, y0, x0 + w, y0 + h), fill=fill)
+    if background:
+        draw.rectangle((x0, y0, x0 + w, y0 + h), fill=fill)
+    outline = stroke_width if stroke_width > 0 else (2 if not background else 0)
     y = y0 + pad_y
     for line in display:
-        draw.text((x0 + pad_x, y), line, fill=text_fill, font=font)
+        draw.text(
+            (x0 + pad_x, y),
+            line,
+            fill=text_fill,
+            font=font,
+            stroke_width=outline,
+            stroke_fill=stroke_fill,
+        )
         box = draw.textbbox((0, 0), line, font=font)
         y += box[3] - box[1] + line_gap
 
@@ -515,13 +527,27 @@ def _draw_you_marker_facing_up(
         fill=(56, 189, 248, 255),
         outline=(255, 255, 255),
     )
-    draw.text((cx + you_radius + 4, cy - 8), "YOU", fill=(255, 255, 255), font=font)
+    draw.text(
+        (cx + you_radius + 4, cy - 8),
+        "YOU",
+        fill=(255, 255, 255),
+        font=font,
+        stroke_width=2,
+        stroke_fill=(15, 23, 42),
+    )
 
 
 def _draw_map_legend(draw, lines: list[str], *, font) -> None:
     y = 8
     for line in lines:
-        draw.text((8, y), line, fill=(226, 232, 240), font=font)
+        draw.text(
+            (8, y),
+            line,
+            fill=(226, 232, 240),
+            font=font,
+            stroke_width=2,
+            stroke_fill=(15, 23, 42),
+        )
         y += 14
 
 
@@ -555,7 +581,14 @@ def _draw_last_move_vector(
         ],
         fill=color,
     )
-    draw.text((ex + 8, ey - 10), "last move", fill=color, font=font)
+    draw.text(
+        (ex + 8, ey - 10),
+        "last move",
+        fill=color,
+        font=font,
+        stroke_width=2,
+        stroke_fill=(15, 23, 42),
+    )
 
 
 def _project(
@@ -974,7 +1007,13 @@ def _render_graph_map(
                 label_dx, label_dy = 16, -8
             else:
                 label_dx, label_dy = 14, -7
-            draw.text((rpx + label_dx, rpy + label_dy), label, fill=(226, 232, 240))
+            draw.text(
+                (rpx + label_dx, rpy + label_dy),
+                label,
+                fill=(226, 232, 240),
+                stroke_width=2,
+                stroke_fill=(15, 23, 42),
+            )
 
     for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
         if is_neighbor:
@@ -1025,7 +1064,9 @@ def _render_graph_map(
 
     for pano_id, px, py in move_items:
         id_lines = _pano_id_display_lines(pano_id)
-        block_w, block_h = _text_block_size(draw, id_lines, id_font, title="MOVE")
+        block_w, block_h = _text_block_size(
+            draw, id_lines, id_font, title="MOVE", pad_x=2, pad_y=2
+        )
         rect = _layout_callout_rect(
             px,
             py,
@@ -1048,7 +1089,8 @@ def _render_graph_map(
             id_lines,
             id_font,
             title="MOVE",
-            fill=(30, 41, 59, 240),
+            pad_x=2,
+            pad_y=2,
             text_fill=(224, 242, 254),
         )
         start, end = _leader_line_to_box(px, py, node_radius, rect)
@@ -1066,7 +1108,9 @@ def _render_graph_map(
 
     for pano_id, px, py in goal_items:
         goal_lines = _pano_id_display_lines(pano_id)
-        block_w, block_h = _text_block_size(draw, goal_lines, id_font, title="GOAL")
+        block_w, block_h = _text_block_size(
+            draw, goal_lines, id_font, title="GOAL", pad_x=2, pad_y=2
+        )
         rect = _layout_callout_rect(
             px,
             py,
@@ -1089,7 +1133,8 @@ def _render_graph_map(
             goal_lines,
             id_font,
             title="GOAL",
-            fill=(30, 41, 59, 240),
+            pad_x=2,
+            pad_y=2,
             text_fill=(250, 204, 21),
         )
         start, end = _leader_line_to_box(px, py, node_radius, rect)
