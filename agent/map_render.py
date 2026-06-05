@@ -537,6 +537,24 @@ def _draw_you_marker_facing_up(
     )
 
 
+def _draw_pano_node_dots(
+    draw,
+    pano_positions: dict[str, tuple[int, int, bool, bool]],
+    *,
+    node_radius: int,
+) -> None:
+    """Draw neighbor / goal pano dots on top of labels and leader lines."""
+    for _pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
+        if is_neighbor:
+            fill = (224, 242, 254, 255)
+        elif is_goal:
+            fill = (250, 204, 21, 200)
+        else:
+            fill = (71, 85, 105, 200)
+        r = node_radius
+        draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
+
+
 def _draw_map_legend(draw, lines: list[str], *, font) -> None:
     y = 8
     for line in lines:
@@ -979,14 +997,6 @@ def _render_graph_map(
         is_neighbor = pano_id in current_neighbors
         is_goal = pano_id in goal_cluster or pano_id == goal_pano_id
         pano_positions_raw[pano_id] = (px, py, is_neighbor, is_goal)
-        if is_neighbor:
-            fill = (224, 242, 254, 255)
-        elif is_goal:
-            fill = (250, 204, 21, 200)
-        else:
-            fill = (71, 85, 105, 200)
-        r = node_radius
-        draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
     image, rot_deg = _rotate_image_heading_up(image, (cx, cy), view_yaw)
     draw = ImageDraw.Draw(image, "RGBA")
@@ -1014,28 +1024,6 @@ def _render_graph_map(
                 stroke_width=2,
                 stroke_fill=(15, 23, 42),
             )
-
-    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
-        if is_neighbor:
-            fill = (224, 242, 254, 255)
-        elif is_goal:
-            fill = (250, 204, 21, 200)
-        else:
-            fill = (71, 85, 105, 200)
-        r = node_radius
-        draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
-
-    _draw_you_marker_facing_up(
-        draw,
-        cx,
-        cy,
-        you_radius=you_radius,
-        wedge_len=wedge_len,
-        font=font,
-    )
-    _draw_last_move_vector(
-        draw, cx, cy, view_yaw, last_move_bearing_deg, font=_load_map_font(11)
-    )
 
     obstacles: list[tuple[str, tuple]] = [
         ("rect", _rect_from_xywh(4, 4, 520, 52)),
@@ -1149,6 +1137,19 @@ def _render_graph_map(
     if show_move_callouts:
         legend.append("MOVE boxes = copy target_pano_id for move")
     _draw_map_legend(draw, legend, font=font)
+
+    _draw_pano_node_dots(draw, pano_positions, node_radius=node_radius)
+    _draw_last_move_vector(
+        draw, cx, cy, view_yaw, last_move_bearing_deg, font=_load_map_font(11)
+    )
+    _draw_you_marker_facing_up(
+        draw,
+        cx,
+        cy,
+        you_radius=you_radius,
+        wedge_len=wedge_len,
+        font=font,
+    )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
