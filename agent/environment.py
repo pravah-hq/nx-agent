@@ -58,7 +58,7 @@ class World:
         pano_id = start_pano_id or self.panos[0].id
         if pano_id not in self.panos_by_id:
             raise ValueError(f"Unknown pano id: {pano_id}")
-        return AgentState(pano_id=pano_id, direction_bin=0)
+        return AgentState(pano_id=pano_id, direction_bin=0, visited_pano_ids={pano_id})
 
     def view_yaw_deg(self, state: AgentState) -> float:
         pano = self.panos_by_id[state.pano_id]
@@ -129,6 +129,7 @@ class World:
                 to_pano = self.panos_by_id[action.target_pano_id]
 
                 next_state.pano_id = action.target_pano_id
+                next_state.visited_pano_ids.add(action.target_pano_id)
                 next_state.last_move_from_pano_id = state.pano_id
                 next_state.last_move_bearing_deg = move_bearing_between_panos(
                     from_pano, to_pano
@@ -141,6 +142,7 @@ class World:
             from_pano = self.panos_by_id[state.pano_id]
 
             next_state.pano_id = target.id
+            next_state.visited_pano_ids.add(target.id)
             next_state.last_move_from_pano_id = state.pano_id
             next_state.last_move_bearing_deg = move_bearing_between_panos(
                 from_pano, target

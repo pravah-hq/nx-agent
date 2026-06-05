@@ -36,8 +36,10 @@ MAP_TEXT_STROKE = (255, 255, 255)
 MAP_EDGE_ACTIVE = (71, 85, 105, 255)
 MAP_EDGE_DIM = (148, 163, 184, 200)
 MAP_NODE_NEIGHBOR = (37, 99, 235, 255)
+MAP_NODE_NEIGHBOR_VISITED = (124, 58, 237, 255)
 MAP_NODE_GOAL = (217, 119, 6, 255)
 MAP_NODE_OTHER = (100, 116, 139, 255)
+MAP_NODE_VISITED = (148, 163, 184, 255)
 MAP_YOU_FILL = (37, 99, 235, 255)
 MAP_YOU_OUTLINE = (255, 255, 255)
 MAP_YOU_WEDGE = (59, 130, 246, 55)
@@ -92,6 +94,12 @@ def _load_map_font(size: int = 13):
             except OSError:
                 continue
     return ImageFont.load_default()
+
+
+def _visited_cache_suffix(state: AgentState) -> str:
+    """Disambiguate cached map PNGs when the visited-pano set changes."""
+    tag = hash(frozenset(state.visited_pano_ids)) & 0xFFFFFFF
+    return f"_v{tag:x}"
 
 
 def _pano_id_display_lines(pano_id: str, *, max_chars: int = 44) -> list[str]:
@@ -591,20 +599,25 @@ def _draw_pano_graph_edges(
             draw.line((ax, ay, bx, by), fill=color, width=width)
 
 
+def _pano_node_fill(*, is_neighbor: bool, is_goal: bool, is_visited: bool) -> tuple[int, int, int, int]:
+    if is_goal:
+        return MAP_NODE_GOAL
+    if is_neighbor:
+        return MAP_NODE_NEIGHBOR_VISITED if is_visited else MAP_NODE_NEIGHBOR
+    return MAP_NODE_VISITED if is_visited else MAP_NODE_OTHER
+
+
 def _draw_pano_node_dots(
     draw,
-    pano_positions: dict[str, tuple[int, int, bool, bool]],
+    pano_positions: dict[str, tuple[int, int, bool, bool, bool]],
     *,
     node_radius: int,
 ) -> None:
     """Draw neighbor / goal pano dots on top of labels and leader lines."""
-    for _pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
-        if is_neighbor:
-            fill = MAP_NODE_NEIGHBOR
-        elif is_goal:
-            fill = MAP_NODE_GOAL
-        else:
-            fill = MAP_NODE_OTHER
+    for _pano_id, (px, py, is_neighbor, is_goal, is_visited) in pano_positions.items():
+        fill = _pano_node_fill(
+            is_neighbor=is_neighbor, is_goal=is_goal, is_visited=is_visited
+        )
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
@@ -1027,7 +1040,8 @@ def _render_graph_map(
     font = _load_map_font(13)
     id_font = _load_map_font(12)
 
-    pano_positions_raw: dict[str, tuple[int, int, bool, bool]] = {}
+    visited = state.visited_pano_ids
+    pano_positions_raw: dict[str, tuple[int, int, bool, bool, bool]] = {}
     for pano_id in visible_panos:
         p = world.panos_by_id[pano_id]
         px, py = _project(p.lat, p.lon, min_lat, min_lon, max_lat, max_lon)
@@ -1035,15 +1049,16 @@ def _render_graph_map(
             continue
         is_neighbor = pano_id in current_neighbors
         is_goal = pano_id in goal_cluster or pano_id == goal_pano_id
-        pano_positions_raw[pano_id] = (px, py, is_neighbor, is_goal)
+        is_visited = pano_id in visited
+        pano_positions_raw[pano_id] = (px, py, is_neighbor, is_goal, is_visited)
 
     image, rot_deg = _rotate_image_heading_up(image, (cx, cy), view_yaw)
     draw = ImageDraw.Draw(image, "RGBA")
 
-    pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
-    for pano_id, (px, py, is_neighbor, is_goal) in pano_positions_raw.items():
+    pano_positions: dict[str, tuple[int, int, bool, bool, bool]] = {}
+    for pano_id, (px, py, is_neighbor, is_goal, is_visited) in pano_positions_raw.items():
         rpx, rpy = _rotate_point_around(px, py, (cx, cy), rot_deg)
-        pano_positions[pano_id] = (rpx, rpy, is_neighbor, is_goal)
+        pano_positions[pano_id] = (rpx, rpy, is_neighbor, is_goal, is_visited)
 
     for pole in world.poles:
         ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
@@ -1074,7 +1089,7 @@ def _render_graph_map(
             rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
             pr = 14 if pole.track_id == target_track else 10
             obstacles.append(("circle", (rpx, rpy, pr)))
-    for pano_id, (px, py, _is_neighbor, _is_goal) in pano_positions.items():
+    for pano_id, (px, py, _is_neighbor, _is_goal, _is_visited) in pano_positions.items():
         obstacles.append(("circle", (px, py, node_callout_radius)))
 
     placed_boxes: list[tuple[int, int, int, int]] = []
@@ -1082,7 +1097,7 @@ def _render_graph_map(
     if show_move_callouts:
         move_items = [
             (pano_id, px, py)
-            for pano_id, (px, py, is_neighbor, _is_goal) in pano_positions.items()
+            for pano_id, (px, py, is_neighbor, _is_goal, _is_visited) in pano_positions.items()
             if is_neighbor
         ]
         move_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
@@ -1126,7 +1141,7 @@ def _render_graph_map(
     if show_move_callouts:
         goal_items = [
             (pano_id, px, py)
-            for pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items()
+            for pano_id, (px, py, is_neighbor, is_goal, _is_visited) in pano_positions.items()
             if is_goal and not is_neighbor
         ]
         goal_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
@@ -1169,7 +1184,7 @@ def _render_graph_map(
 
     legend = [
         "Map up = your facing (matches street view)",
-        "Gray lines = 20 m pano graph edges; blue dots = neighbors",
+        "Gray lines = 20 m pano graph edges; blue dots = unvisited neighbors; purple = visited",
     ]
     if last_move_bearing_deg is not None:
         legend.append("Magenta arrow from YOU = direction you moved last step")
@@ -1306,7 +1321,7 @@ def render_map_navigation_image(
     cache = _map_cache_dir(cache_dir)
     out_path = (
         cache
-        / f"map_graph_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+        / f"map_graph_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
     )
     return _render_graph_map(
         world,
@@ -1344,7 +1359,7 @@ def render_map_image(
     cache = _map_cache_dir(cache_dir)
     out_path = (
         cache
-        / f"map_observe_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+        / f"map_observe_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
     )
     return _render_graph_map(
         world,

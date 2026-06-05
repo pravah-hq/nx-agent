@@ -85,8 +85,9 @@ def build_map_navigation_prompt(
     payload["images"] = image_guide
     payload["map_legend"] = {
         "blue_dot": "you (current pano)",
-        "blue_dots": "neighbors reachable by move (20 m edges)",
-        "gray_lines": "pano graph edges (move only along edges to blue dots)",
+        "blue_dots": "unvisited neighbors reachable by move (20 m edges)",
+        "purple_dots": "already visited pano nodes",
+        "gray_lines": "pano graph edges (move only along edges to neighbor dots)",
         "magenta_arrow": "last move direction (from previous pano); do not move straight back along it without turning",
         "move_boxes": "exact target_pano_id for move on neighbor nodes",
         "orange": "target pole",

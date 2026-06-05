@@ -123,6 +123,7 @@ class AgentState:
     pole_in_consideration: str | None = None
     pole_guess: PoleGuess | None = None
     classified: dict[str, PoleType] = field(default_factory=dict)
+    visited_pano_ids: set[str] = field(default_factory=set)
     # Compass bearing of the previous graph move (from last_move_from_pano_id -> pano_id).
     last_move_bearing_deg: float | None = None
     last_move_from_pano_id: str | None = None
@@ -134,6 +135,7 @@ class AgentState:
             pole_in_consideration=self.pole_in_consideration,
             pole_guess=self.pole_guess,
             classified=dict(self.classified),
+            visited_pano_ids=set(self.visited_pano_ids),
             last_move_bearing_deg=self.last_move_bearing_deg,
             last_move_from_pano_id=self.last_move_from_pano_id,
         )

@@ -79,6 +79,7 @@ def state_to_json(
         "task_complete": world.is_task_complete(state),
         "last_move_bearing_deg": state.last_move_bearing_deg,
         "last_move_from_pano_id": state.last_move_from_pano_id,
+        "visited_pano_ids": sorted(state.visited_pano_ids),
     }
 
 
