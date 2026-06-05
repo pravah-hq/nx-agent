@@ -1,7 +1,7 @@
 """
 PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation: light-theme pano graph maps (overview + zoom); labels only, heading-up.
+Navigation: frontend-style Carto dark maps (overview + zoom), north-up, labels + legend.
 """
 
 from __future__ import annotations
@@ -29,29 +29,27 @@ OVERVIEW_ROUTE_WIDTH = 10
 PANO_NODE_RADIUS = 4
 PANO_NODE_CALLOUT_PAD = 10
 
-# Light map theme — VLM maps use a pale background for readability.
-MAP_BG = (248, 250, 252)
-MAP_TEXT = (30, 41, 59)
-MAP_TEXT_STROKE = (255, 255, 255)
-MAP_EDGE_ACTIVE = (71, 85, 105, 255)
-MAP_EDGE_DIM = (148, 163, 184, 200)
-MAP_NODE_NEIGHBOR = (37, 99, 235, 255)
-MAP_NODE_NEIGHBOR_VISITED = (124, 58, 237, 255)
-MAP_NODE_GOAL = (217, 119, 6, 255)
-MAP_NODE_OTHER = (100, 116, 139, 255)
-MAP_NODE_VISITED = (148, 163, 184, 255)
-MAP_YOU_FILL = (37, 99, 235, 255)
-MAP_YOU_OUTLINE = (255, 255, 255)
-MAP_YOU_WEDGE = (59, 130, 246, 55)
-MAP_YOU_LABEL = (255, 255, 255)
-MAP_POLE_CLASSIFIED = (148, 163, 184, 255)
-MAP_POLE_TARGET = (234, 88, 12, 255)
-MAP_POLE_OPEN = (22, 163, 74, 255)
-MAP_MOVE_TEXT = (29, 78, 216)
-MAP_MOVE_LINE = (59, 130, 246, 220)
-MAP_GOAL_TEXT = (180, 83, 9)
-MAP_GOAL_LINE = (217, 119, 6, 220)
-MAP_LAST_MOVE = (219, 39, 119, 255)
+# Frontend map colors (src/App.tsx default dark basemap).
+MAP_TEXT = (248, 250, 252)
+MAP_TEXT_STROKE = (15, 23, 42)
+FE_ACTIVE_PANO = (56, 189, 248)
+FE_ACTIVE_PANO_FILL = (224, 242, 254)
+FE_NEIGHBOR_STROKE = (3, 105, 161)
+FE_NEIGHBOR_FILL = (255, 255, 255)
+FE_OTHER_STROKE = (148, 163, 184)
+FE_OTHER_FILL = (241, 245, 249)
+FE_VISITED_STROKE = (168, 85, 247)
+FE_VISITED_FILL = (237, 233, 254)
+FE_EDGE_ACTIVE = (56, 189, 248, 242)
+FE_EDGE_DIM = (203, 213, 225, 128)
+FE_POLE_TARGET = (34, 197, 94)
+FE_POLE_CLASSIFIED_STROKE = (100, 116, 139)
+FE_POLE_CLASSIFIED_FILL = (248, 250, 252)
+FE_POLE_OPEN_STROKE = (100, 116, 139)
+FE_POLE_OPEN_FILL = (248, 250, 252)
+FE_VIEWSHED_FILL = (56, 189, 248, 46)
+MAP_LAST_MOVE = (236, 72, 153, 255)
+MAP_BG = (15, 23, 42)
 MAP_ROAD = (100, 116, 139, 220)
 MAP_ROUTE = (217, 119, 6, 245)
 
@@ -544,7 +542,7 @@ def _draw_you_marker_facing_up(
     wedge_len: int,
     font,
     half_fov: int = 50,
-    wedge_fill: tuple[int, int, int, int] = MAP_YOU_WEDGE,
+    wedge_fill: tuple[int, int, int, int] = FE_VIEWSHED_FILL,
 ) -> None:
     """YOU + view wedge with facing toward the top of the image (post-rotation)."""
     points = [(cx, cy)]
@@ -554,18 +552,14 @@ def _draw_you_marker_facing_up(
         wy = cy - int(math.cos(ang) * wedge_len)
         points.append((wx, wy))
     draw.polygon(points, fill=wedge_fill)
-    draw.ellipse(
-        (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
-        fill=MAP_YOU_FILL,
-        outline=MAP_YOU_OUTLINE,
-    )
-    draw.text(
-        (cx + you_radius + 4, cy - 8),
-        "YOU",
-        fill=MAP_YOU_LABEL,
-        font=font,
-        stroke_width=2,
-        stroke_fill=MAP_TEXT,
+    _draw_circle_marker(
+        draw,
+        cx,
+        cy,
+        you_radius,
+        fill=FE_ACTIVE_PANO_FILL,
+        stroke=FE_ACTIVE_PANO,
+        stroke_w=3,
     )
 
 
@@ -578,16 +572,15 @@ def _draw_pano_graph_edges(
     pano_positions: dict[str, tuple[int, int, bool, bool]],
     neighbor_map: dict[str, list[str]],
     visible_panos: set[str],
-    neighbor_edge_width: int,
 ) -> None:
-    """Draw pano graph edges on top of labels (post-rotation coordinates)."""
+    """Draw pano graph edges (frontend colors)."""
     for pano_id in visible_panos:
         for nid in neighbor_map.get(pano_id, []):
             if nid not in visible_panos or pano_id > nid:
                 continue
-            is_from_current = pano_id == current_pano_id or nid == current_pano_id
-            width = neighbor_edge_width if is_from_current else 1
-            color = MAP_EDGE_ACTIVE if is_from_current else MAP_EDGE_DIM
+            is_active = pano_id == current_pano_id or nid == current_pano_id
+            width = 3 if is_active else 1
+            color = FE_EDGE_ACTIVE if is_active else FE_EDGE_DIM
             if pano_id == current_pano_id:
                 ax, ay = cx, cy
             else:
@@ -599,53 +592,41 @@ def _draw_pano_graph_edges(
             draw.line((ax, ay, bx, by), fill=color, width=width)
 
 
-def _pano_node_fill(*, is_neighbor: bool, is_goal: bool, is_visited: bool) -> tuple[int, int, int, int]:
-    if is_goal:
-        return MAP_NODE_GOAL
+def _pano_marker_style(
+    *,
+    is_neighbor: bool,
+    is_visited: bool,
+) -> tuple[int, tuple[int, int, int], tuple[int, int, int], int]:
     if is_neighbor:
-        return MAP_NODE_NEIGHBOR_VISITED if is_visited else MAP_NODE_NEIGHBOR
-    return MAP_NODE_VISITED if is_visited else MAP_NODE_OTHER
+        if is_visited:
+            return 5, FE_VISITED_FILL, FE_VISITED_STROKE, 2
+        return 5, FE_NEIGHBOR_FILL, FE_NEIGHBOR_STROKE, 2
+    if is_visited:
+        return 4, FE_VISITED_FILL, FE_VISITED_STROKE, 1
+    return 4, FE_OTHER_FILL, FE_OTHER_STROKE, 1
 
 
-def _draw_pano_node_dots(
+def _draw_pano_markers(
     draw,
-    pano_positions: dict[str, tuple[int, int, bool, bool, bool]],
-    *,
-    node_radius: int,
+    pano_positions: dict[str, tuple[int, int, bool, bool]],
 ) -> None:
-    """Draw neighbor / goal pano dots on top of labels."""
-    for _pano_id, (px, py, is_neighbor, is_goal, is_visited) in pano_positions.items():
-        fill = _pano_node_fill(
-            is_neighbor=is_neighbor, is_goal=is_goal, is_visited=is_visited
+    for _pano_id, (px, py, is_neighbor, is_visited) in pano_positions.items():
+        radius, fill, stroke, stroke_w = _pano_marker_style(
+            is_neighbor=is_neighbor, is_visited=is_visited
         )
-        r = node_radius
-        draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
-
-
-def _draw_current_pano_dot(
-    draw,
-    cx: int,
-    cy: int,
-    *,
-    radius: int = 7,
-) -> None:
-    draw.ellipse(
-        (cx - radius, cy - radius, cx + radius, cy + radius),
-        fill=MAP_YOU_FILL,
-        outline=MAP_YOU_OUTLINE,
-    )
+        _draw_circle_marker(draw, px, py, radius, fill=fill, stroke=stroke, stroke_w=stroke_w)
 
 
 def _draw_neighbor_pano_labels(
     draw,
-    pano_positions: dict[str, tuple[int, int, bool, bool, bool]],
+    pano_positions: dict[str, tuple[int, int, bool, bool]],
     *,
     font,
 ) -> None:
     """Compact pano id text beside neighbor nodes (zoom map only)."""
     from agent.targeting import pano_compact_id
 
-    for pano_id, (px, py, is_neighbor, _is_goal, _is_visited) in pano_positions.items():
+    for pano_id, (px, py, is_neighbor, _is_visited) in pano_positions.items():
         if not is_neighbor:
             continue
         draw.text(
@@ -672,28 +653,68 @@ def _draw_map_legend(draw, lines: list[str], *, font) -> None:
         y += 14
 
 
+def _draw_circle_marker(
+    draw,
+    cx: int,
+    cy: int,
+    radius: int,
+    *,
+    fill: tuple[int, int, int],
+    stroke: tuple[int, int, int],
+    stroke_w: int = 2,
+) -> None:
+    outer = radius + stroke_w
+    draw.ellipse((cx - outer, cy - outer, cx + outer, cy + outer), fill=stroke)
+    draw.ellipse((cx - radius, cy - radius, cx + radius, cy + radius), fill=fill)
+
+
+def _draw_viewshed(
+    draw,
+    pano,
+    view_yaw_deg: float,
+    *,
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+) -> None:
+    """View cone matching the frontend Leaflet viewshed (north-up map)."""
+    from agent.geo import destination_lat_lon
+    from agent.types import DEFAULT_HFOV_DEG, VIEW_SHED_RADIUS_M
+
+    half = min(max(DEFAULT_HFOV_DEG / 2, 8), 85)
+    cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
+    points: list[tuple[int, int]] = [(cx, cy)]
+    for offset in range(-int(half), int(half) + 1, 5):
+        lat, lon = destination_lat_lon(
+            pano.lat, pano.lon, view_yaw_deg + offset, VIEW_SHED_RADIUS_M
+        )
+        points.append(_project(lat, lon, min_lat, min_lon, max_lat, max_lon))
+    lat, lon = destination_lat_lon(pano.lat, pano.lon, view_yaw_deg + half, VIEW_SHED_RADIUS_M)
+    points.append(_project(lat, lon, min_lat, min_lon, max_lat, max_lon))
+    draw.polygon(points, fill=FE_VIEWSHED_FILL)
+
+
 def _draw_last_move_vector(
     draw,
     cx: int,
     cy: int,
-    view_yaw_deg: float,
     last_move_bearing_deg: float | None,
     *,
     font,
     length: int = 88,
 ) -> None:
-    """Magenta arrow from YOU along previous move bearing (heading-up map)."""
+    """Magenta arrow from current pano along compass bearing (north-up map)."""
     if last_move_bearing_deg is None:
         return
-    delta = ((last_move_bearing_deg - view_yaw_deg + 540.0) % 360.0) - 180.0
-    rad = math.radians(delta)
+    rad = math.radians(last_move_bearing_deg)
     ex = cx + int(math.sin(rad) * length)
     ey = cy - int(math.cos(rad) * length)
     color = MAP_LAST_MOVE
     draw.line((cx, cy, ex, ey), fill=color, width=4)
     head = 10
-    left = math.radians(delta - 150)
-    right = math.radians(delta + 150)
+    left = math.radians(last_move_bearing_deg - 150)
+    right = math.radians(last_move_bearing_deg + 150)
     draw.polygon(
         [
             (ex, ey),
@@ -966,13 +987,13 @@ def _render_overview_roads(
         if px > MAP_SIZE or py > MAP_SIZE:
             continue
         if pole.track_id in state.classified:
-            color = MAP_POLE_CLASSIFIED
+            color = FE_POLE_CLASSIFIED_STROKE
             radius = 5
         elif pole.track_id == target_track:
-            color = MAP_POLE_TARGET
+            color = FE_POLE_TARGET
             radius = 12
         else:
-            color = MAP_POLE_OPEN
+            color = FE_POLE_OPEN_STROKE
             radius = 5
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
 
@@ -998,7 +1019,7 @@ def _render_overview_roads(
             )
 
     _draw_you_marker_facing_up(
-        draw, cx, cy, you_radius=12, wedge_len=70, font=font, wedge_fill=MAP_YOU_WEDGE
+        draw, cx, cy, you_radius=12, wedge_len=70, font=font, wedge_fill=FE_VIEWSHED_FILL
     )
     _draw_map_legend(
         draw,
@@ -1028,9 +1049,12 @@ def _render_graph_map(
     out_path: Path,
     visible_panos: set[str] | None = None,
     label_neighbor_panos: bool = False,
+    last_move_bearing_deg: float | None = None,
 ) -> Path:
-    """Local pano graph: nodes, edges, poles, and text labels only (VLM maps)."""
-    from PIL import Image, ImageDraw
+    """North-up map matching the frontend: Carto dark tiles, graph, labels, legend."""
+    from PIL import ImageDraw
+
+    from agent.map_tiles import render_carto_dark_basemap
 
     neighbor_map = world.neighbor_map
     pano = world.panos_by_id[state.pano_id]
@@ -1038,80 +1062,35 @@ def _render_graph_map(
     current_neighbors = set(get_neighbors(neighbor_map, state.pano_id))
     goal_cluster = _goal_cluster_pano_ids(world, state, goal_pano_id)
 
-    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), MAP_BG)
-    draw = ImageDraw.Draw(image, "RGBA")
-
     if visible_panos is None:
         visible_panos = {state.pano_id, *current_neighbors, *goal_cluster}
     else:
         visible_panos = set(visible_panos)
         visible_panos.add(state.pano_id)
 
-    node_radius = PANO_NODE_RADIUS
-    neighbor_edge_width = 4
-
-    target_track = state.pole_in_consideration
-    for pole in world.poles:
-        px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
-        if px < PADDING_PX - 20 or py < PADDING_PX - 20:
-            continue
-        if px > MAP_SIZE or py > MAP_SIZE:
-            continue
-        if pole.track_id in state.classified:
-            color = MAP_POLE_CLASSIFIED
-            radius = 6
-        elif pole.track_id == target_track:
-            color = MAP_POLE_TARGET
-            radius = 12
-        else:
-            color = MAP_POLE_OPEN
-            radius = 8
-        draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
+    image = render_carto_dark_basemap(
+        min_lat,
+        min_lon,
+        max_lat,
+        max_lon,
+        size=MAP_SIZE,
+        padding_px=PADDING_PX,
+    )
+    draw = ImageDraw.Draw(image, "RGBA")
 
     cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
     label_font = _load_map_font(12)
-
     visited = state.visited_pano_ids
-    pano_positions_raw: dict[str, tuple[int, int, bool, bool, bool]] = {}
+
+    pano_positions: dict[str, tuple[int, int, bool, bool]] = {}
     for pano_id in visible_panos:
-        p = world.panos_by_id[pano_id]
-        px, py = _project(p.lat, p.lon, min_lat, min_lon, max_lat, max_lon)
         if pano_id == state.pano_id:
             continue
+        p = world.panos_by_id[pano_id]
+        px, py = _project(p.lat, p.lon, min_lat, min_lon, max_lat, max_lon)
         is_neighbor = pano_id in current_neighbors
-        is_goal = pano_id in goal_cluster or pano_id == goal_pano_id
         is_visited = pano_id in visited
-        pano_positions_raw[pano_id] = (px, py, is_neighbor, is_goal, is_visited)
-
-    image, rot_deg = _rotate_image_heading_up(image, (cx, cy), view_yaw)
-    draw = ImageDraw.Draw(image, "RGBA")
-
-    pano_positions: dict[str, tuple[int, int, bool, bool, bool]] = {}
-    for pano_id, (px, py, is_neighbor, is_goal, is_visited) in pano_positions_raw.items():
-        rpx, rpy = _rotate_point_around(px, py, (cx, cy), rot_deg)
-        pano_positions[pano_id] = (rpx, rpy, is_neighbor, is_goal, is_visited)
-
-    for pole in world.poles:
-        ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
-        if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
-            rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
-            label = pole.pole_id.replace("POLE_", "")
-            if pole.track_id in state.classified:
-                label_dx, label_dy = 12, -7
-            elif pole.track_id == target_track:
-                label_dx, label_dy = 16, -8
-            else:
-                label_dx, label_dy = 14, -7
-            draw.text(
-                (rpx + label_dx, rpy + label_dy),
-                label,
-                fill=MAP_TEXT,
-                stroke_width=2,
-                stroke_fill=MAP_TEXT_STROKE,
-            )
-
-    if label_neighbor_panos:
-        _draw_neighbor_pano_labels(draw, pano_positions, font=label_font)
+        pano_positions[pano_id] = (px, py, is_neighbor, is_visited)
 
     _draw_pano_graph_edges(
         draw,
@@ -1121,10 +1100,93 @@ def _render_graph_map(
         pano_positions=pano_positions,
         neighbor_map=neighbor_map,
         visible_panos=visible_panos,
-        neighbor_edge_width=neighbor_edge_width,
     )
-    _draw_pano_node_dots(draw, pano_positions, node_radius=node_radius)
-    _draw_current_pano_dot(draw, cx, cy)
+
+    target_track = state.pole_in_consideration
+    for pole in world.poles:
+        px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if px < PADDING_PX - 20 or py < PADDING_PX - 20 or px > MAP_SIZE or py > MAP_SIZE:
+            continue
+        is_target = pole.track_id == target_track
+        radius = 11 if is_target else 6
+        if is_target:
+            _draw_circle_marker(
+                draw, px, py, radius, fill=FE_POLE_TARGET, stroke=(255, 255, 255), stroke_w=3
+            )
+        elif pole.track_id in state.classified:
+            _draw_circle_marker(
+                draw,
+                px,
+                py,
+                radius,
+                fill=FE_POLE_CLASSIFIED_FILL,
+                stroke=FE_POLE_CLASSIFIED_STROKE,
+                stroke_w=2,
+            )
+        else:
+            _draw_circle_marker(
+                draw,
+                px,
+                py,
+                radius,
+                fill=FE_POLE_OPEN_FILL,
+                stroke=FE_POLE_OPEN_STROKE,
+                stroke_w=2,
+            )
+
+    _draw_viewshed(
+        draw,
+        pano,
+        view_yaw,
+        min_lat=min_lat,
+        min_lon=min_lon,
+        max_lat=max_lat,
+        max_lon=max_lon,
+    )
+    _draw_pano_markers(draw, pano_positions)
+    _draw_circle_marker(
+        draw,
+        cx,
+        cy,
+        7,
+        fill=FE_ACTIVE_PANO_FILL,
+        stroke=FE_ACTIVE_PANO,
+        stroke_w=3,
+    )
+
+    for pole in world.poles:
+        px, py = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
+        if px < PADDING_PX - 20 or py < PADDING_PX - 20 or px > MAP_SIZE or py > MAP_SIZE:
+            continue
+        label = pole.pole_id.replace("POLE_", "")
+        if pole.track_id in state.classified:
+            label_dx, label_dy = 12, -7
+        elif pole.track_id == target_track:
+            label_dx, label_dy = 16, -8
+        else:
+            label_dx, label_dy = 14, -7
+        draw.text(
+            (px + label_dx, py + label_dy),
+            label,
+            fill=MAP_TEXT,
+            stroke_width=2,
+            stroke_fill=MAP_TEXT_STROKE,
+        )
+
+    if label_neighbor_panos:
+        _draw_neighbor_pano_labels(draw, pano_positions, font=label_font)
+
+    _draw_last_move_vector(
+        draw, cx, cy, last_move_bearing_deg, font=_load_map_font(11)
+    )
+
+    legend = [
+        "North-up map (same style as the web UI)",
+        "Cyan wedge = your view; blue pano = you; purple = visited neighbors",
+    ]
+    if last_move_bearing_deg is not None:
+        legend.append("Magenta arrow = direction you moved last step")
+    _draw_map_legend(draw, legend, font=label_font)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
@@ -1152,6 +1214,7 @@ def _render_node_zoom_map(
         goal_pano_id=goal_pano_id,
         out_path=out_path,
         label_neighbor_panos=True,
+        last_move_bearing_deg=state.last_move_bearing_deg,
     )
 
 
@@ -1195,6 +1258,7 @@ def render_map_overview_image(
         out_path=out_path,
         visible_panos=visible,
         label_neighbor_panos=False,
+        last_move_bearing_deg=state.last_move_bearing_deg,
     )
     return path, bounds
 

@@ -49,3 +49,25 @@ def distance_between_panos(a: Pano, b: Pano) -> float:
 def move_bearing_between_panos(from_pano: Pano, to_pano: Pano) -> float:
     """Compass bearing (degrees) of the step from from_pano to to_pano."""
     return bearing_deg(from_pano, to_pano.lat, to_pano.lon)
+
+
+def destination_lat_lon(
+    lat_deg: float,
+    lon_deg: float,
+    bearing_deg: float,
+    distance_m: float,
+) -> tuple[float, float]:
+    """Point reached from (lat, lon) along bearing for distance_m (matches frontend)."""
+    radius = 6_371_000
+    delta = distance_m / radius
+    theta = math.radians(bearing_deg)
+    phi1 = math.radians(lat_deg)
+    lambda1 = math.radians(lon_deg)
+    sin_phi2 = math.sin(phi1) * math.cos(delta) + math.cos(phi1) * math.sin(delta) * math.cos(
+        theta
+    )
+    phi2 = math.asin(sin_phi2)
+    y = math.sin(theta) * math.sin(delta) * math.cos(phi1)
+    x = math.cos(delta) - math.sin(phi1) * math.sin(phi2)
+    lambda2 = lambda1 + math.atan2(y, x)
+    return math.degrees(phi2), math.degrees(lambda2)

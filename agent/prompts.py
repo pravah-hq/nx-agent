@@ -16,12 +16,12 @@ from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
 
 MAP_IMAGE_GUIDE = {
-    "image_1": "MAP OVERVIEW — full local pano graph (heading-up, light theme)",
-    "image_2": "MAP ZOOM — zoomed view around you and immediate neighbors",
+    "image_1": "MAP OVERVIEW — same Carto dark map as the web UI (north-up)",
+    "image_2": "MAP ZOOM — zoomed crop around you and neighbors (north-up)",
     "image_3": "STREET VIEW — panorama crop from your current position and facing",
     "use_all": (
-        "Use MAP OVERVIEW for global direction along gray edges toward the orange target pole. "
-        "Use MAP ZOOM for neighbor pano labels and local move choices. "
+        "Maps match the frontend: dark basemap, cyan view wedge, pano graph edges. "
+        "Use MAP OVERVIEW for global direction; MAP ZOOM for neighbor pano labels. "
         "Use STREET VIEW for turns and what is ahead."
     ),
 }
@@ -73,14 +73,15 @@ def build_map_navigation_prompt(
     image_guide = MAP_IMAGE_GUIDE
     payload["images"] = image_guide
     payload["map_legend"] = {
-        "blue_dot": "you (current pano, center of zoom map)",
-        "blue_dots": "unvisited neighbor panos",
-        "purple_dots": "visited pano nodes",
-        "gray_lines": "20 m pano graph edges",
-        "orange": "target pole",
-        "green": "other unclassified poles",
-        "gray": "classified poles",
-        "map_up": "your facing direction (matches street view)",
+        "cyan_wedge": "your view cone (same as frontend map)",
+        "blue_pano": "your current pano",
+        "white_panos": "unvisited neighbors",
+        "purple_panos": "visited pano nodes",
+        "gray_edges": "20 m pano graph edges",
+        "green_pole": "target pole in consideration",
+        "gray_poles": "classified poles",
+        "magenta_arrow": "last move direction (when shown on map)",
+        "north_up": "map is north-up like the web UI",
         "zoom_labels": "compact neighbor pano ids on MAP ZOOM only",
     }
     rules = [
@@ -139,7 +140,8 @@ def build_pole_in_clear_view_prompt(
         "green": "unclassified poles (candidates you may identify)",
         "gray": "already classified — do NOT set pole_in_clear_view for these",
         "orange": "navigation hint only (where the agent is heading)",
-        "map_up": "your facing direction; map up = your facing",
+        "cyan_wedge": "your view cone on the map",
+        "north_up": "map is north-up like the web UI",
     }
     payload["already_classified_pole_ids"] = sorted(classified_pole_ids)
     payload["unclassified_poles"] = [
