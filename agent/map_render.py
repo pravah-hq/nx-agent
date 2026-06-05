@@ -20,8 +20,8 @@ from agent.types import AgentState
 MAP_SIZE = 900
 PADDING_PX = 60
 OVERVIEW_PAD_DEG = 0.00008
-# Match frontend MapPanel fitBounds(pad(0.18)).
-FULL_MAP_BOUNDS_PAD_RATIO = 0.18
+# Extra margin around all panos/poles so the VLM overview is more zoomed-out than the UI.
+FULL_MAP_BOUNDS_PAD_RATIO = 0.45
 NODE_ZOOM_PAD_DEG = 0.000028
 # Node zoom: merge panos near GOAL for framing (same px rule as before).
 OVERVIEW_CLUSTER_PX = 34
