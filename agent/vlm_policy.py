@@ -1,5 +1,5 @@
 """
-VLM policy: graph map (nodes + edges) + street images for navigation.
+VLM policy: overview + zoom maps + street images for navigation.
 
 Tinker here:
   observe()     — VLM clear-view gate only (after apply_consideration in loop)
@@ -21,7 +21,7 @@ from agent.clear_view import evaluate_pole_in_clear_view
 from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
-from agent.map_render import render_map_image, render_map_navigation_image
+from agent.map_render import render_map_node_zoom_image, render_map_overview_image
 from agent.navigation import build_neighbor_move_options
 from agent.targeting import plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
@@ -36,7 +36,7 @@ from agent.views import render_direction_crop
 
 class VlmPolicy(Policy):
     """
-    MAP + STREET VIEW each step. pole_in_clear_view comes from VLM street view;
+    MAP OVERVIEW + MAP ZOOM + STREET VIEW each step. pole_in_clear_view comes from VLM street view;
     when true, classify (no assess_classify action).
     """
 
@@ -53,6 +53,7 @@ class VlmPolicy(Policy):
         self.last_prompt: str = ""
         self.last_response: str = ""
         self.last_map_image: Path | None = None
+        self.last_map_zoom_image: Path | None = None
         self.last_street_image: Path | None = None
         self.last_phase: str = ""
         self.last_pole_in_clear_view: bool = False
@@ -61,8 +62,8 @@ class VlmPolicy(Policy):
         self._goal_pano_id: str | None = None
         self._cached_pano_id: str | None = None
         self._cached_direction_bin: int | None = None
-        self._cached_observation_map_path: Path | None = None
-        self._cached_navigation_map_path: Path | None = None
+        self._cached_overview_path: Path | None = None
+        self._cached_zoom_path: Path | None = None
         self._cached_street_path: Path | None = None
         self.vlm_step_calls: list[dict[str, str | int]] = []
 
@@ -86,6 +87,7 @@ class VlmPolicy(Policy):
         self.last_prompt = ""
         self.last_response = ""
         self.last_map_image = None
+        self.last_map_zoom_image = None
         self.last_street_image = None
         self.last_phase = ""
         self.last_pole_in_clear_view = False
@@ -94,8 +96,8 @@ class VlmPolicy(Policy):
         self._goal_pano_id = None
         self._cached_pano_id = None
         self._cached_direction_bin = None
-        self._cached_observation_map_path = None
-        self._cached_navigation_map_path = None
+        self._cached_overview_path = None
+        self._cached_zoom_path = None
         self._cached_street_path = None
         self.vlm_step_calls = []
 
@@ -105,13 +107,14 @@ class VlmPolicy(Policy):
     def observe(self, world: World, state: AgentState) -> bool:
         """VLM: is an unclassified pole clearly visible in street view?"""
         self._ensure_navigation_plan(world, state)
-        map_path, street_path = self._render_dual_observation(world, state)
+        overview_path, zoom_path, street_path = self._render_vlm_images(world, state)
         self.last_phase = "pole_in_clear_view"
         clear, pole_type, track_id, prompt, raw = evaluate_pole_in_clear_view(
             self.client,
             world,
             state,
-            map_path,
+            overview_path,
+            zoom_path,
             street_path,
             parse_retries=self.parse_retries,
             record_vlm=lambda phase, raw, attempt=1: self._record_vlm(
@@ -131,7 +134,7 @@ class VlmPolicy(Policy):
         self._ensure_navigation_plan(world, state)
 
         if pole_in_clear_view:
-            map_path, street_path = self._render_dual_observation(world, state)
+            overview_path, zoom_path, street_path = self._render_vlm_images(world, state)
             track_id = self.last_visible_track_id
             if not track_id or track_id in state.classified:
                 return Action(type=ActionType.TURN_RIGHT)
@@ -146,7 +149,12 @@ class VlmPolicy(Policy):
             pole_type = self.last_identifiable_pole_type
             if pole_type is None:
                 pole_type = self._classify_pole_type(
-                    world, state, map_path, street_path, pole_in_clear_view=True
+                    world,
+                    state,
+                    overview_path,
+                    zoom_path,
+                    street_path,
+                    pole_in_clear_view=True,
                 )
             self._maybe_trace(state)
             if pole_type is None:
@@ -167,30 +175,41 @@ class VlmPolicy(Policy):
     def _invalidate_cache(self) -> None:
         self._cached_pano_id = None
         self._cached_direction_bin = None
-        self._cached_observation_map_path = None
-        self._cached_navigation_map_path = None
+        self._cached_overview_path = None
+        self._cached_zoom_path = None
         self._cached_street_path = None
 
     def _assess_crop_fov_deg(self) -> float:
         return float(os.environ.get("VLM_ASSESS_CROP_FOV", "100"))
 
-    def _render_dual_observation(
+    def _render_vlm_images(
         self,
         world: World,
         state: AgentState,
-    ) -> tuple[Path, Path]:
-        """Graph map (no MOVE boxes) + street for clear-view and classification."""
+    ) -> tuple[Path, Path, Path]:
+        """Overview map + zoom map + street (same maps for observe and navigate)."""
         if (
-            self._cached_observation_map_path
+            self._cached_overview_path
+            and self._cached_zoom_path
             and self._cached_street_path
             and self._cached_pano_id == state.pano_id
             and self._cached_direction_bin == state.direction_bin
         ):
-            self.last_map_image = self._cached_observation_map_path
+            self.last_map_image = self._cached_overview_path
+            self.last_map_zoom_image = self._cached_zoom_path
             self.last_street_image = self._cached_street_path
-            return self._cached_observation_map_path, self._cached_street_path
+            return (
+                self._cached_overview_path,
+                self._cached_zoom_path,
+                self._cached_street_path,
+            )
 
-        map_path = render_map_image(
+        overview_path, _ = render_map_overview_image(
+            world,
+            state,
+            goal_pano_id=self._goal_pano_id,
+        )
+        zoom_path = render_map_node_zoom_image(
             world,
             state,
             goal_pano_id=self._goal_pano_id,
@@ -203,46 +222,13 @@ class VlmPolicy(Policy):
         )
         self._cached_pano_id = state.pano_id
         self._cached_direction_bin = state.direction_bin
-        self._cached_observation_map_path = map_path
+        self._cached_overview_path = overview_path
+        self._cached_zoom_path = zoom_path
         self._cached_street_path = street_path
-        self.last_map_image = map_path
+        self.last_map_image = overview_path
+        self.last_map_zoom_image = zoom_path
         self.last_street_image = street_path
-        return map_path, street_path
-
-    def _render_navigation_images(
-        self,
-        world: World,
-        state: AgentState,
-    ) -> tuple[Path, Path]:
-        """Graph map (nodes + edges) + street for navigation."""
-        if (
-            self._cached_navigation_map_path
-            and self._cached_street_path
-            and self._cached_pano_id == state.pano_id
-            and self._cached_direction_bin == state.direction_bin
-        ):
-            self.last_map_image = self._cached_navigation_map_path
-            self.last_street_image = self._cached_street_path
-            return self._cached_navigation_map_path, self._cached_street_path
-
-        map_path = render_map_navigation_image(
-            world,
-            state,
-            goal_pano_id=self._goal_pano_id,
-        )
-        pano = world.panos_by_id[state.pano_id]
-        street_path = render_direction_crop(
-            pano,
-            state.direction_bin,
-            crop_fov_deg=self._assess_crop_fov_deg(),
-        )
-        self._cached_pano_id = state.pano_id
-        self._cached_direction_bin = state.direction_bin
-        self._cached_navigation_map_path = map_path
-        self._cached_street_path = street_path
-        self.last_map_image = map_path
-        self.last_street_image = street_path
-        return map_path, street_path
+        return overview_path, zoom_path, street_path
 
     def _vlm_images(
         self,
@@ -275,8 +261,8 @@ class VlmPolicy(Policy):
         state: AgentState,
         pole_in_clear_view: bool,
     ) -> Action | None:
-        map_path, street_path = self._render_navigation_images(world, state)
-        self.last_phase = "graph_navigation"
+        overview_path, zoom_path, street_path = self._render_vlm_images(world, state)
+        self.last_phase = "overview_zoom_navigation"
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
         legal = navigation_allowed_actions(world, state)
@@ -289,7 +275,7 @@ class VlmPolicy(Policy):
             goal_pano_id=self._goal_pano_id,
         )
 
-        image_paths = [map_path, street_path]
+        image_paths = [overview_path, zoom_path, street_path]
 
         last_error = ""
         for attempt in range(self.parse_retries + 1):
@@ -321,7 +307,8 @@ class VlmPolicy(Policy):
         self,
         world: World,
         state: AgentState,
-        map_path: Path,
+        overview_path: Path,
+        zoom_path: Path,
         street_path: Path,
         *,
         pole_in_clear_view: bool,
@@ -344,7 +331,7 @@ class VlmPolicy(Policy):
                 return None
             raw = self._vlm_images(
                 self.last_prompt,
-                [map_path, street_path],
+                [overview_path, zoom_path, street_path],
                 phase="dual_pole_type_classification",
                 attempt=attempt + 1,
             )
@@ -368,7 +355,8 @@ class VlmPolicy(Policy):
         if self.last_response:
             (root / f"{stem}.response.txt").write_text(self.last_response, encoding="utf-8")
         for label, image in (
-            ("map_graph", self.last_map_image),
+            ("map_overview", self.last_map_image),
+            ("map_zoom", self.last_map_zoom_image),
             ("street", self.last_street_image),
         ):
             if image and image.is_file():

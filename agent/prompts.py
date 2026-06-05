@@ -15,25 +15,14 @@ from agent.move_history import last_move_context
 from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
 
-DUAL_IMAGE_GUIDE = {
-    "image_1": "LOCAL MAP — pano graph (YOU, neighbors, edges, poles, GOAL pano)",
-    "image_2": "STREET VIEW — panorama crop from your current position and facing",
-    "use_both": (
-        "Use the MAP for where to move along gray edges; use STREET VIEW for "
-        "what is ahead and whether to turn before moving or assessing."
-    ),
-}
-
-NAV_IMAGE_GUIDE_GRAPH = {
-    "image_1": (
-        "GRAPH MAP — pano nodes (dots), 20 m edges (gray lines), MOVE boxes on neighbors, "
-        "magenta arrow from YOU = direction you moved on the previous step"
-    ),
-    "image_2": "STREET VIEW — panorama crop from your current position and facing",
-    "use_both": (
-        "Use the GRAPH MAP for move targets (MOVE boxes / neighbor_moves) and to avoid "
-        "immediately backtracking along the magenta last-move arrow unless you turn first. "
-        "Use STREET VIEW to turn_left/turn_right before moving or when street context matters."
+MAP_IMAGE_GUIDE = {
+    "image_1": "MAP OVERVIEW — full local pano graph (heading-up, light theme)",
+    "image_2": "MAP ZOOM — zoomed view around you and immediate neighbors",
+    "image_3": "STREET VIEW — panorama crop from your current position and facing",
+    "use_all": (
+        "Use MAP OVERVIEW for global direction along gray edges toward the orange target pole. "
+        "Use MAP ZOOM for neighbor pano labels and local move choices. "
+        "Use STREET VIEW for turns and what is ahead."
     ),
 }
 
@@ -81,38 +70,34 @@ def build_map_navigation_prompt(
         payload["goal_view_pano_label"] = pano_compact_id(goal_pano_id)
     payload["pole_types"] = list(POLE_TYPES)
 
-    image_guide = NAV_IMAGE_GUIDE_GRAPH
+    image_guide = MAP_IMAGE_GUIDE
     payload["images"] = image_guide
     payload["map_legend"] = {
-        "blue_dot": "you (current pano)",
-        "blue_dots": "unvisited neighbors reachable by move (20 m edges)",
-        "purple_dots": "already visited pano nodes",
-        "gray_lines": "pano graph edges (move only along edges to neighbor dots)",
-        "magenta_arrow": "last move direction (from previous pano); do not move straight back along it without turning",
-        "move_boxes": "exact target_pano_id for move on neighbor nodes",
+        "blue_dot": "you (current pano, center of zoom map)",
+        "blue_dots": "unvisited neighbor panos",
+        "purple_dots": "visited pano nodes",
+        "gray_lines": "20 m pano graph edges",
         "orange": "target pole",
         "green": "other unclassified poles",
         "gray": "classified poles",
-        "wedge": "viewing direction; map up = your facing (same as street view)",
+        "map_up": "your facing direction (matches street view)",
+        "zoom_labels": "compact neighbor pano ids on MAP ZOOM only",
     }
     rules = [
-        image_guide["use_both"],
+        image_guide["use_all"],
         "pole_in_clear_view is set by a prior VLM check (not your action).",
         "If true in state JSON, the agent classifies the visible pole; you only navigate when false.",
-        "GRAPH MAP: choose move along gray lines to light neighbor dots only.",
-        "For move, copy target_pano_id EXACTLY from the MOVE box (must match neighbor_moves[].target_pano_id).",
-        "If last_move is set: you arrived from that direction — prefer forward/side moves; "
-        "avoid target_pano_id equal to last_move_from_pano_id unless you turned first (use turn_left/turn_right).",
-        "Use last_move_relative_to_view_deg: ~0° = last move was straight behind you on the map; "
-        "positive = last move was to your right; negative = to your left.",
-        "STREET VIEW: turn_left/turn_right to align with poles or pick the best local move.",
-        "Navigate along the graph toward goal_view_pano_id, not across empty map space.",
+        "Move only along gray edges to neighbor panos listed in neighbor_moves.",
+        "For move, set target_pano_id EXACTLY from neighbor_moves[].target_pano_id (full id in JSON).",
+        "If last_move is set: prefer forward/side moves; avoid immediate backtrack to last_move_from_pano_id unless you turned first.",
+        "STREET VIEW: turn_left/turn_right before moving or when street context matters.",
+        "Navigate toward goal_view_pano_id along the graph.",
         "classify_or_stop is NOT allowed in this step.",
     ]
     payload["rules"] = rules
     return (
         "You control a street panorama agent.\n"
-        "You receive TWO images: (1) GRAPH MAP (2) STREET VIEW.\n"
+        "You receive THREE images: (1) MAP OVERVIEW (2) MAP ZOOM (3) STREET VIEW.\n"
         "Choose exactly one action as JSON.\n\n"
         "Schema:\n"
         '{"action":"turn_left|turn_right|move",'
@@ -149,12 +134,12 @@ def build_pole_in_clear_view_prompt(
     classified_pole_ids: frozenset[str],
 ) -> str:
     payload = _classification_context(world, state, pole_in_clear_view=False)
-    payload["images"] = DUAL_IMAGE_GUIDE
+    payload["images"] = MAP_IMAGE_GUIDE
     payload["map_legend"] = {
         "green": "unclassified poles (candidates you may identify)",
         "gray": "already classified — do NOT set pole_in_clear_view for these",
         "orange": "navigation hint only (where the agent is heading)",
-        "wedge": "your viewing direction; map up = your facing",
+        "map_up": "your facing direction; map up = your facing",
     }
     payload["already_classified_pole_ids"] = sorted(classified_pole_ids)
     payload["unclassified_poles"] = [
@@ -169,7 +154,7 @@ def build_pole_in_clear_view_prompt(
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
     return (
-        "You receive TWO images: (1) LOCAL MAP with pole labels (2) STREET VIEW ahead.\n\n"
+        "You receive THREE images: (1) MAP OVERVIEW (2) MAP ZOOM (3) STREET VIEW ahead.\n\n"
         "You do NOT know any pole types yet — only whether a pole is visible enough to classify.\n\n"
         "Set pole_in_clear_view=true ONLY when ALL are true:\n"
         "1) STREET VIEW shows a utility pole clearly (unobstructed, large enough to judge).\n"
@@ -201,9 +186,9 @@ def build_pole_type_classification_prompt(
     payload = _classification_context(world, state, pole_in_clear_view=pole_in_clear_view)
     payload["pole_type_definitions"] = POLE_TYPE_GUIDE
     payload["allowed_pole_types"] = list(POLE_TYPES)
-    payload["images"] = DUAL_IMAGE_GUIDE
+    payload["images"] = MAP_IMAGE_GUIDE
     return (
-        "You receive TWO images: (1) MAP (2) STREET VIEW crop.\n"
+        "You receive THREE images: (1) MAP OVERVIEW (2) MAP ZOOM (3) STREET VIEW crop.\n"
         "Classify the visible pole's type using STREET VIEW.\n"
         f"Pole to classify: {pole.pole_id if pole else 'unknown'} "
         "(the pole identified in the prior clear-view step).\n\n"

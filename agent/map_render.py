@@ -1,7 +1,7 @@
 """
 PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation: light-theme pano graph map (nodes, edges, MOVE ids, last-move vector).
+Navigation: light-theme pano graph maps (overview + zoom); labels only, heading-up.
 """
 
 from __future__ import annotations
@@ -613,13 +613,49 @@ def _draw_pano_node_dots(
     *,
     node_radius: int,
 ) -> None:
-    """Draw neighbor / goal pano dots on top of labels and leader lines."""
+    """Draw neighbor / goal pano dots on top of labels."""
     for _pano_id, (px, py, is_neighbor, is_goal, is_visited) in pano_positions.items():
         fill = _pano_node_fill(
             is_neighbor=is_neighbor, is_goal=is_goal, is_visited=is_visited
         )
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
+
+
+def _draw_current_pano_dot(
+    draw,
+    cx: int,
+    cy: int,
+    *,
+    radius: int = 7,
+) -> None:
+    draw.ellipse(
+        (cx - radius, cy - radius, cx + radius, cy + radius),
+        fill=MAP_YOU_FILL,
+        outline=MAP_YOU_OUTLINE,
+    )
+
+
+def _draw_neighbor_pano_labels(
+    draw,
+    pano_positions: dict[str, tuple[int, int, bool, bool, bool]],
+    *,
+    font,
+) -> None:
+    """Compact pano id text beside neighbor nodes (zoom map only)."""
+    from agent.targeting import pano_compact_id
+
+    for pano_id, (px, py, is_neighbor, _is_goal, _is_visited) in pano_positions.items():
+        if not is_neighbor:
+            continue
+        draw.text(
+            (px + 6, py - 7),
+            pano_compact_id(pano_id),
+            fill=MAP_TEXT,
+            font=font,
+            stroke_width=2,
+            stroke_fill=MAP_TEXT_STROKE,
+        )
 
 
 def _draw_map_legend(draw, lines: list[str], *, font) -> None:
@@ -991,10 +1027,9 @@ def _render_graph_map(
     goal_pano_id: str | None,
     out_path: Path,
     visible_panos: set[str] | None = None,
-    last_move_bearing_deg: float | None = None,
-    show_move_callouts: bool = True,
+    label_neighbor_panos: bool = False,
 ) -> Path:
-    """Local pano graph: nodes, edges, poles; optional MOVE callouts and last-move arrow."""
+    """Local pano graph: nodes, edges, poles, and text labels only (VLM maps)."""
     from PIL import Image, ImageDraw
 
     neighbor_map = world.neighbor_map
@@ -1013,9 +1048,6 @@ def _render_graph_map(
         visible_panos.add(state.pano_id)
 
     node_radius = PANO_NODE_RADIUS
-    node_callout_radius = node_radius + PANO_NODE_CALLOUT_PAD
-    you_radius = 14
-    wedge_len = 110
     neighbor_edge_width = 4
 
     target_track = state.pole_in_consideration
@@ -1037,8 +1069,7 @@ def _render_graph_map(
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
 
     cx, cy = _project(pano.lat, pano.lon, min_lat, min_lon, max_lat, max_lon)
-    font = _load_map_font(13)
-    id_font = _load_map_font(12)
+    label_font = _load_map_font(12)
 
     visited = state.visited_pano_ids
     pano_positions_raw: dict[str, tuple[int, int, bool, bool, bool]] = {}
@@ -1079,118 +1110,8 @@ def _render_graph_map(
                 stroke_fill=MAP_TEXT_STROKE,
             )
 
-    obstacles: list[tuple[str, tuple]] = [
-        ("rect", _rect_from_xywh(4, 4, 520, 52)),
-        ("circle", (cx, cy, you_radius + wedge_len)),
-    ]
-    for pole in world.poles:
-        ppx, ppy = _project(pole.lat, pole.lon, min_lat, min_lon, max_lat, max_lon)
-        if PADDING_PX - 20 <= ppx <= MAP_SIZE and PADDING_PX - 20 <= ppy <= MAP_SIZE:
-            rpx, rpy = _rotate_point_around(ppx, ppy, (cx, cy), rot_deg)
-            pr = 14 if pole.track_id == target_track else 10
-            obstacles.append(("circle", (rpx, rpy, pr)))
-    for pano_id, (px, py, _is_neighbor, _is_goal, _is_visited) in pano_positions.items():
-        obstacles.append(("circle", (px, py, node_callout_radius)))
-
-    placed_boxes: list[tuple[int, int, int, int]] = []
-
-    if show_move_callouts:
-        move_items = [
-            (pano_id, px, py)
-            for pano_id, (px, py, is_neighbor, _is_goal, _is_visited) in pano_positions.items()
-            if is_neighbor
-        ]
-        move_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
-    else:
-        move_items = []
-
-    for pano_id, px, py in move_items:
-        id_lines = _pano_id_display_lines(pano_id)
-        block_w, block_h = _text_block_size(
-            draw, id_lines, id_font, title="MOVE", pad_x=2, pad_y=2
-        )
-        rect = _layout_callout_rect(
-            px,
-            py,
-            node_callout_radius,
-            block_w,
-            block_h,
-            cx,
-            cy,
-            you_radius,
-            obstacles,
-            placed_boxes,
-        )
-        if rect is None:
-            rect = _clamp_rect(px + 20, py - block_h // 2, block_w, block_h)
-            placed_boxes.append(rect)
-        x0, y0, x1, y1 = rect
-        _draw_text_block(
-            draw,
-            (x0, y0),
-            id_lines,
-            id_font,
-            title="MOVE",
-            pad_x=2,
-            pad_y=2,
-            text_fill=MAP_MOVE_TEXT,
-        )
-        start, end = _leader_line_to_box(px, py, node_radius, rect)
-        draw.line((*start, *end), fill=MAP_MOVE_LINE, width=1)
-
-    if show_move_callouts:
-        goal_items = [
-            (pano_id, px, py)
-            for pano_id, (px, py, is_neighbor, is_goal, _is_visited) in pano_positions.items()
-            if is_goal and not is_neighbor
-        ]
-        goal_items.sort(key=lambda item: math.atan2(item[2] - cy, item[1] - cx))
-    else:
-        goal_items = []
-
-    for pano_id, px, py in goal_items:
-        goal_lines = _pano_id_display_lines(pano_id)
-        block_w, block_h = _text_block_size(
-            draw, goal_lines, id_font, title="GOAL", pad_x=2, pad_y=2
-        )
-        rect = _layout_callout_rect(
-            px,
-            py,
-            node_callout_radius,
-            block_w,
-            block_h,
-            cx,
-            cy,
-            you_radius,
-            obstacles,
-            placed_boxes,
-        )
-        if rect is None:
-            rect = _clamp_rect(px - block_w // 2, py - block_h - 20, block_w, block_h)
-            placed_boxes.append(rect)
-        x0, y0, x1, y1 = rect
-        _draw_text_block(
-            draw,
-            (x0, y0),
-            goal_lines,
-            id_font,
-            title="GOAL",
-            pad_x=2,
-            pad_y=2,
-            text_fill=MAP_GOAL_TEXT,
-        )
-        start, end = _leader_line_to_box(px, py, node_radius, rect)
-        draw.line((*start, *end), fill=MAP_GOAL_LINE, width=1)
-
-    legend = [
-        "Map up = your facing (matches street view)",
-        "Gray lines = 20 m pano graph edges; blue dots = unvisited neighbors; purple = visited",
-    ]
-    if last_move_bearing_deg is not None:
-        legend.append("Magenta arrow from YOU = direction you moved last step")
-    if show_move_callouts:
-        legend.append("MOVE boxes = copy target_pano_id for move")
-    _draw_map_legend(draw, legend, font=font)
+    if label_neighbor_panos:
+        _draw_neighbor_pano_labels(draw, pano_positions, font=label_font)
 
     _draw_pano_graph_edges(
         draw,
@@ -1203,17 +1124,7 @@ def _render_graph_map(
         neighbor_edge_width=neighbor_edge_width,
     )
     _draw_pano_node_dots(draw, pano_positions, node_radius=node_radius)
-    _draw_last_move_vector(
-        draw, cx, cy, view_yaw, last_move_bearing_deg, font=_load_map_font(11)
-    )
-    _draw_you_marker_facing_up(
-        draw,
-        cx,
-        cy,
-        you_radius=you_radius,
-        wedge_len=wedge_len,
-        font=font,
-    )
+    _draw_current_pano_dot(draw, cx, cy)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")
@@ -1240,8 +1151,7 @@ def _render_node_zoom_map(
         max_lon=max_lon,
         goal_pano_id=goal_pano_id,
         out_path=out_path,
-        show_move_callouts=True,
-        last_move_bearing_deg=state.last_move_bearing_deg,
+        label_neighbor_panos=True,
     )
 
 
@@ -1258,11 +1168,23 @@ def render_map_overview_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> tuple[Path, OverviewMapBounds]:
-    """Overview: road network from pano graph; no pano nodes on map."""
+    """Overview pano graph map (heading-up, light theme, pole labels only)."""
     bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
+    visible = _overview_visible_pano_ids(
+        world,
+        state,
+        goal_pano_id=goal_pano_id,
+        min_lat=bounds.min_lat,
+        min_lon=bounds.min_lon,
+        max_lat=bounds.max_lat,
+        max_lon=bounds.max_lon,
+    )
     cache = _map_cache_dir(cache_dir)
-    out_path = cache / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
-    path = _render_overview_roads(
+    out_path = (
+        cache
+        / f"map_overview_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
+    )
+    path = _render_graph_map(
         world,
         state,
         min_lat=bounds.min_lat,
@@ -1271,6 +1193,8 @@ def render_map_overview_image(
         max_lon=bounds.max_lon,
         goal_pano_id=goal_pano_id,
         out_path=out_path,
+        visible_panos=visible,
+        label_neighbor_panos=False,
     )
     return path, bounds
 
@@ -1282,12 +1206,15 @@ def render_map_node_zoom_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> Path:
-    """Map centered between YOU and the overview GOAL cluster; MOVE ids on neighbors."""
+    """Zoomed pano graph around you and neighbors (heading-up, neighbor id labels)."""
     min_lat, min_lon, max_lat, max_lon = _node_zoom_bounds(
         world, state, goal_pano_id=goal_pano_id
     )
     cache = _map_cache_dir(cache_dir)
-    out_path = cache / f"map_zoom_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}.png"
+    out_path = (
+        cache
+        / f"map_zoom_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
+    )
     return _render_node_zoom_map(
         world,
         state,
@@ -1300,44 +1227,6 @@ def render_map_node_zoom_image(
     )
 
 
-def render_map_navigation_image(
-    world: World,
-    state: AgentState,
-    *,
-    cache_dir: Path | None = None,
-    goal_pano_id: str | None = None,
-) -> Path:
-    """Navigation map: pano nodes, edges, MOVE callouts, last-move vector."""
-    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
-    visible = _overview_visible_pano_ids(
-        world,
-        state,
-        goal_pano_id=goal_pano_id,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-    )
-    cache = _map_cache_dir(cache_dir)
-    out_path = (
-        cache
-        / f"map_graph_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
-    )
-    return _render_graph_map(
-        world,
-        state,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-        goal_pano_id=goal_pano_id,
-        out_path=out_path,
-        visible_panos=visible,
-        last_move_bearing_deg=state.last_move_bearing_deg,
-        show_move_callouts=True,
-    )
-
-
 def render_map_image(
     world: World,
     state: AgentState,
@@ -1345,32 +1234,8 @@ def render_map_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> Path:
-    """Graph map for clear-view / classification (no MOVE callouts)."""
-    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
-    visible = _overview_visible_pano_ids(
-        world,
-        state,
-        goal_pano_id=goal_pano_id,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
+    """Alias for the overview map (backward compatibility)."""
+    path, _ = render_map_overview_image(
+        world, state, cache_dir=cache_dir, goal_pano_id=goal_pano_id
     )
-    cache = _map_cache_dir(cache_dir)
-    out_path = (
-        cache
-        / f"map_observe_{state.pano_id.replace('/', '_')}_bin{state.direction_bin}{_visited_cache_suffix(state)}.png"
-    )
-    return _render_graph_map(
-        world,
-        state,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-        goal_pano_id=goal_pano_id,
-        out_path=out_path,
-        visible_panos=visible,
-        last_move_bearing_deg=state.last_move_bearing_deg,
-        show_move_callouts=False,
-    )
+    return path

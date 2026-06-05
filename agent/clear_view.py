@@ -37,7 +37,8 @@ def evaluate_pole_in_clear_view(
     client: VlmClient,
     world: World,
     state: AgentState,
-    map_path: Path,
+    overview_path: Path,
+    zoom_path: Path,
     street_path: Path,
     *,
     parse_retries: int = 2,
@@ -65,7 +66,7 @@ def evaluate_pole_in_clear_view(
                 "If no new pole is visible, pole_in_clear_view false."
             )
         full_prompt = prompt + extra
-        raw = client.complete_images(full_prompt, [map_path, street_path])
+        raw = client.complete_images(full_prompt, [overview_path, zoom_path, street_path])
         last_raw = raw
         if record_vlm is not None:
             record_vlm("pole_in_clear_view", raw, attempt=attempt + 1)
