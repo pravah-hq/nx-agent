@@ -1,7 +1,7 @@
 """
 PNG local maps for VLM (cached under .cache/agent_maps/).
 
-Navigation: pano graph map (nodes, edges, MOVE ids, last-move vector); clear-view uses graph without MOVE boxes.
+Navigation: light-theme pano graph map (nodes, edges, MOVE ids, last-move vector).
 """
 
 from __future__ import annotations
@@ -28,6 +28,30 @@ OVERVIEW_ROUTE_WIDTH = 10
 # Pano graph dots (small so MOVE / pole labels do not cover them).
 PANO_NODE_RADIUS = 4
 PANO_NODE_CALLOUT_PAD = 10
+
+# Light map theme — VLM maps use a pale background for readability.
+MAP_BG = (248, 250, 252)
+MAP_TEXT = (30, 41, 59)
+MAP_TEXT_STROKE = (255, 255, 255)
+MAP_EDGE_ACTIVE = (71, 85, 105, 255)
+MAP_EDGE_DIM = (148, 163, 184, 200)
+MAP_NODE_NEIGHBOR = (37, 99, 235, 255)
+MAP_NODE_GOAL = (217, 119, 6, 255)
+MAP_NODE_OTHER = (100, 116, 139, 255)
+MAP_YOU_FILL = (37, 99, 235, 255)
+MAP_YOU_OUTLINE = (255, 255, 255)
+MAP_YOU_WEDGE = (59, 130, 246, 55)
+MAP_YOU_LABEL = (255, 255, 255)
+MAP_POLE_CLASSIFIED = (148, 163, 184, 255)
+MAP_POLE_TARGET = (234, 88, 12, 255)
+MAP_POLE_OPEN = (22, 163, 74, 255)
+MAP_MOVE_TEXT = (29, 78, 216)
+MAP_MOVE_LINE = (59, 130, 246, 220)
+MAP_GOAL_TEXT = (180, 83, 9)
+MAP_GOAL_LINE = (217, 119, 6, 220)
+MAP_LAST_MOVE = (219, 39, 119, 255)
+MAP_ROAD = (100, 116, 139, 220)
+MAP_ROUTE = (217, 119, 6, 245)
 
 
 @dataclass(frozen=True)
@@ -107,10 +131,10 @@ def _draw_text_block(
     font,
     *,
     background: bool = False,
-    fill: tuple[int, int, int, int] = (15, 23, 42, 96),
-    text_fill: tuple[int, int, int] = (226, 232, 240),
+    fill: tuple[int, int, int, int] = (*MAP_BG, 96),
+    text_fill: tuple[int, int, int] = MAP_TEXT,
     stroke_width: int = 0,
-    stroke_fill: tuple[int, int, int] = (15, 23, 42),
+    stroke_fill: tuple[int, int, int] = MAP_TEXT_STROKE,
     title: str | None = None,
     pad_x: int = 6,
     pad_y: int = 4,
@@ -512,7 +536,7 @@ def _draw_you_marker_facing_up(
     wedge_len: int,
     font,
     half_fov: int = 50,
-    wedge_fill: tuple[int, int, int, int] = (56, 189, 248, 80),
+    wedge_fill: tuple[int, int, int, int] = MAP_YOU_WEDGE,
 ) -> None:
     """YOU + view wedge with facing toward the top of the image (post-rotation)."""
     points = [(cx, cy)]
@@ -524,16 +548,16 @@ def _draw_you_marker_facing_up(
     draw.polygon(points, fill=wedge_fill)
     draw.ellipse(
         (cx - you_radius, cy - you_radius, cx + you_radius, cy + you_radius),
-        fill=(56, 189, 248, 255),
-        outline=(255, 255, 255),
+        fill=MAP_YOU_FILL,
+        outline=MAP_YOU_OUTLINE,
     )
     draw.text(
         (cx + you_radius + 4, cy - 8),
         "YOU",
-        fill=(255, 255, 255),
+        fill=MAP_YOU_LABEL,
         font=font,
         stroke_width=2,
-        stroke_fill=(15, 23, 42),
+        stroke_fill=MAP_TEXT,
     )
 
 
@@ -555,7 +579,7 @@ def _draw_pano_graph_edges(
                 continue
             is_from_current = pano_id == current_pano_id or nid == current_pano_id
             width = neighbor_edge_width if is_from_current else 1
-            color = (148, 163, 184, 220) if is_from_current else (100, 116, 139, 140)
+            color = MAP_EDGE_ACTIVE if is_from_current else MAP_EDGE_DIM
             if pano_id == current_pano_id:
                 ax, ay = cx, cy
             else:
@@ -576,11 +600,11 @@ def _draw_pano_node_dots(
     """Draw neighbor / goal pano dots on top of labels and leader lines."""
     for _pano_id, (px, py, is_neighbor, is_goal) in pano_positions.items():
         if is_neighbor:
-            fill = (224, 242, 254, 255)
+            fill = MAP_NODE_NEIGHBOR
         elif is_goal:
-            fill = (250, 204, 21, 200)
+            fill = MAP_NODE_GOAL
         else:
-            fill = (71, 85, 105, 200)
+            fill = MAP_NODE_OTHER
         r = node_radius
         draw.ellipse((px - r, py - r, px + r, py + r), fill=fill)
 
@@ -591,10 +615,10 @@ def _draw_map_legend(draw, lines: list[str], *, font) -> None:
         draw.text(
             (8, y),
             line,
-            fill=(226, 232, 240),
+            fill=MAP_TEXT,
             font=font,
             stroke_width=2,
-            stroke_fill=(15, 23, 42),
+            stroke_fill=MAP_TEXT_STROKE,
         )
         y += 14
 
@@ -616,7 +640,7 @@ def _draw_last_move_vector(
     rad = math.radians(delta)
     ex = cx + int(math.sin(rad) * length)
     ey = cy - int(math.cos(rad) * length)
-    color = (236, 72, 153, 255)
+    color = MAP_LAST_MOVE
     draw.line((cx, cy, ex, ey), fill=color, width=4)
     head = 10
     left = math.radians(delta - 150)
@@ -635,7 +659,7 @@ def _draw_last_move_vector(
         fill=color,
         font=font,
         stroke_width=2,
-        stroke_fill=(15, 23, 42),
+        stroke_fill=MAP_TEXT_STROKE,
     )
 
 
@@ -856,12 +880,12 @@ def _render_overview_roads(
     route_edges = _path_edge_set(route_path)
     polylines = _extract_road_polylines(world, visible_panos)
 
-    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
+    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), MAP_BG)
     draw = ImageDraw.Draw(image, "RGBA")
     font = _load_map_font(12)
 
-    road_color = (82, 96, 118, 230)
-    route_color = (250, 204, 21, 245)
+    road_color = MAP_ROAD
+    route_color = MAP_ROUTE
 
     for chain in polylines:
         if _polyline_uses_route(chain, route_edges):
@@ -893,13 +917,13 @@ def _render_overview_roads(
         if px > MAP_SIZE or py > MAP_SIZE:
             continue
         if pole.track_id in state.classified:
-            color = (100, 116, 139, 255)
+            color = MAP_POLE_CLASSIFIED
             radius = 5
         elif pole.track_id == target_track:
-            color = (249, 115, 22, 255)
+            color = MAP_POLE_TARGET
             radius = 12
         else:
-            color = (34, 197, 94, 255)
+            color = MAP_POLE_OPEN
             radius = 5
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
 
@@ -918,12 +942,14 @@ def _render_overview_roads(
             draw.text(
                 (rpx + 12, rpy - 10),
                 pole.pole_id.replace("POLE_", ""),
-                fill=(255, 255, 255),
+                fill=MAP_TEXT,
                 font=font,
+                stroke_width=2,
+                stroke_fill=MAP_TEXT_STROKE,
             )
 
     _draw_you_marker_facing_up(
-        draw, cx, cy, you_radius=12, wedge_len=70, font=font, wedge_fill=(56, 189, 248, 70)
+        draw, cx, cy, you_radius=12, wedge_len=70, font=font, wedge_fill=MAP_YOU_WEDGE
     )
     _draw_map_legend(
         draw,
@@ -964,7 +990,7 @@ def _render_graph_map(
     current_neighbors = set(get_neighbors(neighbor_map, state.pano_id))
     goal_cluster = _goal_cluster_pano_ids(world, state, goal_pano_id)
 
-    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), (15, 23, 42))
+    image = Image.new("RGB", (MAP_SIZE, MAP_SIZE), MAP_BG)
     draw = ImageDraw.Draw(image, "RGBA")
 
     if visible_panos is None:
@@ -987,13 +1013,13 @@ def _render_graph_map(
         if px > MAP_SIZE or py > MAP_SIZE:
             continue
         if pole.track_id in state.classified:
-            color = (100, 116, 139, 255)
+            color = MAP_POLE_CLASSIFIED
             radius = 6
         elif pole.track_id == target_track:
-            color = (249, 115, 22, 255)
+            color = MAP_POLE_TARGET
             radius = 12
         else:
-            color = (34, 197, 94, 255)
+            color = MAP_POLE_OPEN
             radius = 8
         draw.ellipse((px - radius, py - radius, px + radius, py + radius), fill=color)
 
@@ -1033,9 +1059,9 @@ def _render_graph_map(
             draw.text(
                 (rpx + label_dx, rpy + label_dy),
                 label,
-                fill=(226, 232, 240),
+                fill=MAP_TEXT,
                 stroke_width=2,
-                stroke_fill=(15, 23, 42),
+                stroke_fill=MAP_TEXT_STROKE,
             )
 
     obstacles: list[tuple[str, tuple]] = [
@@ -1092,10 +1118,10 @@ def _render_graph_map(
             title="MOVE",
             pad_x=2,
             pad_y=2,
-            text_fill=(224, 242, 254),
+            text_fill=MAP_MOVE_TEXT,
         )
         start, end = _leader_line_to_box(px, py, node_radius, rect)
-        draw.line((*start, *end), fill=(125, 211, 252, 200), width=1)
+        draw.line((*start, *end), fill=MAP_MOVE_LINE, width=1)
 
     if show_move_callouts:
         goal_items = [
@@ -1136,14 +1162,14 @@ def _render_graph_map(
             title="GOAL",
             pad_x=2,
             pad_y=2,
-            text_fill=(250, 204, 21),
+            text_fill=MAP_GOAL_TEXT,
         )
         start, end = _leader_line_to_box(px, py, node_radius, rect)
-        draw.line((*start, *end), fill=(250, 204, 21, 200), width=1)
+        draw.line((*start, *end), fill=MAP_GOAL_LINE, width=1)
 
     legend = [
         "Map up = your facing (matches street view)",
-        "Gray lines = 20 m pano graph edges; light dots = neighbors",
+        "Gray lines = 20 m pano graph edges; blue dots = neighbors",
     ]
     if last_move_bearing_deg is not None:
         legend.append("Magenta arrow from YOU = direction you moved last step")
