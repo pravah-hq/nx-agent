@@ -16,7 +16,7 @@ from agent.observations import state_to_json
 from agent.types import POLE_TYPES, AgentState, PoleType
 
 MAP_IMAGE_GUIDE = {
-    "image_1": "MAP OVERVIEW — same Carto dark map as the web UI (north-up)",
+    "image_1": "MAP OVERVIEW — entire map area (all panos/poles), same as web UI fitBounds",
     "image_2": "MAP ZOOM — zoomed crop around you and neighbors (north-up)",
     "image_3": "STREET VIEW — panorama crop from your current position and facing",
     "use_all": (

@@ -20,6 +20,8 @@ from agent.types import AgentState
 MAP_SIZE = 900
 PADDING_PX = 60
 OVERVIEW_PAD_DEG = 0.00008
+# Match frontend MapPanel fitBounds(pad(0.18)).
+FULL_MAP_BOUNDS_PAD_RATIO = 0.18
 NODE_ZOOM_PAD_DEG = 0.000028
 # Node zoom: merge panos near GOAL for framing (same px rule as before).
 OVERVIEW_CLUSTER_PX = 34
@@ -74,6 +76,31 @@ def overview_bounds_for_state(
         world, state, goal_pano_id=goal_pano_id
     )
     return OverviewMapBounds(min_lat, min_lon, max_lat, max_lon)
+
+
+def full_map_bounds(world: World) -> OverviewMapBounds:
+    """Extents of every pano and pole, padded like the frontend map fitBounds."""
+    min_lat, min_lon, max_lat, max_lon = _full_map_bounds(world)
+    return OverviewMapBounds(min_lat, min_lon, max_lat, max_lon)
+
+
+def _full_map_bounds(world: World) -> tuple[float, float, float, float]:
+    lats = [p.lat for p in world.panos] + [p.lat for p in world.poles]
+    lons = [p.lon for p in world.panos] + [p.lon for p in world.poles]
+    if not lats:
+        return 0.0, 0.0, 0.0, 0.0
+    min_lat, max_lat = min(lats), max(lats)
+    min_lon, max_lon = min(lons), max(lons)
+    lat_span = max(max_lat - min_lat, 1e-9)
+    lon_span = max(max_lon - min_lon, 1e-9)
+    pad_lat = lat_span * FULL_MAP_BOUNDS_PAD_RATIO
+    pad_lon = lon_span * FULL_MAP_BOUNDS_PAD_RATIO
+    return (
+        min_lat - pad_lat,
+        min_lon - pad_lon,
+        max_lat + pad_lat,
+        max_lon + pad_lon,
+    )
 
 
 def _load_map_font(size: int = 13):
@@ -1231,17 +1258,9 @@ def render_map_overview_image(
     cache_dir: Path | None = None,
     goal_pano_id: str | None = None,
 ) -> tuple[Path, OverviewMapBounds]:
-    """Overview pano graph map (heading-up, light theme, pole labels only)."""
-    bounds = overview_bounds_for_state(world, state, goal_pano_id=goal_pano_id)
-    visible = _overview_visible_pano_ids(
-        world,
-        state,
-        goal_pano_id=goal_pano_id,
-        min_lat=bounds.min_lat,
-        min_lon=bounds.min_lon,
-        max_lat=bounds.max_lat,
-        max_lon=bounds.max_lon,
-    )
+    """Full-area overview map (all panos/poles), matching the frontend fitBounds."""
+    bounds = full_map_bounds(world)
+    visible = set(world.panos_by_id.keys())
     cache = _map_cache_dir(cache_dir)
     out_path = (
         cache
