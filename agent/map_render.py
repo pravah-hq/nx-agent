@@ -619,6 +619,92 @@ def _draw_pano_graph_edges(
             draw.line((ax, ay, bx, by), fill=color, width=width)
 
 
+def _build_consolidated_pano_clusters(
+    pano_positions: dict[str, tuple[int, int, bool, bool]],
+    *,
+    threshold_px: int,
+) -> tuple[dict[str, int], dict[int, tuple[int, int, bool, bool, int]]]:
+    """Group nearby pano dots; returns pano→cluster and cluster metadata."""
+    if not pano_positions:
+        return {}, {}
+    positions_only = {pid: (px, py) for pid, (px, py, _, _) in pano_positions.items()}
+    pano_to_cluster = _cluster_panos_by_screen_px(
+        list(positions_only.keys()),
+        positions_only,
+        threshold_px=threshold_px,
+    )
+    members_by_cluster: dict[int, list[str]] = {}
+    for pano_id, cluster_id in pano_to_cluster.items():
+        members_by_cluster.setdefault(cluster_id, []).append(pano_id)
+
+    clusters: dict[int, tuple[int, int, bool, bool, int]] = {}
+    for cluster_id, members in members_by_cluster.items():
+        xs = [positions_only[m][0] for m in members]
+        ys = [positions_only[m][1] for m in members]
+        is_neighbor = any(pano_positions[m][2] for m in members)
+        is_visited = all(pano_positions[m][3] for m in members)
+        clusters[cluster_id] = (
+            int(sum(xs) / len(xs)),
+            int(sum(ys) / len(ys)),
+            is_neighbor,
+            is_visited,
+            len(members),
+        )
+    return pano_to_cluster, clusters
+
+
+def _draw_pano_graph_edges_consolidated(
+    draw,
+    *,
+    cx: int,
+    cy: int,
+    current_pano_id: str,
+    pano_to_cluster: dict[str, int],
+    cluster_centroids: dict[int, tuple[int, int]],
+    neighbor_map: dict[str, list[str]],
+    visible_panos: set[str],
+) -> None:
+    """Draw graph edges between consolidated overview clusters."""
+
+    def endpoint(pano_id: str) -> tuple[str, int, int]:
+        if pano_id == current_pano_id:
+            return ("YOU", cx, cy)
+        cluster_id = pano_to_cluster[pano_id]
+        px, py = cluster_centroids[cluster_id]
+        return (f"C{cluster_id}", px, py)
+
+    drawn: set[tuple[str, str]] = set()
+    for pano_id in visible_panos:
+        for nid in neighbor_map.get(pano_id, []):
+            if nid not in visible_panos:
+                continue
+            ra, ax, ay = endpoint(pano_id)
+            rb, bx, by = endpoint(nid)
+            if ra == rb:
+                continue
+            key = tuple(sorted((ra, rb)))
+            if key in drawn:
+                continue
+            drawn.add(key)
+            is_active = ra == "YOU" or rb == "YOU"
+            width = 3 if is_active else 1
+            color = FE_EDGE_ACTIVE if is_active else FE_EDGE_DIM
+            draw.line((ax, ay, bx, by), fill=color, width=width)
+
+
+def _draw_consolidated_pano_markers(
+    draw,
+    clusters: dict[int, tuple[int, int, bool, bool, int]],
+) -> None:
+    for _cluster_id, (px, py, is_neighbor, is_visited, count) in clusters.items():
+        radius, fill, stroke, stroke_w = _pano_marker_style(
+            is_neighbor=is_neighbor, is_visited=is_visited
+        )
+        if count > 1:
+            radius = min(radius + count // 2, radius + 4)
+        _draw_circle_marker(draw, px, py, radius, fill=fill, stroke=stroke, stroke_w=stroke_w)
+
+
 def _pano_marker_style(
     *,
     is_neighbor: bool,
@@ -1076,6 +1162,7 @@ def _render_graph_map(
     out_path: Path,
     visible_panos: set[str] | None = None,
     label_neighbor_panos: bool = False,
+    consolidate_nearby_panos: bool = False,
     last_move_bearing_deg: float | None = None,
 ) -> Path:
     """North-up map matching the frontend: Carto dark tiles, graph, labels, legend."""
@@ -1119,15 +1206,34 @@ def _render_graph_map(
         is_visited = pano_id in visited
         pano_positions[pano_id] = (px, py, is_neighbor, is_visited)
 
-    _draw_pano_graph_edges(
-        draw,
-        cx=cx,
-        cy=cy,
-        current_pano_id=state.pano_id,
-        pano_positions=pano_positions,
-        neighbor_map=neighbor_map,
-        visible_panos=visible_panos,
-    )
+    pano_to_cluster: dict[str, int] = {}
+    cluster_meta: dict[int, tuple[int, int, bool, bool, int]] = {}
+    if consolidate_nearby_panos:
+        pano_to_cluster, cluster_meta = _build_consolidated_pano_clusters(
+            pano_positions,
+            threshold_px=OVERVIEW_CLUSTER_PX,
+        )
+        cluster_centroids = {cid: (px, py) for cid, (px, py, _, _, _) in cluster_meta.items()}
+        _draw_pano_graph_edges_consolidated(
+            draw,
+            cx=cx,
+            cy=cy,
+            current_pano_id=state.pano_id,
+            pano_to_cluster=pano_to_cluster,
+            cluster_centroids=cluster_centroids,
+            neighbor_map=neighbor_map,
+            visible_panos=visible_panos,
+        )
+    else:
+        _draw_pano_graph_edges(
+            draw,
+            cx=cx,
+            cy=cy,
+            current_pano_id=state.pano_id,
+            pano_positions=pano_positions,
+            neighbor_map=neighbor_map,
+            visible_panos=visible_panos,
+        )
 
     target_track = state.pole_in_consideration
     for pole in world.poles:
@@ -1170,7 +1276,10 @@ def _render_graph_map(
         max_lat=max_lat,
         max_lon=max_lon,
     )
-    _draw_pano_markers(draw, pano_positions)
+    if consolidate_nearby_panos:
+        _draw_consolidated_pano_markers(draw, cluster_meta)
+    else:
+        _draw_pano_markers(draw, pano_positions)
     _draw_circle_marker(
         draw,
         cx,
@@ -1211,6 +1320,8 @@ def _render_graph_map(
         "North-up map (same style as the web UI)",
         "Cyan wedge = your view; blue pano = you; purple = visited neighbors",
     ]
+    if consolidate_nearby_panos:
+        legend.append("Overview merges nearby pano dots into one marker")
     if last_move_bearing_deg is not None:
         legend.append("Magenta arrow = direction you moved last step")
     _draw_map_legend(draw, legend, font=label_font)
@@ -1277,6 +1388,7 @@ def render_map_overview_image(
         out_path=out_path,
         visible_panos=visible,
         label_neighbor_panos=False,
+        consolidate_nearby_panos=True,
         last_move_bearing_deg=state.last_move_bearing_deg,
     )
     return path, bounds

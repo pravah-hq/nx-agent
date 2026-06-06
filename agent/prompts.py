@@ -83,6 +83,7 @@ def build_map_navigation_prompt(
         "magenta_arrow": "last move direction (when shown on map)",
         "north_up": "map is north-up like the web UI",
         "zoom_labels": "compact neighbor pano ids on MAP ZOOM only",
+        "merged_dots": "on MAP OVERVIEW, nearby panos are merged into one dot",
     }
     rules = [
         image_guide["use_all"],
