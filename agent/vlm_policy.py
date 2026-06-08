@@ -22,7 +22,7 @@ from agent.environment import World
 from agent.graph import get_neighbors
 from agent.model_client import VlmClient
 from agent.map_render import render_map_node_zoom_image, render_map_overview_image
-from agent.navigation import build_neighbor_move_options
+from agent.navigation import backtrack_blocked_ids, build_neighbor_move_options
 from agent.targeting import plan_mission_to_pole, select_target_pole
 from agent.policy import Policy
 from agent.prompts import (
@@ -265,6 +265,7 @@ class VlmPolicy(Policy):
         self.last_phase = "overview_zoom_navigation"
 
         neighbors = get_neighbors(world.neighbor_map, state.pano_id)
+        blocked = backtrack_blocked_ids(state.last_move_from_pano_id)
         legal = navigation_allowed_actions(world, state)
         prompt = build_map_navigation_prompt(
             world,
@@ -281,9 +282,15 @@ class VlmPolicy(Policy):
         for attempt in range(self.parse_retries + 1):
             extra = ""
             if attempt > 0:
+                backtrack_hint = ""
+                if blocked:
+                    backtrack_hint = (
+                        f" Do not move to backtrack pano(s): {', '.join(sorted(blocked))}."
+                    )
                 extra = (
                     f"\n\nPrevious reply invalid ({last_error}). JSON only. "
                     f"Allowed: {', '.join(legal)}. move needs target_pano_id from neighbors."
+                    f"{backtrack_hint}"
                 )
             self.last_prompt = prompt + extra
             raw = self._vlm_images(
@@ -296,10 +303,14 @@ class VlmPolicy(Policy):
                 raw,
                 allowed=legal,
                 neighbor_ids=neighbors,
+                blocked_move_targets=blocked,
             )
             if action is not None:
                 return action
-            last_error = "could not parse navigation JSON"
+            if blocked and "backtrack" not in last_error:
+                last_error = "backtrack move rejected or could not parse navigation JSON"
+            else:
+                last_error = "could not parse navigation JSON"
 
         return None
 

@@ -20,24 +20,36 @@ def signed_bearing_delta(from_deg: float, to_deg: float) -> float:
 
 
 def last_move_relative_to_view_deg(world: "World", state: AgentState) -> float | None:
-    """How the last move bearing relates to current view (0 = straight ahead)."""
+    """Signed angle from current view to the backtrack direction (where you came from)."""
     if state.last_move_bearing_deg is None:
         return None
     pano = world.panos_by_id[state.pano_id]
     view_yaw = bin_center_world_yaw(pano, state.direction_bin)
-    return signed_bearing_delta(view_yaw, state.last_move_bearing_deg)
+    came_from_bearing = (state.last_move_bearing_deg + 180.0) % 360.0
+    return signed_bearing_delta(view_yaw, came_from_bearing)
 
 
 def last_move_context(world: "World", state: AgentState) -> dict:
     """JSON-friendly summary for navigation prompts."""
     rel = last_move_relative_to_view_deg(world, state)
+    blocked = state.last_move_from_pano_id
     return {
+        "purpose": (
+            "Avoid backtracking: the magenta arrow on the map points toward the pano "
+            "you came from. Do not move there again unless you turned away first."
+        ),
         "last_move_bearing_deg": state.last_move_bearing_deg,
+        "came_from_bearing_deg": (
+            None
+            if state.last_move_bearing_deg is None
+            else (state.last_move_bearing_deg + 180.0) % 360.0
+        ),
         "last_move_relative_to_view_deg": rel,
-        "last_move_from_pano_id": state.last_move_from_pano_id,
+        "last_move_from_pano_id": blocked,
+        "do_not_backtrack_to_pano_id": blocked,
         "on_map": (
-            "magenta arrow from YOU labeled last move (heading-up map); "
-            "0 deg relative = straight behind you on the map"
+            "magenta arrow from YOU points toward the pano you came from (north-up); "
+            "do not move to do_not_backtrack_to_pano_id"
             if state.last_move_bearing_deg is not None
             else None
         ),

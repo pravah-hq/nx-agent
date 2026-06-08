@@ -818,17 +818,19 @@ def _draw_last_move_vector(
     font,
     length: int = 88,
 ) -> None:
-    """Magenta arrow from current pano along compass bearing (north-up map)."""
+    """Magenta arrow from current pano toward where you came from (north-up map)."""
     if last_move_bearing_deg is None:
         return
-    rad = math.radians(last_move_bearing_deg)
+    # Arrow points back along the incoming path so the VLM avoids backtracking.
+    came_from_bearing = (last_move_bearing_deg + 180.0) % 360.0
+    rad = math.radians(came_from_bearing)
     ex = cx + int(math.sin(rad) * length)
     ey = cy - int(math.cos(rad) * length)
     color = MAP_LAST_MOVE
     draw.line((cx, cy, ex, ey), fill=color, width=4)
     head = 10
-    left = math.radians(last_move_bearing_deg - 150)
-    right = math.radians(last_move_bearing_deg + 150)
+    left = math.radians(came_from_bearing - 150)
+    right = math.radians(came_from_bearing + 150)
     draw.polygon(
         [
             (ex, ey),
@@ -839,7 +841,7 @@ def _draw_last_move_vector(
     )
     draw.text(
         (ex + 8, ey - 10),
-        "last move",
+        "came from",
         fill=color,
         font=font,
         stroke_width=2,
@@ -1324,7 +1326,7 @@ def _render_graph_map(
     if consolidate_nearby_panos:
         legend.append("Overview merges nearby pano dots into one marker")
     if last_move_bearing_deg is not None:
-        legend.append("Magenta arrow = direction you moved last step")
+        legend.append("Magenta arrow = where you came from — do not backtrack")
     _draw_map_legend(draw, legend, font=label_font)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
