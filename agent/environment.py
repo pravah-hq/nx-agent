@@ -55,6 +55,10 @@ class World:
         )
 
     def initial_state(self, start_pano_id: str | None = None) -> AgentState:
+        if start_pano_id is None:
+            from agent.debug_nav import debug_start_pano_id
+
+            start_pano_id = debug_start_pano_id(self)
         pano_id = start_pano_id or self.panos[0].id
         if pano_id not in self.panos_by_id:
             raise ValueError(f"Unknown pano id: {pano_id}")

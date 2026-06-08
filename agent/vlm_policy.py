@@ -243,6 +243,13 @@ class VlmPolicy(Policy):
         return raw
 
     def _ensure_navigation_plan(self, world: World, state: AgentState) -> None:
+        from agent.debug_nav import debug_goal_pano_id
+
+        debug_goal = debug_goal_pano_id(world)
+        if debug_goal:
+            self._goal_pano_id = debug_goal
+            return
+
         track = state.pole_in_consideration
         if not track or track in state.classified:
             track = select_target_pole(world, state)
