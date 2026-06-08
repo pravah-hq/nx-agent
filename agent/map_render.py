@@ -25,6 +25,7 @@ FULL_MAP_BOUNDS_PAD_RATIO = 0.45
 NODE_ZOOM_PAD_DEG = 0.000028
 # Node zoom: merge panos near GOAL for framing (same px rule as before).
 OVERVIEW_CLUSTER_PX = 34
+OVERVIEW_NODE_CONSOLIDATE_PX = 15
 OVERVIEW_ROAD_WIDTH = 7
 OVERVIEW_ROUTE_WIDTH = 10
 # Pano graph dots (small so MOVE / pole labels do not cover them).
@@ -1211,7 +1212,7 @@ def _render_graph_map(
     if consolidate_nearby_panos:
         pano_to_cluster, cluster_meta = _build_consolidated_pano_clusters(
             pano_positions,
-            threshold_px=OVERVIEW_CLUSTER_PX,
+            threshold_px=OVERVIEW_NODE_CONSOLIDATE_PX,
         )
         cluster_centroids = {cid: (px, py) for cid, (px, py, _, _, _) in cluster_meta.items()}
         _draw_pano_graph_edges_consolidated(
